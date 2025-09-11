@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المساعد الذكي - معهد رعاية الضبعية</title>
+    <link rel="stylesheet" href="chatbot.css">
+    <!-- إضافة Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- شريط العنوان -->
+        <div class="chat-header">
+            <img src="logo.png" alt="شعار المعهد" class="logo">
+            <h1>المساعد الذكي 🚀</h1>
+            <span class="status-icon">●</span>
+        </div>
+        <!-- منطقة الدردشة -->
+        <div class="chatbot-section">
+            <h3>اسألني أي سؤال!</h3>
+            <div class="chat-window" id="chat-window"></div>
+            <!-- حقل الإدخال وأزرار التحكم -->
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا..." autocomplete="off">
+                <button class="clear-btn" onclick="clearChat()">مسح</button>
+                <button class="send-btn">إرسال</button>
+            </div>
+        </div>
+        <nav class="nav-bar">
+            <a href="index.html" class="nav-item">
+                <span class="nav-icon"><i class="fas fa-door-open"></i></span>
+                <span class="nav-text">ترحيب</span>
+            </a>
+            <a href="Home.html" class="nav-item">
+                <span class="nav-icon"><i class="fas fa-search"></i></span>
+                <span class="nav-text">بحث</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <span class="nav-icon"><i class="fas fa-user"></i></span>
+                <span class="nav-text">الملف</span>
+            </a>
+            <a href="chatbot.html" class="nav-item active">
+                <span class="nav-icon"><i class="fas fa-comments"></i></span>
+                <span class="nav-text">دردشة</span>
+            </a>
+        </nav>
+    </div>
+    <script src="chatbot.js"></script>
+</body>
+</html>

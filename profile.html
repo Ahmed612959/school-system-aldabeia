@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="profile.css">
+    <link href="Cairo-Regular.ttf" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <nav id="nav-bar" class="nav-bar"></nav>
+        <section class="profile-section">
+            <h2>الملف الشخصي</h2>
+            <div class="profile-header">
+                <h3 id="user-name"></h3>
+                <span id="admin-badge" style="display: none;"><i class="fas fa-crown"></i></span>
+            </div>
+            <div class="progress-container">
+                <label for="profile-progress">نسبة اكتمال الملف:</label>
+                <progress id="profile-progress" value="0" max="100"></progress>
+                <span id="progress-percentage">0%</span>
+            </div>
+            <form id="profile-form">
+                <div class="input-group">
+                    <label for="full-name">الاسم الكامل</label>
+                    <input type="text" id="full-name" disabled>
+                </div>
+                <div class="input-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input type="text" id="username" disabled>
+                </div>
+                <div class="input-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <input type="email" id="email">
+                </div>
+                <div class="input-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <input type="tel" id="phone">
+                </div>
+                <div class="input-group">
+                    <label for="birthdate">تاريخ الميلاد</label>
+                    <input type="date" id="birthdate">
+                </div>
+                <div class="input-group">
+                    <label for="address">العنوان</label>
+                    <input type="text" id="address">
+                </div>
+                <div class="input-group">
+                    <label for="bio">السيرة الذاتية</label>
+                    <textarea id="bio" rows="4"></textarea>
+                </div>
+                <button type="submit" class="submit-btn">حفظ التغييرات</button>
+            </form>
+        </section>
+    </div>
+    <script src="crypto-js.js"></script>
+    <script src="dataManager.js"></script>
+    <script src="profile.js"></script>
+</body>
+</html>
