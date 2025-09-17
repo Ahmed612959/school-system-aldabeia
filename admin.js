@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
         try {
-            const response = await fetch(`http://localhost:3000${endpoint}`);
+           const response = await fetch(`https://school-system-aldabeia-production-31f7.up.railway.app${endpoint}`);
             if (!response.ok) throw new Error(`خطأ ${response.status}`);
             const data = await response.json();
             console.log(`Data loaded from server for ${endpoint}:`, data.length, 'items');
