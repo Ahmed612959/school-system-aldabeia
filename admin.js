@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             };
-            const response = await fetch(`http://localhost:3000${endpoint}${id ? `/${id}` : ''}`, options);
+            const response = await fetch(`https://school-system-aldabeia-production-31f7.up.railway.app/${endpoint}${id ? `/${id}` : ''}`, options);
             if (!response.ok) throw new Error(`خطأ ${response.status}`);
             return await response.json();
         } catch (error) {
