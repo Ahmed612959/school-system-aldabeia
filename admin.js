@@ -1,34 +1,37 @@
 document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
-        try {
-            const response = await fetch(`http://localhost:3000${endpoint}`);
-            if (!response.ok) throw new Error(`خطأ ${response.status}`);
-            const data = await response.json();
-            console.log(`Data loaded from server for ${endpoint}:`, data.length, 'items');
-            return data || [];
-        } catch (error) {
-            console.error(`Error fetching from ${endpoint}:`, error);
-            showToast('خطأ في جلب البيانات من الخادم!', 'error');
-            return [];
-        }
+    try {
+        const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
+        if (!response.ok) throw new Error(`خطأ ${response.status}`);
+        const data = await response.json();
+        console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
+        return data || [];
+    } catch (error) {
+        console.error(`Error fetching from ${endpoint}:`, error);
+        showToast('خطأ في جلب البيانات من الخادم!', 'error');
+        return [];
     }
+}
 
     async function saveToServer(endpoint, data, method = 'POST', id = null) {
-        try {
-            const options = {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            };
-            const response = await fetch(`http://localhost:3000${endpoint}${id ? `/${id}` : ''}`, options);
-            if (!response.ok) throw new Error(`خطأ ${response.status}`);
-            return await response.json();
-        } catch (error) {
-            console.error(`Error saving to ${endpoint}:`, error);
-            showToast('خطأ في حفظ البيانات!', 'error');
-            return null;
-        }
+    try {
+        const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+        const url = id ? `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}/${id}` : `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`;
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        };
+        const response = await fetch(url, options);
+        if (!response.ok) throw new Error(`خطأ ${response.status}`);
+        return await response.json();
+    } catch (error) {
+        console.error(`Error saving to ${endpoint}:`, error);
+        showToast('خطأ في حفظ البيانات!', 'error');
+        return null;
     }
+}
 
     function renderAdminWelcomeMessage() {
         const welcomeMessage = document.querySelector('.admin-welcome-message');
