@@ -1,44 +1,43 @@
 document.addEventListener('DOMContentLoaded', function() {
     // دالة لجلب البيانات من localStorage مع فحص السلامة
-    function getFromLocalStorage(key) {
-        try {
-            const data = localStorage.getItem(key);
-            if (data === null || data === 'undefined') {
-                console.log(`No data found in localStorage for key "${key}"`);
-                return [];
-            }
-            const parsed = JSON.parse(data);
-            if (!Array.isArray(parsed)) {
-                throw new Error(`Data for key "${key}" is not an array`);
-            }
-            console.log(`Data loaded from localStorage for key "${key}":`, parsed.length, 'items');
-            return parsed;
-        } catch (error) {
-            console.error(`Error loading from localStorage for key "${key}":`, error);
-            return [];
-        }
+async function getFromServer(endpoint) {
+    try {
+        const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
+        if (!response.ok) throw new Error(`خطأ ${response.status}`);
+        const data = await response.json();
+        console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
+        return data || [];
+    } catch (error) {
+        console.error(`Error fetching from ${endpoint}:`, error);
+        showToast('خطأ في جلب البيانات من الخادم!', 'error');
+        return [];
     }
+}
 
     // جلب البيانات
-    let students = getFromLocalStorage('students');
-    let violations = getFromLocalStorage('violations');
-
+    let students = [];
+let violations = [];
+async function loadInitialData() {
+    students = await getFromServer('/api/students');
+    violations = await getFromServer('/api/violations');
+}
     // عرض الإشعارات
-    function renderNotifications() {
-        const notifications = getFromLocalStorage('notifications');
-        const tableBody = document.getElementById('notifications-table-body');
-        if (tableBody) {
-            tableBody.innerHTML = '';
-            notifications.forEach(notification => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${notification.text}</td>
-                    <td>${notification.date}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
+    async function renderNotifications() {
+    const notifications = await getFromServer('/api/notifications');
+    const tableBody = document.getElementById('notifications-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = '';
+        notifications.forEach(notification => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${notification.text}</td>
+                <td>${notification.date}</td>
+            `;
+            tableBody.appendChild(row);
+        });
     }
+}
 
     // عرض النافبار بناءً على نوع المستخدم
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -68,96 +67,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // التعامل مع نموذج البحث
     const searchForm = document.getElementById('search-form');
-    const resultTableBody = document.getElementById('result-table-body');
-    const violationsTableBody = document.getElementById('violations-table-body');
-
-    if (searchForm && resultTableBody && violationsTableBody) {
-        // إذا الطالب مسجل، املأ حقل اسم الطالب تلقائيًا
-        if (loggedInUser && loggedInUser.type === 'student') {
-            const student = students.find(s => s.username === loggedInUser.username);
-            if (student && document.getElementById('student-name')) {
-                document.getElementById('student-name').value = student.fullName;
-                document.getElementById('student-name').readOnly = true; // منع التعديل
-            }
+const resultTableBody = document.getElementById('result-table-body');
+const violationsTableBody = document.getElementById('violations-table-body');
+if (searchForm) {
+    searchForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const searchName = document.getElementById('search-name').value.trim();
+        const searchId = document.getElementById('search-id').value.trim();
+        if (!searchName && !searchId) {
+            showToast('يرجى إدخال اسم الطالب أو رقم الجلوس!', 'error');
+            return;
         }
-
-        searchForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const studentName = document.getElementById('student-name').value.trim().toLowerCase();
-            const studentId = document.getElementById('student-id').value.trim().toLowerCase();
-
-            // إذا المستخدم طالب، تحقق من أن البحث يخصه فقط
-            let student;
-            if (loggedInUser && loggedInUser.type === 'student') {
-                student = students.find(s => 
-                    s.username === loggedInUser.username &&
-                    s.fullName.toLowerCase() === studentName &&
-                    s.id.toLowerCase() === studentId
-                );
-            } else if (loggedInUser && loggedInUser.type === 'admin') {
-                // الأدمن يقدر يبحث عن أي طالب
-                student = students.find(s => 
-                    s.fullName.toLowerCase() === studentName &&
-                    s.id.toLowerCase() === studentId
-                );
-            }
-
-            resultTableBody.innerHTML = '';
-            violationsTableBody.innerHTML = '';
-
-            if (student) {
-                // عرض النتيجة
-                const total = student.subjects.reduce((sum, s) => sum + (s.grade || 0), 0);
-                const percentage = student.subjects.length ? (total / (student.subjects.length * 100)) * 100 : 0;
-
-                const labels = ['اسم الطالب', 'رقم الجلوس'].concat(student.subjects.map(s => s.name));
-                const values = [student.fullName, student.id].concat(student.subjects.map(s => s.grade || 0));
-                const labelsWithSeparators = labels.map((label, index) => 
-                    index < labels.length - 1 ? `${label}<hr class="table-separator">` : label
-                ).join('');
-                const valuesWithSeparators = values.map((value, index) => 
-                    index < values.length - 1 ? `${value}<hr class="table-separator">` : value
-                ).join('');
-
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${labelsWithSeparators}</td>
-                    <td>${valuesWithSeparators}</td>
-                    <td>${total}</td>
-                    <td>${percentage.toFixed(2)}%</td>
-                `;
-                resultTableBody.appendChild(row);
-
-                // عرض الإنذارات/المخالفات
-                const studentViolations = violations.filter(v => v.studentId.toLowerCase() === studentId);
-                if (studentViolations.length > 0) {
-                    studentViolations.forEach(violation => {
-                        const violationRow = document.createElement('tr');
-                        violationRow.innerHTML = `
-                            <td>${violation.type === 'warning' ? 'إنذار' : 'مخالفة'}</td>
-                            <td>${violation.reason}</td>
-                            <td>${violation.penalty}</td>
-                            <td>${violation.parentSummons ? 'نعم' : 'لا'}</td>
-                            <td>${violation.date}</td>
-                        `;
-                        violationsTableBody.appendChild(violationRow);
-                    });
-                } else {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `<td colspan="5">لا توجد إنذارات أو مخالفات لهذا الطالب.</td>`;
-                    violationsTableBody.appendChild(row);
-                }
+        const student = students.find(s => 
+            (searchName && s.fullName.toLowerCase().includes(searchName.toLowerCase())) ||
+            (searchId && s.id === searchId)
+        );
+        resultTableBody.innerHTML = '';
+        violationsTableBody.innerHTML = '';
+        if (student) {
+            const total = student.subjects.reduce((sum, s) => sum + (s.grade || 0), 0);
+            const percentage = student.subjects.length ? (total / (student.subjects.length * 100)) * 100 : 0;
+            let percentageClass = percentage >= 85 ? 'high-percentage' : percentage >= 60 ? 'medium-percentage' : 'low-percentage';
+            const labels = ['اسم الطالب', 'رقم الجلوس'].concat(student.subjects.map(s => s.name));
+            const values = [student.fullName, student.id].concat(student.subjects.map(s => s.grade || 0));
+            const labelsWithSeparators = labels.map((label, index) => 
+                index < labels.length - 1 ? `${label}<hr class="table-separator">` : label
+            ).join('');
+            const valuesWithSeparators = values.map((value, index) => 
+                index < values.length - 1 ? `${value}<hr class="table-separator">` : value
+            ).join('');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${labelsWithSeparators}</td>
+                <td>${valuesWithSeparators}</td>
+                <td>${total}</td>
+                <td class="${percentageClass}">${percentage.toFixed(1)}%</td>
+            `;
+            resultTableBody.appendChild(row);
+            const studentViolations = violations.filter(v => v.studentId === student.id);
+            if (studentViolations.length) {
+                studentViolations.forEach(violation => {
+                    const violationRow = document.createElement('tr');
+                    violationRow.innerHTML = `
+                        <td>${violation.type === 'warning' ? 'إنذار' : 'مخالفة'}</td>
+                        <td>${violation.reason}</td>
+                        <td>${violation.penalty}</td>
+                        <td>${violation.parentSummons ? 'نعم' : 'لا'}</td>
+                        <td>${violation.date}</td>
+                    `;
+                    violationsTableBody.appendChild(violationRow);
+                });
             } else {
-                const row = document.createElement('tr');
-                row.innerHTML = `<td colspan="4">لم يتم العثور على نتيجة! تأكد من الاسم ورقم الجلوس.</td>`;
-                resultTableBody.appendChild(row);
                 const violationRow = document.createElement('tr');
-                violationRow.innerHTML = `<td colspan="5">لم يتم العثور على نتيجة!</td>`;
+                violationRow.innerHTML = `<td colspan="5">لا توجد إنذارات أو مخالفات لهذا الطالب.</td>`;
                 violationsTableBody.appendChild(violationRow);
             }
-        });
-    }
+        } else {
+            showToast('لم يتم العثور على الطالب! تأكد من الاسم أو رقم الجلوس.', 'error');
+            const row = document.createElement('tr');
+            row.innerHTML = `<td colspan="4">لم يتم العثور على نتيجة! تأكد من الاسم ورقم الجلوس.</td>`;
+            resultTableBody.appendChild(row);
+            const violationRow = document.createElement('tr');
+            violationRow.innerHTML = `<td colspan="5">لم يتم العثور على نتيجة!</td>`;
+            violationsTableBody.appendChild(violationRow);
+        }
+    });
+}
 
     // أضيفي هنا: دالة renderWelcomeMessage و showToast
     function renderWelcomeMessage() {
@@ -223,6 +198,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // استدعاء الدوال
+    loadInitialData().then(() => {
     renderNotifications();
     renderWelcomeMessage();
+    renderDashboard();
 });
