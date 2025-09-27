@@ -40,30 +40,64 @@ async function loadInitialData() {
 }
 
     // عرض النافبار بناءً على نوع المستخدم
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    const navBar = document.getElementById('nav-bar');
-    if (loggedInUser) {
-        const navItems = [
-            { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-            { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
-            { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
-            { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
-        ];
-        if (loggedInUser.type === 'admin') {
-            navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
-        }
-        navBar.innerHTML = navItems.map(item => `
-            <a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>
-        `).join('');
-    } else {
-        navBar.innerHTML = '<a href="index.html" title="الرئيسية"><i class="fas fa-home"></i></a>';
+    // عرض النافبار بناءً على نوع المستخدم
+const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+const navBar = document.getElementById('nav-bar');
+if (!navBar) {
+    console.error('عنصر nav-bar غير موجود في Home.html! تأكد من وجود <div id="nav-bar"> في الـ HTML.');
+    return;
+}
+if (loggedInUser) {
+    const navItems = [
+        { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
+        { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
+        { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
+        { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
+    ];
+    if (loggedInUser.type === 'admin') {
+        navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
     }
+    navBar.innerHTML = navItems.map(item => `
+        <a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>
+    `).join('');
+} else {
+    navBar.innerHTML = `
+        <a href="index.html" title="الرئيسية"><i class="fas fa-home"></i></a>
+        <a href="Home.html" title="النتائج"><i class="fas fa-chart-line"></i></a>
+    `;
+}
 
     // إخفاء لوحة التحكم
+    function renderDashboard() {
     const dashboard = document.getElementById('dashboard');
-    if (dashboard) {
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (dashboard && loggedInUser && loggedInUser.type === 'student') {
+        dashboard.style.display = 'block'; // إظهار لوحة التحكم للطلاب
+        const student = students.find(s => s.username === loggedInUser.username);
+        if (student) {
+            const total = student.subjects.reduce((sum, s) => sum + (s.grade || 0), 0);
+            const percentage = student.subjects.length ? (total / (student.subjects.length * 100)) * 100 : 0;
+            const avgGrade = students.length ? students.reduce((sum, s) => {
+                const avg = s.subjects.length ? s.subjects.reduce((sSum, s) => sSum + (s.grade || 0), 0) / s.subjects.length : 0;
+                return sum + avg;
+            }, 0) / students.length : 0;
+            dashboard.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-item" id="success-rate">
+                        <p><i class="fas fa-chart-line"></i> نسبة نجاحك: ${percentage.toFixed(1)}%</p>
+                    </div>
+                    <div class="stat-item" id="class-average">
+                        <p><i class="fas fa-users"></i> متوسط الفصل: ${avgGrade.toFixed(1)}</p>
+                    </div>
+                </div>
+            `;
+        } else {
+            dashboard.style.display = 'none';
+        }
+    } else {
         dashboard.style.display = 'none';
     }
+}
 
     // التعامل مع نموذج البحث
     const searchForm = document.getElementById('search-form');
@@ -197,7 +231,6 @@ if (searchForm) {
         }).showToast();
     }
 
-    // استدعاء الدوال
     loadInitialData().then(() => {
     renderNotifications();
     renderWelcomeMessage();
