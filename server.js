@@ -243,10 +243,29 @@ app.delete('/api/notifications/:id', async (req, res) => {
 app.post('/api/analyze-pdf', async (req, res) => {
     try {
         const { pdfData } = req.body;
-        const buffer = Buffer.from(pdfData, 'base64');
+
+        // التحقق من وجود pdfData
+        if (!pdfData || typeof pdfData !== 'string') {
+            console.error('pdfData غير صالح أو مفقود:', pdfData);
+            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
+        }
+
+        // تحويل Base64 إلى Buffer
+        let buffer;
+        try {
+            buffer = Buffer.from(pdfData, 'base64');
+        } catch (error) {
+            console.error('خطأ في تحويل Base64 إلى Buffer:', error.message);
+            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
+        }
+
+        // تحليل الـ PDF
         const data = await pdfParse(buffer);
         const text = data.text;
         const lines = text.split(/\r?\n/).filter(line => line.trim());
+        console.log('الأسطر المستخرجة من الـ PDF:', lines);
+
+        // قائمة المواد المتوقعة
         const validSubjects = [
             'مبادئ وأسس تمريض',
             'اللغة العربية',
@@ -257,12 +276,16 @@ app.post('/api/analyze-pdf', async (req, res) => {
             'التربية الدينية',
             'الكمبيوتر'
         ];
+
         const allResults = [];
         let currentStudent = null;
         let grades = [];
+
         for (const line of lines) {
+            // استخراج الاسم ورقم الجلوس
             const studentMatch = line.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/i);
             if (studentMatch) {
+                // إذا كان هناك طالب سابق، احفظه
                 if (currentStudent && grades.length > 0) {
                     allResults.push({
                         name: currentStudent.fullName,
@@ -291,18 +314,25 @@ app.post('/api/analyze-pdf', async (req, res) => {
                         await student.save();
                     }
                 }
+                // بدء طالب جديد
                 currentStudent = {
                     fullName: studentMatch[1].trim(),
                     id: studentMatch[2].trim()
                 };
                 grades = [];
-            } else if (line.includes(':')) {
+            } 
+            // استخراج المواد والدرجات
+            else if (line.includes(':')) {
                 const [subject, grade] = line.split(':').map(s => s.trim());
                 if (validSubjects.includes(subject) && !isNaN(parseInt(grade))) {
                     grades.push({ name: subject, grade: parseInt(grade) });
+                } else {
+                    console.log(`تم تجاهل السطر غير الصالح: ${line}`);
                 }
             }
         }
+
+        // حفظ آخر طالب إذا كان موجودًا
         if (currentStudent && grades.length > 0) {
             allResults.push({
                 name: currentStudent.fullName,
@@ -331,13 +361,16 @@ app.post('/api/analyze-pdf', async (req, res) => {
                 await student.save();
             }
         }
+
         if (allResults.length === 0) {
+            console.error('لم يتم العثور على بيانات طلاب أو درجات صالحة في الأسطر:', lines);
             return res.status(400).json({ error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف' });
         }
+
         res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
     } catch (error) {
-        console.error('خطأ في تحليل PDF:', error);
-        res.status(500).json({ error: 'خطأ في تحليل الملف' });
+        console.error('خطأ في تحليل PDF:', error.message, error.stack);
+        res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });
 
@@ -349,3 +382,4 @@ app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 
 });
+
