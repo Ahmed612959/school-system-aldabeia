@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // مفتاح API (ضعه في ملف .env في الباك إند للأمان)
-    const API_KEY = 'AIzaSyC5q7nbeo55hu7p_oJh1TB3Pqa9NCaNWWE-5ZiIUwzJDmGMtRtxk'; // استبدل بمفتاحك الجديد
+    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // استبدل بمفتاحك الجديد
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     // دالة تنسيق الوقت
