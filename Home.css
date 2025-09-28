@@ -80,10 +80,10 @@ html, body {
     flex: 1;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     padding: 15px;
+    width: 100%;
 }
-
 .result-form-container {
     background: #fff;
     padding: 25px;
@@ -444,137 +444,92 @@ canvas#gradesChart {
     max-height: 350px; /* زيادة الارتفاع قليلاً */
 }
 .violations-section {
-    margin-bottom: 15px;
-    text-align: center;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 1200px;
 }
-
 .violations-section h3 {
-    font-size: 0.85em;
-    margin-bottom: 8px;
-    color: #1a2526;
-    font-weight: bold;
+    color: #d4af37;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    text-align: right;
 }
-
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 10px;
+}
 .violations-table {
     width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    display: block;
-}
-
-.violations-table table {
-    width: 100%;
-    max-width: 100%;
     border-collapse: collapse;
-    background: #f9f9f9;
-    border-radius: 6px;
-    overflow: hidden;
-    table-layout: fixed;
+    min-width: 600px;
 }
-
 .violations-table th,
 .violations-table td {
-    padding: 5px;
-    text-align: center;
-    border-bottom: 1px solid #d4af37;
-    font-size: 0.7em;
-    vertical-align: middle;
+    padding: 10px;
+    text-align: right;
+    font-size: 0.9em;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-
 .violations-table th {
-    background: linear-gradient(90deg, #1a2526, #2f3b3c);
-    color: #d4af37;
-    font-weight: bold;
-    position: sticky;
-    top: 0;
-    z-index: 1;
-}
-
-.violations-table td {
+    background: #d4af37;
     color: #1a2526;
-    background: #fff;
+    font-weight: bold;
 }
-
-.violations-table th:nth-child(1), .violations-table td:nth-child(1) { /* النوع */
-    width: 15%;
-    min-width: 40px;
+.violations-table td {
+    background: rgba(255, 255, 255, 0.05);
 }
-
-.violations-table th:nth-child(2), .violations-table td:nth-child(2) { /* السبب */
-    width: 35%;
-    min-width: 80px;
-    white-space: normal; /* Allow text wrapping */
-    max-width: 150px; /* Limit max width */
-    word-wrap: break-word;
-}
-
-.violations-table th:nth-child(3), .violations-table td:nth-child(3) { /* العقوبة */
-    width: 30%;
-    min-width: 70px;
-    white-space: normal; /* Allow text wrapping */
-    max-width: 150px; /* Limit max width */
-    word-wrap: break-word;
-}
-
-.violations-table th:nth-child(4), .violations-table td:nth-child(4) { /* استدعاء ولي الأمر */
-    width: 10%;
-    min-width: 30px;
-}
-
-.violations-table th:nth-child(5), .violations-table td:nth-child(5) { /* تاريخ الإضافة */
-    width: 20%;
-    min-width: 50px;
-}
-
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    .violations-table th,
-    .violations-table td {
-        font-size: 0.65em;
-        padding: 4px;
-    }
-    .violations-table th:nth-child(1), .violations-table td:nth-child(1) { min-width: 35px; }
-    .violations-table th:nth-child(2), .violations-table td:nth-child(2) { min-width: 70px; }
-    .violations-table th:nth-child(3), .violations-table td:nth-child(3) { min-width: 60px; }
-    .violations-table th:nth-child(4), .violations-table td:nth-child(4) { min-width: 25px; }
-    .violations-table th:nth-child(5), .violations-table td:nth-child(5) { min-width: 45px; }
-}
-
+.violations-table th:nth-child(1), .violations-table td:nth-child(1) { min-width: 80px; }
+.violations-table th:nth-child(2), .violations-table td:nth-child(2) { min-width: 150px; }
+.violations-table th:nth-child(3), .violations-table td:nth-child(3) { min-width: 120px; }
+.violations-table th:nth-child(4), .violations-table td:nth-child(4) { min-width: 100px; }
+.violations-table th:nth-child(5), .violations-table td:nth-child(5) { min-width: 120px; }
 @media (max-width: 768px) {
-    .violations-section h3 {
-        font-size: 0.8em;
+    .violations-section {
+        width: 100%;
+        max-width: 100%;
     }
-    .violations-table th,
-    .violations-table td {
-        font-size: 0.6em;
-        padding: 3px;
-    }
-    .violations-table th:nth-child(1), .violations-table td:nth-child(1) { min-width: 30px; }
-    .violations-table th:nth-child(2), .violations-table td:nth-child(2) { min-width: 60px; }
-    .violations-table th:nth-child(3), .violations-table td:nth-child(3) { min-width: 50px; }
-    .violations-table th:nth-child(4), .violations-table td:nth-child(4) { min-width: 20px; }
-    .violations-table th:nth-child(5), .violations-table td:nth-child(5) { min-width: 40px; }
-}
-
-@media (max-width: 480px) {
     .violations-section h3 {
-        font-size: 0.75em;
+        font-size: 1em;
     }
     .violations-table {
+        min-width: 500px;
+    }
+    .violations-table th,
+    .violations-table td {
+        font-size: 0.8em;
+        padding: 8px;
+    }
+    .violations-table th:nth-child(1), .violations-table td:nth-child(1) { min-width: 60px; }
+    .violations-table th:nth-child(2), .violations-table td:nth-child(2) { min-width: 120px; }
+    .violations-table th:nth-child(3), .violations-table td:nth-child(3) { min-width: 100px; }
+    .violations-table th:nth-child(4), .violations-table td:nth-child(4) { min-width: 80px; }
+    .violations-table th:nth-child(5), .violations-table td:nth-child(5) { min-width: 100px; }
+}
+@media (max-width: 480px) {
+    .violations-section {
+        width: 100%;
+        max-width: 100%;
+    }
+    .violations-section h3 {
+        font-size: 0.9em;
+    }
+    .violations-table {
+        min-width: 300px;
         overflow-x: auto;
         white-space: nowrap;
     }
-    .violations-table table {
-        min-width: 300px; /* Prevent collapsing too much */
-    }
     .violations-table th,
     .violations-table td {
-        font-size: 0.55em;
-        padding: 2px;
+        font-size: 0.7em;
+        padding: 6px;
     }
-    .violations-table th:nth-child(1), .violations-table td:nth-child(1) { min-width: 25px; }
-    .violations-table th:nth-child(2), .violations-table td:nth-child(2) { min-width: 50px; }
-    .violations-table th:nth-child(3), .violations-table td:nth-child(3) { min-width: 45px; }
-    .violations-table th:nth-child(4), .violations-table td:nth-child(4) { min-width: 15px; }
-    .violations-table th:nth-child(5), .violations-table td:nth-child(5) { min-width: 35px; }
+    .violations-table th:nth-child(1), .violations-table td:nth-child(1) { min-width: 50px; }
+    .violations-table th:nth-child(2), .violations-table td:nth-child(2) { min-width: 100px; }
+    .violations-table th:nth-child(3), .violations-table td:nth-child(3) { min-width: 80px; }
+    .violations-table th:nth-child(4), .violations-table td:nth-child(4) { min-width: 60px; }
+    .violations-table th:nth-child(5), .violations-table td:nth-child(5) { min-width: 80px; }
 }
