@@ -525,6 +525,111 @@ document.getElementById('analyze-pdf')?.addEventListener('click', analyzePDF);
             { name: "الكمبيوتر", grade: subject8 }
         ];
 
+window.analyzePDF = async function() {
+        const fileInput = document.getElementById('pdf-upload');
+        const file = fileInput.files[0];
+        if (!file) {
+            showToast('يرجى اختيار ملف PDF أولاً!', 'error');
+            return;
+        }
+        const fileReader = new FileReader();
+        fileReader.onload = async function() {
+            const pdfData = arrayBufferToBase64(this.result);
+            const response = await saveToServer('/api/analyze-pdf', { pdfData });
+            if (response && response.results) {
+                displayPDFResults(response.results);
+                students = await getFromServer('/api/students');
+                renderResults();
+                renderStats();
+                showToast(`تم تحليل الملف وإضافة/تحديث ${response.results.length} طالب بنجاح!`, 'success');
+            } else {
+                showToast('خطأ في تحليل الملف!', 'error');
+            }
+        };
+        fileReader.readAsArrayBuffer(file);
+    };
+
+    function arrayBufferToBase64(buffer) {
+        let binary = '';
+        const bytes = new Uint8Array(buffer);
+        for (let i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+    function displayPDFResults(results) {
+        const resultsDisplay = document.getElementById('results-display');
+        resultsDisplay.innerHTML = '';
+        const table = document.createElement('table');
+        table.className = 'results-table';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>البيانات</th>
+                    <th>القيم</th>
+                    <th>المجموع</th>
+                    <th>النسبة</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody id="pdf-results-body"></tbody>
+        `;
+        const tbody = table.querySelector('tbody');
+        results.forEach(student => {
+            const total = Object.values(student.results).reduce((sum, grade) => sum + grade, 0);
+            const percentage = student.results.length ? (total / (Object.keys(student.results).length * 100)) * 100 : 0;
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>اسم: ${student.name}<br>رقم الجلوس: ${student.id}</td>
+                <td>${Object.entries(student.results).map(([sub, grade]) => `${sub}: ${grade}`).join('<br>')}</td>
+                <td>${total}</td>
+                <td class="${percentage >= 85 ? 'high-percentage' : percentage >= 60 ? 'medium-percentage' : 'low-percentage'}">${percentage.toFixed(1)}%</td>
+                <td>
+                    <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        resultsDisplay.appendChild(table);
+    }
+
+    document.getElementById('analyze-pdf')?.addEventListener('click', analyzePDF);
+
+    document.getElementById('add-result-form')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const fullName = document.getElementById('student-name').value.trim();
+        const studentId = document.getElementById('student-id').value.trim();
+        const subject1 = parseInt(document.getElementById('subject1').value) || 0;
+        const subject2 = parseInt(document.getElementById('subject2').value) || 0;
+        const subject3 = parseInt(document.getElementById('subject3').value) || 0;
+        const subject4 = parseInt(document.getElementById('subject4').value) || 0;
+        const subject5 = parseInt(document.getElementById('subject5').value) || 0;
+        const subject6 = parseInt(document.getElementById('subject6').value) || 0;
+        const subject7 = parseInt(document.getElementById('subject7').value) || 0;
+        const subject8 = parseInt(document.getElementById('subject8').value) || 0;
+
+        if (!fullName || !studentId) {
+            showToast('يرجى إدخال اسم الطالب ورقم الجلوس!', 'error');
+            return;
+        }
+        if ([subject1, subject2, subject3, subject4, subject5, subject6, subject7, subject8].some(g => g < 0 || g > 100)) {
+            showToast('تأكد أن جميع الدرجات بين 0 و100!', 'error');
+            return;
+        }
+
+        const subjects = [
+            { name: "مبادئ وأسس تمريض", grade: subject1 },
+            { name: "اللغة العربية", grade: subject2 },
+            { name: "اللغة الإنجليزية", grade: subject3 },
+            { name: "الفيزياء", grade: subject4 },
+            { name: "الكيمياء", grade: subject5 },
+            { name: "التشريح / علم وظائف الأعضاء", grade: subject6 },
+            { name: "التربية الدينية", grade: subject7 },
+            { name: "الكمبيوتر", grade: subject8 }
+        ];
+
         const existingStudent = students.find(s => s.id === studentId);
         if (existingStudent) {
             const response = await saveToServer(`/api/students/${studentId}`, { subjects }, 'PUT');
