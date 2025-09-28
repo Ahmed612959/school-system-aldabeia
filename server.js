@@ -246,34 +246,82 @@ app.post('/api/analyze-pdf', async (req, res) => {
         const buffer = Buffer.from(pdfData, 'base64');
         const data = await pdfParse(buffer);
         const text = data.text;
-
-        const studentMatch = text.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/gi);
-        if (!studentMatch) {
-            return res.status(400).json({ error: 'لا توجد بيانات طلاب في الملف' });
-        }
-
+        const lines = text.split(/\r?\n/).filter(line => line.trim());
+        const validSubjects = [
+            'مبادئ وأسس تمريض',
+            'اللغة العربية',
+            'اللغة الإنجليزية',
+            'الفيزياء',
+            'الكيمياء',
+            'التشريح/علم وظائف الأعضاء',
+            'التربية الدينية',
+            'الكمبيوتر'
+        ];
         const allResults = [];
-        for (const match of studentMatch) {
-            const [, name, id] = match.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/i);
-            const gradesMatch = text.match(/(\w+\s*\w*):\s*(\d+)/gi) || [];
-            const grades = gradesMatch.map(g => {
-                const [subject, grade] = g.split(':').map(s => s.trim());
-                return { name: subject, grade: parseInt(grade) || 0 };
+        let currentStudent = null;
+        let grades = [];
+        for (const line of lines) {
+            const studentMatch = line.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/i);
+            if (studentMatch) {
+                if (currentStudent && grades.length > 0) {
+                    allResults.push({
+                        name: currentStudent.fullName,
+                        id: currentStudent.id,
+                        results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
+                    });
+                    const existingAdmins = await Admin.find();
+                    const existingStudents = await Student.find();
+                    let student = await Student.findOne({ id: currentStudent.id });
+                    if (student) {
+                        student.subjects = grades;
+                        await student.save();
+                    } else {
+                        const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
+                        const originalPassword = generatePassword(currentStudent.fullName);
+                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+                        student = new Student({
+                            fullName: currentStudent.fullName,
+                            id: currentStudent.id,
+                            username,
+                            password: hashedPassword,
+                            originalPassword,
+                            subjects: grades,
+                            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
+                        });
+                        await student.save();
+                    }
+                }
+                currentStudent = {
+                    fullName: studentMatch[1].trim(),
+                    id: studentMatch[2].trim()
+                };
+                grades = [];
+            } else if (line.includes(':')) {
+                const [subject, grade] = line.split(':').map(s => s.trim());
+                if (validSubjects.includes(subject) && !isNaN(parseInt(grade))) {
+                    grades.push({ name: subject, grade: parseInt(grade) });
+                }
+            }
+        }
+        if (currentStudent && grades.length > 0) {
+            allResults.push({
+                name: currentStudent.fullName,
+                id: currentStudent.id,
+                results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
             });
-
             const existingAdmins = await Admin.find();
             const existingStudents = await Student.find();
-            let student = await Student.findOne({ id });
+            let student = await Student.findOne({ id: currentStudent.id });
             if (student) {
                 student.subjects = grades;
                 await student.save();
             } else {
-                const username = generateUniqueUsername(name, id, [...existingAdmins, ...existingStudents]);
-                const originalPassword = generatePassword(name);
+                const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
+                const originalPassword = generatePassword(currentStudent.fullName);
                 const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
                 student = new Student({
-                    fullName: name,
-                    id,
+                    fullName: currentStudent.fullName,
+                    id: currentStudent.id,
                     username,
                     password: hashedPassword,
                     originalPassword,
@@ -282,7 +330,9 @@ app.post('/api/analyze-pdf', async (req, res) => {
                 });
                 await student.save();
             }
-            allResults.push({ name, id, results: Object.fromEntries(grades.map(g => [g.name, g.grade])) });
+        }
+        if (allResults.length === 0) {
+            return res.status(400).json({ error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف' });
         }
         res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
     } catch (error) {
@@ -297,4 +347,5 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
+
 });
