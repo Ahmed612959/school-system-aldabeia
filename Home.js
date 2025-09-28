@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     const navBar = document.getElementById('nav-bar');
     if (!navBar) {
-        console.error('عنصر nav-bar غير موجود في Home.html! تأكد من وجود <div id="nav-bar"> في الـ HTML.');
+        console.error('عنصر nav-bar غير موجود في Home.html! تأكد من وجود <nav id="nav-bar"> في الـ HTML.');
         return;
     }
     if (loggedInUser) {
@@ -71,11 +71,11 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
-    // عرض لوحة التحكم
+    // عرض لوحة التحكم مع الرسم البياني
     function renderDashboard() {
         const dashboard = document.getElementById('dashboard');
         if (dashboard && loggedInUser && loggedInUser.type === 'student') {
-            dashboard.style.display = 'block'; // إظهار لوحة التحكم للطلاب
+            dashboard.style.display = 'block';
             const student = students.find(s => s.username === loggedInUser.username);
             if (student) {
                 const total = student.subjects.reduce((sum, s) => sum + (s.grade || 0), 0);
@@ -84,16 +84,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     const avg = s.subjects.length ? s.subjects.reduce((sSum, s) => sSum + (s.grade || 0), 0) / s.subjects.length : 0;
                     return sum + avg;
                 }, 0) / students.length : 0;
-                dashboard.innerHTML = `
-                    <div class="stats-grid">
-                        <div class="stat-item" id="success-rate">
-                            <p><i class="fas fa-chart-line"></i> نسبة نجاحك: ${percentage.toFixed(1)}%</p>
-                        </div>
-                        <div class="stat-item" id="class-average">
-                            <p><i class="fas fa-users"></i> متوسط الفصل: ${avgGrade.toFixed(1)}</p>
-                        </div>
-                    </div>
-                `;
+                document.getElementById('student-percentage').textContent = `نسبة نجاحك: ${percentage.toFixed(1)}%`;
+                document.getElementById('class-average').textContent = `متوسط الفصل: ${avgGrade.toFixed(1)}`;
+
+                // إعداد الرسم البياني
+                const ctx = document.getElementById('gradesChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: student.subjects.map(s => s.name),
+                        datasets: [{
+                            label: 'درجات الطالب',
+                            data: student.subjects.map(s => s.grade || 0),
+                            backgroundColor: 'rgba(212, 175, 55, 0.6)',
+                            borderColor: 'rgba(212, 175, 55, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
             } else {
                 dashboard.style.display = 'none';
             }
