@@ -412,17 +412,19 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('text-input').value = '';
     };
 
-    window.analyzePDF = async function() {
-        const fileInput = document.getElementById('pdf-upload');
-        const file = fileInput.files[0];
-        if (!file) {
-            showToast('يرجى اختيار ملف PDF أولاً!', 'error');
-            return;
-        }
-        const fileReader = new FileReader();
-        fileReader.onload = async function() {
-            const pdfData = arrayBufferToBase64(this.result);
-            const response = await saveToServer('/api/analyze-pdf', { pdfData });
+window.analyzePDF = async function() {
+    const fileInput = document.getElementById('pdf-upload');
+    const file = fileInput.files[0];
+    if (!file || file.type !== 'application/pdf') {
+        showToast('يرجى اختيار ملف PDF صالح!', 'error');
+        return;
+    }
+    const fileReader = new FileReader();
+    fileReader.onload = async function() {
+        try {
+            const base64String = fileReader.result.split(',')[1]; // استخراج Base64 بدون 'data:application/pdf;base64,'
+            console.log('Base64 المرسل:', base64String.substring(0, 50) + '...'); // تسجيل جزء من Base64
+            const response = await saveToServer('/api/analyze-pdf', { pdfData: base64String });
             if (response && response.results) {
                 displayPDFResults(response.results);
                 students = await getFromServer('/api/students');
@@ -430,11 +432,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 renderStats();
                 showToast(`تم تحليل الملف وإضافة/تحديث ${response.results.length} طالب بنجاح!`, 'success');
             } else {
-                showToast('خطأ في تحليل الملف!', 'error');
+                showToast('خطأ في تحليل الملف: لا توجد نتائج!', 'error');
             }
-        };
-        fileReader.readAsArrayBuffer(file);
+        } catch (error) {
+            console.error('خطأ في تحليل PDF:', error);
+            showToast(`خطأ في تحليل الملف: ${error.message}`, 'error');
+        }
     };
+    fileReader.readAsDataURL(file);
+};
+
+document.getElementById('analyze-pdf')?.addEventListener('click', analyzePDF);
 
     function arrayBufferToBase64(buffer) {
         let binary = '';
