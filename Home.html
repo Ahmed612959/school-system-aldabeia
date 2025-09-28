@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>نتايج الطلاب - معهد رعاية الضبعية الفني للتمريض</title>
     <link rel="stylesheet" href="Home.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    <script src="Chart.js/package/dist/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
     <header class="main-header">
@@ -25,11 +25,11 @@
             <form id="search-form">
                 <div class="input-group">
                     <label for="student-name">اسم الطالب</label>
-                    <input type="text" id="student-name" name="student-name" placeholder="أدخل اسم الطالب">
+                 <input type="text" id="search-name" name="student-name" placeholder="أدخل اسم الطالب">
                 </div>
                 <div class="input-group">
                     <label for="student-id">رقم الجلوس</label>
-                    <input type="text" id="student-id" name="student-id" placeholder="أدخل رقم الجلوس">
+                   <input type="text" id="search-id" name="student-id" placeholder="أدخل رقم الجلوس">
                 </div>
                 <button type="submit" class="submit-btn">عرض النتيجة</button>
             </form>
@@ -108,7 +108,6 @@
     </footer>
 
     <script src="crypto-js.js"></script>
-<script src="dataManager.js"></script>
     <script src="auth.js"></script>
     <script src="Home.js"></script>
 </body>
