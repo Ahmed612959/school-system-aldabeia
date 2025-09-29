@@ -240,141 +240,40 @@ app.delete('/api/notifications/:id', async (req, res) => {
     }
 });
 
-```javascript
 app.post('/api/analyze-pdf', async (req, res) => {
     try {
         const { pdfData } = req.body;
-
-        // التحقق من وجود pdfData
-        if (!pdfData || typeof pdfData !== 'string') {
-            console.error('pdfData غير صالح أو مفقود:', pdfData);
-            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
-        }
-
-        // تحويل Base64 إلى Buffer
-        let buffer;
-        try {
-            buffer = Buffer.from(pdfData, 'base64');
-        } catch (error) {
-            console.error('خطأ في تحويل Base64 إلى Buffer:', error.message);
-            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
-        }
-
-        // تحليل الـ PDF
+        const buffer = Buffer.from(pdfData, 'base64');
         const data = await pdfParse(buffer);
         const text = data.text;
-        const lines = text.split(/\r?\n/).filter(line => line.trim());
-        console.log('الأسطر المستخرجة من الـ PDF:', lines);
 
-        // قائمة المواد المتوقعة
-        const validSubjects = [
-            'مبادئ وأسس تمريض',
-            'اللغة العربية',
-            'اللغة الإنجليزية',
-            'الفيزياء',
-            'الكيمياء',
-            'التشريح/علم وظائف الأعضاء',
-            'التربية الدينية',
-            'الكمبيوتر'
-        ];
-
-        // دالة لتطبيع أسماء المواد
-        const normalizeSubject = (subject) => {
-            return subject
-                .replace(/اإل/g, 'الإ') // تصحيح "اإل" إلى "الإ"
-                .replace(/أ/g, 'ا') // استبدال "أ" بـ "ا"
-                .replace(/ی/g, 'ي') // تصحيح "ی" إلى "ي"
-                .replace(/ة/g, 'ه') // تصحيح "ة" إلى "ه" إذا لزم الأمر
-                .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
-                .trim();
-        };
-
-        const allResults = [];
-        let currentStudent = null;
-        let grades = [];
-        const ignoredLines = [];
-
-        for (const line of lines) {
-            // تنظيف السطر من المسافات الزائدة
-            const cleanedLine = line.trim().replace(/\s+/g, ' ');
-
-            // محاولة مطابقة اسم الطالب ورقم الجلوس بنمط مرن
-            const studentMatch = cleanedLine.match(/(?:طالب|الطالب|Student):?\s*([^-\n]+?)\s*[-–—]?\s*(?:رقم الجلوس|رقم|ID):?\s*(\d+)/i);
-            if (studentMatch) {
-                // إذا كان هناك طالب سابق، احفظه
-                if (currentStudent && grades.length > 0) {
-                    allResults.push({
-                        name: currentStudent.fullName,
-                        id: currentStudent.id,
-                        results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
-                    });
-                    const existingAdmins = await Admin.find();
-                    const existingStudents = await Student.find();
-                    let student = await Student.findOne({ id: currentStudent.id });
-                    if (student) {
-                        student.subjects = grades;
-                        await student.save();
-                    } else {
-                        const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
-                        const originalPassword = generatePassword(currentStudent.fullName);
-                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
-                        student = new Student({
-                            fullName: currentStudent.fullName,
-                            id: currentStudent.id,
-                            username,
-                            password: hashedPassword,
-                            originalPassword,
-                            subjects: grades,
-                            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
-                        });
-                        await student.save();
-                    }
-                }
-                // بدء طالب جديد
-                currentStudent = {
-                    fullName: studentMatch[1].trim(),
-                    id: studentMatch[2].trim()
-                };
-                grades = [];
-                console.log('تم العثور على طالب:', currentStudent);
-            } 
-            // استخراج المواد والدرجات بنمط مرن
-            else if (cleanedLine.includes(':')) {
-                const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
-                const normalizedSubject = normalizeSubject(subject);
-                if (validSubjects.includes(normalizedSubject) && !isNaN(parseInt(grade))) {
-                    grades.push({ name: normalizedSubject, grade: parseInt(grade) });
-                    console.log(`تم استخراج المادة: ${normalizedSubject}, الدرجة: ${grade}`);
-                } else {
-                    console.log(`تم تجاهل السطر غير الصالح: ${cleanedLine} (السبب: المادة "${normalizedSubject}" غير موجودة في validSubjects أو الدرجة "${grade}" ليست رقمًا)`);
-                    ignoredLines.push(cleanedLine);
-                }
-            } else {
-                console.log(`تم تجاهل السطر غير المنسق: ${cleanedLine} (السبب: لا يحتوي على ":")`);
-                ignoredLines.push(cleanedLine);
-            }
+        const studentMatch = text.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/gi);
+        if (!studentMatch) {
+            return res.status(400).json({ error: 'لا توجد بيانات طلاب في الملف' });
         }
 
-        // حفظ آخر طالب إذا كان موجودًا
-        if (currentStudent && grades.length > 0) {
-            allResults.push({
-                name: currentStudent.fullName,
-                id: currentStudent.id,
-                results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
+        const allResults = [];
+        for (const match of studentMatch) {
+            const [, name, id] = match.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/i);
+            const gradesMatch = text.match(/(\w+\s*\w*):\s*(\d+)/gi) || [];
+            const grades = gradesMatch.map(g => {
+                const [subject, grade] = g.split(':').map(s => s.trim());
+                return { name: subject, grade: parseInt(grade) || 0 };
             });
+
             const existingAdmins = await Admin.find();
             const existingStudents = await Student.find();
-            let student = await Student.findOne({ id: currentStudent.id });
+            let student = await Student.findOne({ id });
             if (student) {
                 student.subjects = grades;
                 await student.save();
             } else {
-                const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
-                const originalPassword = generatePassword(currentStudent.fullName);
+                const username = generateUniqueUsername(name, id, [...existingAdmins, ...existingStudents]);
+                const originalPassword = generatePassword(name);
                 const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
                 student = new Student({
-                    fullName: currentStudent.fullName,
-                    id: currentStudent.id,
+                    fullName: name,
+                    id,
                     username,
                     password: hashedPassword,
                     originalPassword,
@@ -383,33 +282,19 @@ app.post('/api/analyze-pdf', async (req, res) => {
                 });
                 await student.save();
             }
+            allResults.push({ name, id, results: Object.fromEntries(grades.map(g => [g.name, g.grade])) });
         }
-
-        if (allResults.length === 0) {
-            console.error('لم يتم العثور على بيانات طلاب أو درجات صالحة في الأسطر:', lines);
-            return res.status(400).json({ 
-                error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف',
-                details: {
-                    extractedLines: lines,
-                    ignoredLines: ignoredLines
-                }
-            });
-        }
-
         res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
     } catch (error) {
-        console.error('خطأ في تحليل PDF:', error.message, error.stack);
-        res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
+        console.error('خطأ في تحليل PDF:', error);
+        res.status(500).json({ error: 'خطأ في تحليل الملف' });
     }
 });
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
-
 });
-
-
-
