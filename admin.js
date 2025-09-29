@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
         try {
             const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-            const response = await fetch(`https://school-system-aldabeia-production-31f7.up.railway.app/${cleanEndpoint}`);
+            const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
             if (!response.ok) throw new Error(`خطأ ${response.status}`);
             const data = await response.json();
             console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
