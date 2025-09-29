@@ -1,40 +1,41 @@
 document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
-    try {
-        const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
-        if (!response.ok) throw new Error(`خطأ ${response.status}`);
-        const data = await response.json();
-        console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
-        return data || [];
-    } catch (error) {
-        console.error(`Error fetching from ${endpoint}:`, error);
-        showToast('خطأ في جلب البيانات من الخادم!', 'error');
-        return [];
-    }
-}
-
-   async function saveToServer(endpoint, data, method = 'POST', id = null) {
-    try {
-        const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-        const url = id ? `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}/${id}` : `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`;
-        const options = {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        };
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`خطأ ${response.status}: ${errorText}`);
+        try {
+            const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+            const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
+            if (!response.ok) throw new Error(`خطأ ${response.status}`);
+            const data = await response.json();
+            console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
+            return data || [];
+        } catch (error) {
+            console.error(`Error fetching from ${endpoint}:`, error);
+            showToast('خطأ في جلب البيانات من الخادم!', 'error');
+            return [];
         }
-        return await response.json();
-    } catch (error) {
-        console.error(`Error saving to ${endpoint}:`, error);
-        showToast(`خطأ في حفظ البيانات: ${error.message}`, 'error');
-        throw error;
     }
-}
+
+    async function saveToServer(endpoint, data, method = 'POST', id = null) {
+        try {
+            const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+            const url = id ? `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}/${id}` : `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`;
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            };
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`خطأ ${response.status}: ${errorText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(`Error saving to ${endpoint}:`, error);
+            showToast(`خطأ في حفظ البيانات: ${error.message}`, 'error');
+            throw error;
+        }
+    }
+
     function renderAdminWelcomeMessage() {
         const welcomeMessage = document.querySelector('.admin-welcome-message');
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
@@ -50,42 +51,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function showToast(message, type = 'success') {
-        let backgroundColor, boxShadow;
+        let background;
         switch (type) {
             case 'success':
-                backgroundColor = 'linear-gradient(135deg, #28a745, #218838)';
-                boxShadow = '0 4px 15px rgba(40, 167, 69, 0.5)';
+                background = 'linear-gradient(135deg, #28a745, #218838)';
                 break;
             case 'error':
-                backgroundColor = 'linear-gradient(135deg, #dc3545, #c82333)';
-                boxShadow = '0 4px 15px rgba(220, 53, 69, 0.5)';
+                background = 'linear-gradient(135deg, #dc3545, #c82333)';
                 break;
             case 'info':
-                backgroundColor = 'linear-gradient(135deg, #17a2b8, #117a8b)';
-                boxShadow = '0 4px 15px rgba(23, 162, 184, 0.5)';
+                background = 'linear-gradient(135deg, #17a2b8, #117a8b)';
                 break;
             default:
-                backgroundColor = '#333';
-                boxShadow = '0 4px 15px rgba(0, 0, 0, 0.5)';
+                background = '#333';
         }
         Toastify({
             text: message,
             duration: 4000,
             gravity: 'top',
             position: 'right',
-            backgroundColor: backgroundColor,
-            stopOnFocus: true,
             style: {
+                background: background,
                 fontSize: '18px',
                 fontFamily: '"Tajawal", "Arial", sans-serif',
                 padding: '20px 30px',
                 borderRadius: '10px',
                 direction: 'rtl',
-                boxShadow: boxShadow,
+                boxShadow: '0 4px 15px rgba(0, 0, 0, 0.5)',
                 color: '#fff',
                 maxWidth: '400px',
                 textAlign: 'right',
-            }
+            },
+            stopOnFocus: true,
         }).showToast();
     }
 
@@ -414,146 +411,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('text-input').value = '';
     };
 
- app.post('/api/analyze-pdf', async (req, res) => {
-    try {
-        const { pdfData } = req.body;
-
-        // التحقق من وجود pdfData
-        if (!pdfData || typeof pdfData !== 'string') {
-            console.error('pdfData غير صالح أو مفقود:', pdfData);
-            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
-        }
-
-        // تحويل Base64 إلى Buffer
-        let buffer;
-        try {
-            buffer = Buffer.from(pdfData, 'base64');
-        } catch (error) {
-            console.error('خطأ في تحويل Base64 إلى Buffer:', error.message);
-            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
-        }
-
-        // تحليل الـ PDF
-        const data = await pdfParse(buffer);
-        const text = data.text;
-        const lines = text.split(/\r?\n/).filter(line => line.trim());
-        console.log('الأسطر المستخرجة من الـ PDF:', lines);
-
-        // قائمة المواد المتوقعة
-        const validSubjects = [
-            'مبادئ وأسس تمريض',
-            'اللغة العربية',
-            'اللغة الإنجليزية',
-            'الفيزياء',
-            'الكيمياء',
-            'التشريح/علم وظائف الأعضاء',
-            'التربية الدينية',
-            'الكمبيوتر'
-        ];
-
-        const allResults = [];
-        let currentStudent = null;
-        let grades = [];
-
-        for (const line of lines) {
-            // تنظيف السطر من المسافات الزائدة
-            const cleanedLine = line.trim().replace(/\s+/g, ' ');
-
-            // محاولة مطابقة اسم الطالب ورقم الجلوس بنمط مرن
-            const studentMatch = cleanedLine.match(/(?:طالب|الطالب|Student):?\s*([^-\n]+?)\s*[-–—]?\s*(?:رقم الجلوس|رقم|ID):?\s*(\d+)/i);
-            if (studentMatch) {
-                // إذا كان هناك طالب سابق، احفظه
-                if (currentStudent && grades.length > 0) {
-                    allResults.push({
-                        name: currentStudent.fullName,
-                        id: currentStudent.id,
-                        results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
-                    });
-                    const existingAdmins = await Admin.find();
-                    const existingStudents = await Student.find();
-                    let student = await Student.findOne({ id: currentStudent.id });
-                    if (student) {
-                        student.subjects = grades;
-                        await student.save();
-                    } else {
-                        const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
-                        const originalPassword = generatePassword(currentStudent.fullName);
-                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
-                        student = new Student({
-                            fullName: currentStudent.fullName,
-                            id: currentStudent.id,
-                            username,
-                            password: hashedPassword,
-                            originalPassword,
-                            subjects: grades,
-                            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
-                        });
-                        await student.save();
-                    }
-                }
-                // بدء طالب جديد
-                currentStudent = {
-                    fullName: studentMatch[1].trim(),
-                    id: studentMatch[2].trim()
-                };
-                grades = [];
-                console.log('تم العثور على طالب:', currentStudent);
-            } 
-            // استخراج المواد والدرجات بنمط مرن
-            else if (cleanedLine.includes(':')) {
-                const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
-                if (validSubjects.includes(subject) && !isNaN(parseInt(grade))) {
-                    grades.push({ name: subject, grade: parseInt(grade) });
-                    console.log(`تم استخراج المادة: ${subject}, الدرجة: ${grade}`);
-                } else {
-                    console.log(`تم تجاهل السطر غير الصالح: ${cleanedLine}`);
-                }
-            } else {
-                console.log(`تم تجاهل السطر غير المنسق: ${cleanedLine}`);
-            }
-        }
-
-        // حفظ آخر طالب إذا كان موجودًا
-        if (currentStudent && grades.length > 0) {
-            allResults.push({
-                name: currentStudent.fullName,
-                id: currentStudent.id,
-                results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
-            });
-            const existingAdmins = await Admin.find();
-            const existingStudents = await Student.find();
-            let student = await Student.findOne({ id: currentStudent.id });
-            if (student) {
-                student.subjects = grades;
-                await student.save();
-            } else {
-                const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
-                const originalPassword = generatePassword(currentStudent.fullName);
-                const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
-                student = new Student({
-                    fullName: currentStudent.fullName,
-                    id: currentStudent.id,
-                    username,
-                    password: hashedPassword,
-                    originalPassword,
-                    subjects: grades,
-                    profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
-                });
-                await student.save();
-            }
-        }
-
-        if (allResults.length === 0) {
-            console.error('لم يتم العثور على بيانات طلاب أو درجات صالحة في الأسطر:', lines);
-            return res.status(400).json({ error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف' });
-        }
-
-        res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
-    } catch (error) {
-        console.error('خطأ في تحليل PDF:', error.message, error.stack);
-        res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
-    }
-});
     function displayPDFResults(results) {
         const resultsDisplay = document.getElementById('results-display');
         resultsDisplay.innerHTML = '';
@@ -591,7 +448,53 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsDisplay.appendChild(table);
     }
 
-    document.getElementById('analyze-pdf')?.addEventListener('click', analyzePDF);
+    window.analyzePDF = async function() {
+        console.log('تم النقر على زر تحليل الملف');
+        const fileInput = document.getElementById('pdf-upload');
+        if (!fileInput) {
+            console.error('عنصر pdf-upload غير موجود في DOM');
+            showToast('خطأ: عنصر إدخال الملف غير موجود!', 'error');
+            return;
+        }
+        const file = fileInput.files[0];
+        if (!file || file.type !== 'application/pdf') {
+            console.error('لم يتم اختيار ملف PDF صالح:', file);
+            showToast('يرجى اختيار ملف PDF صالح!', 'error');
+            return;
+        }
+        const fileReader = new FileReader();
+        fileReader.onload = async function() {
+            try {
+                console.log('بدء قراءة ملف PDF');
+                const base64String = fileReader.result.split(',')[1]; // استخراج Base64
+                console.log('Base64 المرسل:', base64String.substring(0, 50) + '...');
+                const response = await saveToServer('/api/analyze-pdf', { pdfData: base64String });
+                if (response && response.results) {
+                    displayPDFResults(response.results);
+                    students = await getFromServer('/api/students');
+                    renderResults();
+                    renderStats();
+                    showToast(`تم تحليل الملف وإضافة/تحديث ${response.results.length} طالب بنجاح!`, 'success');
+                } else {
+                    console.error('لا توجد نتائج في استجابة الخادم:', response);
+                    showToast('خطأ في تحليل الملف: لا توجد نتائج!', 'error');
+                }
+            } catch (error) {
+                console.error('خطأ في تحليل PDF:', error);
+                showToast(`خطأ في تحليل الملف: ${error.message}`, 'error');
+            }
+        };
+        fileReader.onerror = function(error) {
+            console.error('خطأ في قراءة الملف:', error);
+            showToast('خطأ في قراءة الملف!', 'error');
+        };
+        fileReader.readAsDataURL(file);
+    };
+
+    document.getElementById('analyze-pdf')?.addEventListener('click', () => {
+        console.log('ربط معالج الحدث لزر analyze-pdf');
+        window.analyzePDF();
+    });
 
     document.getElementById('add-result-form')?.addEventListener('submit', async function(e) {
         e.preventDefault();
