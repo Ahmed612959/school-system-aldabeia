@@ -280,10 +280,14 @@ app.post('/api/analyze-pdf', async (req, res) => {
         const allResults = [];
         let currentStudent = null;
         let grades = [];
+        const ignoredLines = []; // لتسجيل الأسطر التي تم تجاهلها
 
         for (const line of lines) {
-            // استخراج الاسم ورقم الجلوس
-            const studentMatch = line.match(/طالب:\s*([^-\n]+?)\s*-\s*رقم الجلوس:\s*(\d+)/i);
+            // تنظيف السطر من المسافات الزائدة
+            const cleanedLine = line.trim().replace(/\s+/g, ' ');
+
+            // محاولة مطابقة اسم الطالب ورقم الجلوس بنمط مرن
+            const studentMatch = cleanedLine.match(/(?:طالب|الطالب|Student):?\s*([^-\n]+?)\s*[-–—]?\s*(?:رقم الجلوس|رقم|ID):?\s*(\d+)/i);
             if (studentMatch) {
                 // إذا كان هناك طالب سابق، احفظه
                 if (currentStudent && grades.length > 0) {
@@ -320,15 +324,21 @@ app.post('/api/analyze-pdf', async (req, res) => {
                     id: studentMatch[2].trim()
                 };
                 grades = [];
+                console.log('تم العثور على طالب:', currentStudent);
             } 
-            // استخراج المواد والدرجات
-            else if (line.includes(':')) {
-                const [subject, grade] = line.split(':').map(s => s.trim());
+            // استخراج المواد والدرجات بنمط مرن
+            else if (cleanedLine.includes(':')) {
+                const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
                 if (validSubjects.includes(subject) && !isNaN(parseInt(grade))) {
                     grades.push({ name: subject, grade: parseInt(grade) });
+                    console.log(`تم استخراج المادة: ${subject}, الدرجة: ${grade}`);
                 } else {
-                    console.log(`تم تجاهل السطر غير الصالح: ${line}`);
+                    console.log(`تم تجاهل السطر غير الصالح: ${cleanedLine} (السبب: المادة غير موجودة في validSubjects أو الدرجة ليست رقمًا)`);
+                    ignoredLines.push(cleanedLine);
                 }
+            } else {
+                console.log(`تم تجاهل السطر غير المنسق: ${cleanedLine} (السبب: لا يحتوي على ":")`);
+                ignoredLines.push(cleanedLine);
             }
         }
 
@@ -364,7 +374,13 @@ app.post('/api/analyze-pdf', async (req, res) => {
 
         if (allResults.length === 0) {
             console.error('لم يتم العثور على بيانات طلاب أو درجات صالحة في الأسطر:', lines);
-            return res.status(400).json({ error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف' });
+            return res.status(400).json({ 
+                error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف',
+                details: {
+                    extractedLines: lines,
+                    ignoredLines: ignoredLines
+                }
+            });
         }
 
         res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
@@ -373,7 +389,6 @@ app.post('/api/analyze-pdf', async (req, res) => {
         res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });
-
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
@@ -382,4 +397,5 @@ app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 
 });
+
 
