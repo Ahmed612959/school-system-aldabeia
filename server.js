@@ -240,6 +240,7 @@ app.delete('/api/notifications/:id', async (req, res) => {
     }
 });
 
+```javascript
 app.post('/api/analyze-pdf', async (req, res) => {
     try {
         const { pdfData } = req.body;
@@ -277,10 +278,21 @@ app.post('/api/analyze-pdf', async (req, res) => {
             'الكمبيوتر'
         ];
 
+        // دالة لتطبيع أسماء المواد
+        const normalizeSubject = (subject) => {
+            return subject
+                .replace(/اإل/g, 'الإ') // تصحيح "اإل" إلى "الإ"
+                .replace(/أ/g, 'ا') // استبدال "أ" بـ "ا"
+                .replace(/ی/g, 'ي') // تصحيح "ی" إلى "ي"
+                .replace(/ة/g, 'ه') // تصحيح "ة" إلى "ه" إذا لزم الأمر
+                .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
+                .trim();
+        };
+
         const allResults = [];
         let currentStudent = null;
         let grades = [];
-        const ignoredLines = []; // لتسجيل الأسطر التي تم تجاهلها
+        const ignoredLines = [];
 
         for (const line of lines) {
             // تنظيف السطر من المسافات الزائدة
@@ -329,11 +341,12 @@ app.post('/api/analyze-pdf', async (req, res) => {
             // استخراج المواد والدرجات بنمط مرن
             else if (cleanedLine.includes(':')) {
                 const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
-                if (validSubjects.includes(subject) && !isNaN(parseInt(grade))) {
-                    grades.push({ name: subject, grade: parseInt(grade) });
-                    console.log(`تم استخراج المادة: ${subject}, الدرجة: ${grade}`);
+                const normalizedSubject = normalizeSubject(subject);
+                if (validSubjects.includes(normalizedSubject) && !isNaN(parseInt(grade))) {
+                    grades.push({ name: normalizedSubject, grade: parseInt(grade) });
+                    console.log(`تم استخراج المادة: ${normalizedSubject}, الدرجة: ${grade}`);
                 } else {
-                    console.log(`تم تجاهل السطر غير الصالح: ${cleanedLine} (السبب: المادة غير موجودة في validSubjects أو الدرجة ليست رقمًا)`);
+                    console.log(`تم تجاهل السطر غير الصالح: ${cleanedLine} (السبب: المادة "${normalizedSubject}" غير موجودة في validSubjects أو الدرجة "${grade}" ليست رقمًا)`);
                     ignoredLines.push(cleanedLine);
                 }
             } else {
@@ -397,5 +410,6 @@ app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 
 });
+
 
 
