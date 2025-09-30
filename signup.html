@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب طالب</title>
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+    <header class="main-header">
+        <img src="logo.png" alt="شعار المدرسة" class="logo">
+        <h1>نظام إدارة المدرسة</h1>
+    </header>
+    <div class="main-container">
+        <div class="login-form-container">
+            <h2>إنشاء حساب طالب</h2>
+            <form id="student-signup-form">
+                <div class="input-group">
+                    <label for="fullName">الاسم الكامل</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+                <div class="input-group">
+                    <label for="studentCode">كود الطالب</label>
+                    <input type="text" id="studentCode" name="studentCode" required>
+                </div>
+                <div class="input-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="input-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+                <div class="input-group">
+                    <label for="birthdate">تاريخ الميلاد</label>
+                    <input type="date" id="birthdate" name="birthdate" required>
+                </div>
+                <div class="input-group">
+                    <label for="address">العنوان</label>
+                    <input type="text" id="address" name="address" required>
+                </div>
+                <button type="submit" class="submit-btn">إنشاء الحساب</button>
+                <p style="text-align: center; margin-top: 15px;">
+                    لديك حساب؟ <a href="login.html" class="signup-link">تسجيل الدخول</a>
+                </p>
+            </form>
+        </div>
+    </div>
+    <footer>
+        <p>Developed by Ahmed Mousa ❤</p>
+    </footer>
+    <script src="signup.js"></script>
+</body>
+</html>
