@@ -36,16 +36,27 @@ async function saveToServer(endpoint, data) {
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fullName = document.getElementById('fullName').value.trim();
-    const studentCode = document.getElementById('studentCode').value.trim();
+    const studentCodeNumbers = document.getElementById('studentCode').value.trim();
     const email = document.getElementById('email').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const birthdate = document.getElementById('birthdate').value;
     const address = document.getElementById('address').value.trim();
+    const password = document.getElementById('password').value;
 
-    if (!fullName || !studentCode || !email || !phone || !birthdate || !address) {
+    // التحقق من صحة الحقول
+    if (!fullName || !studentCodeNumbers || !email || !phone || !birthdate || !address || !password) {
         showToast('Please fill in all fields!', 'error');
         return;
     }
+
+    // التحقق من أن كود الطالب يحتوي على 3 أرقام
+    if (!/^\d{3}$/.test(studentCodeNumbers)) {
+        showToast('Student code must be exactly 3 digits!', 'error');
+        return;
+    }
+
+    // دمج STU مع الأرقام
+    const studentCode = `STU${studentCodeNumbers}`;
 
     try {
         const response = await saveToServer('/api/register-student', {
@@ -54,9 +65,10 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             email,
             phone,
             birthdate,
-            address
+            address,
+            password
         });
-        showToast(`Account created successfully! Username: ${response.username}, Password: ${response.originalPassword}`, 'success');
+        showToast(`Account created successfully! Username: ${response.username}`, 'success');
         setTimeout(() => {
             window.location.href = 'login.html';
         }, 3000);
@@ -65,4 +77,3 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         showToast(`Error: ${error.message}`, 'error');
     }
 });
-```
