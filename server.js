@@ -294,7 +294,64 @@ app.post('/api/analyze-pdf', async (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
+// نقطة نهاية إنشاء حساب طالب
+app.post('/api/register-student', async (req, res) => {
+    try {
+        const { fullName, id, email, phone, birthdate, address } = req.body;
+
+        if (!fullName || !id || !email || !phone || !birthdate || !address) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        const existingAdmins = await Admin.find();
+        const existingStudents = await Student.find();
+        const allUsers = [...existingAdmins, ...existingStudents];
+
+        // التحقق من وجود كود الطالب
+        if (allUsers.some(user => user.id === id)) {
+            return res.status(400).json({ error: 'Student code already used' });
+        }
+
+        // التحقق من وجود البريد الإلكتروني
+        if (allUsers.some(user => user.profile.email === email)) {
+            return res.status(400).json({ error: 'Email already used' });
+        }
+
+        // إنشاء اسم مستخدم وكلمة مرور
+        const username = generateUniqueUsername(fullName, id, allUsers);
+        const originalPassword = generatePassword(fullName);
+        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+
+        // إنشاء حساب طالب جديد
+        const student = new Student({
+            fullName,
+            id,
+            username,
+            password: hashedPassword,
+            originalPassword,
+            subjects: [],
+            profile: {
+                email,
+                phone,
+                birthdate,
+                address,
+                bio: ''
+            }
+        });
+
+        await student.save();
+        res.json({ 
+            message: 'Student account created successfully',
+            username,
+            originalPassword
+        });
+    } catch (error) {
+        console.error('Error creating student account:', error.message);
+        res.status(500).json({ error: 'Error creating account: ' + error.message });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
