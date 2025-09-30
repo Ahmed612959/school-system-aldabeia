@@ -65,3 +65,4 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         showToast(`Error: ${error.message}`, 'error');
     }
 });
+```
