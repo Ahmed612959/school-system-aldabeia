@@ -296,10 +296,15 @@ app.get('/', (req, res) => {
 });
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, id, email, phone, birthdate, address } = req.body;
+        const { fullName, id, email, phone, birthdate, address, password } = req.body;
 
-        if (!fullName || !id || !email || !phone || !birthdate || !address) {
+        if (!fullName || !id || !email || !phone || !birthdate || !address || !password) {
             return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // التحقق من صيغة كود الطالب (STU + 3 أرقام)
+        if (!/^STU\d{3}$/.test(id)) {
+            return res.status(400).json({ error: 'Student code must be in the format STU followed by 3 digits' });
         }
 
         const existingAdmins = await Admin.find();
@@ -316,10 +321,9 @@ app.post('/api/register-student', async (req, res) => {
             return res.status(400).json({ error: 'Email already used' });
         }
 
-        // إنشاء اسم مستخدم وكلمة مرور
+        // إنشاء اسم مستخدم
         const username = generateUniqueUsername(fullName, id, allUsers);
-        const originalPassword = generatePassword(fullName);
-        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
         // إنشاء حساب طالب جديد
         const student = new Student({
@@ -327,7 +331,7 @@ app.post('/api/register-student', async (req, res) => {
             id,
             username,
             password: hashedPassword,
-            originalPassword,
+            originalPassword: password, // حفظ كلمة المرور الأصلية (اختياري)
             subjects: [],
             profile: {
                 email,
@@ -341,8 +345,7 @@ app.post('/api/register-student', async (req, res) => {
         await student.save();
         res.json({ 
             message: 'Student account created successfully',
-            username,
-            originalPassword
+            username
         });
     } catch (error) {
         console.error('Error creating student account:', error.message);
@@ -352,5 +355,6 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
