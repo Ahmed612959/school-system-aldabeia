@@ -294,7 +294,6 @@ app.post('/api/analyze-pdf', async (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
-// نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
     try {
         const { fullName, id, email, phone, birthdate, address } = req.body;
@@ -313,7 +312,7 @@ app.post('/api/register-student', async (req, res) => {
         }
 
         // التحقق من وجود البريد الإلكتروني
-        if (allUsers.some(user => user.profile.email === email)) {
+        if (allUsers.some(user => user.profile && user.profile.email === email)) {
             return res.status(400).json({ error: 'Email already used' });
         }
 
@@ -350,8 +349,8 @@ app.post('/api/register-student', async (req, res) => {
         res.status(500).json({ error: 'Error creating account: ' + error.message });
     }
 });
-
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
