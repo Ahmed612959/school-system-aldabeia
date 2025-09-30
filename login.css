@@ -180,6 +180,15 @@ footer p {
         font-size: 0.85em;
     }
     .submit-btn {
+.signup-link {
+    color: #d4af37;
+    text-decoration: none;
+    font-weight: bold;
+}
+.signup-link:hover {
+    text-decoration: underline;
+}
+        
         font-size: 0.85em;
         padding: 7px 10px;
     }
