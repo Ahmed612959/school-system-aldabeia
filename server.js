@@ -294,17 +294,42 @@ app.post('/api/analyze-pdf', async (req, res) => {
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
+// نقطة نهاية للتحقق من توفر اسم المستخدم
+app.post('/api/check-username', async (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+
+        const existingAdmins = await Admin.find({ username });
+        const existingStudents = await Student.find({ username });
+        const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
+
+        res.json({ available: isAvailable });
+    } catch (error) {
+        console.error('Error checking username:', error.message);
+        res.status(500).json({ error: 'Error checking username: ' + error.message });
+    }
+});
+
+// نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, id, email, phone, birthdate, address, password } = req.body;
+        const { fullName, username, id, email, phone, birthdate, address, password } = req.body;
 
-        if (!fullName || !id || !email || !phone || !birthdate || !address || !password) {
+        if (!fullName || !username || !id || !email || !phone || !birthdate || !address || !password) {
             return res.status(400).json({ error: 'All fields are required' });
         }
 
         // التحقق من صيغة كود الطالب (STU + 3 أرقام)
         if (!/^STU\d{3}$/.test(id)) {
             return res.status(400).json({ error: 'Student code must be in the format STU followed by 3 digits' });
+        }
+
+        // التحقق من صيغة اسم المستخدم
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+            return res.status(400).json({ error: 'Username must be 3-20 characters (letters and numbers only)' });
         }
 
         const existingAdmins = await Admin.find();
@@ -316,13 +341,17 @@ app.post('/api/register-student', async (req, res) => {
             return res.status(400).json({ error: 'Student code already used' });
         }
 
+        // التحقق من وجود اسم المستخدم
+        if (allUsers.some(user => user.username === username)) {
+            return res.status(400).json({ error: 'Username already used' });
+        }
+
         // التحقق من وجود البريد الإلكتروني
         if (allUsers.some(user => user.profile && user.profile.email === email)) {
             return res.status(400).json({ error: 'Email already used' });
         }
 
-        // إنشاء اسم مستخدم
-        const username = generateUniqueUsername(fullName, id, allUsers);
+        // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
         // إنشاء حساب طالب جديد
@@ -331,7 +360,7 @@ app.post('/api/register-student', async (req, res) => {
             id,
             username,
             password: hashedPassword,
-            originalPassword: password, // حفظ كلمة المرور الأصلية (اختياري)
+            originalPassword: password, // اختياري
             subjects: [],
             profile: {
                 email,
@@ -355,6 +384,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
