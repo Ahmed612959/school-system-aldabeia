@@ -241,6 +241,7 @@ app.delete('/api/notifications/:id', async (req, res) => {
 });
 
 
+
 app.post('/api/analyze-pdf', async (req, res) => {
     try {
         const { pdfData } = req.body;
@@ -280,13 +281,42 @@ app.post('/api/analyze-pdf', async (req, res) => {
 
         // دالة لتطبيع أسماء المواد
         const normalizeSubject = (subject) => {
-            return subject
+            let normalized = subject
                 .replace(/اإل/g, 'الإ') // تصحيح "اإل" إلى "الإ"
                 .replace(/أ/g, 'ا') // استبدال "أ" بـ "ا"
                 .replace(/ی/g, 'ي') // تصحيح "ی" إلى "ي"
-                .replace(/ة/g, 'ه') // تصحيح "ة" إلى "ه" إذا لزم الأمر
+                .replace(/ة/g, 'ه') // تصحيح "ة" إلى "ه"
+                .replace(/[\/\\]/g, '/') // تطبيع الفواصل
+                .replace(/إ/g, 'ا') // استبدال "إ" بـ "ا" إذا لزم
                 .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
                 .trim();
+
+            // تصحيح يدوي لأسماء المواد المعقدة
+            if (normalized.includes('مبادئ') && normalized.includes('تمريض')) {
+                return 'مبادئ وأسس تمريض';
+            }
+            if (normalized.includes('عربيه') || normalized.includes('عربية')) {
+                return 'اللغة العربية';
+            }
+            if (normalized.includes('انجليزيه') || normalized.includes('إنجليزية') || normalized.includes('انجلیزیه')) {
+                return 'اللغة الإنجليزية';
+            }
+            if (normalized.includes('فيزياء') || normalized.includes('فیزیاء')) {
+                return 'الفيزياء';
+            }
+            if (normalized.includes('كيمياء') || normalized.includes('كیمیاء')) {
+                return 'الكيمياء';
+            }
+            if (normalized.includes('تشريح') || normalized.includes('تشریح') || normalized.includes('وظائف')) {
+                return 'التشريح/علم وظائف الأعضاء';
+            }
+            if (normalized.includes('تربيه') || normalized.includes('دينيه') || normalized.includes('دينية')) {
+                return 'التربية الدينية';
+            }
+            if (normalized.includes('كمبيوتر') || normalized.includes('كمبیوتر')) {
+                return 'الكمبيوتر';
+            }
+            return normalized;
         };
 
         const allResults = [];
@@ -402,10 +432,6 @@ app.post('/api/analyze-pdf', async (req, res) => {
         res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
 // نقطة نهاية للتحقق من توفر اسم المستخدم
 app.post('/api/check-username', async (req, res) => {
     try {
@@ -496,6 +522,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
