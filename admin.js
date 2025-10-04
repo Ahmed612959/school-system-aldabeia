@@ -411,42 +411,76 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('text-input').value = '';
     };
 
-    function displayPDFResults(results) {
-        const resultsDisplay = document.getElementById('results-display');
-        resultsDisplay.innerHTML = '';
-        const table = document.createElement('table');
-        table.className = 'results-table';
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>البيانات</th>
-                    <th>القيم</th>
-                    <th>المجموع</th>
-                    <th>النسبة</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody id="pdf-results-body"></tbody>
-        `;
-        const tbody = table.querySelector('tbody');
-        results.forEach(student => {
-            const total = Object.values(student.results).reduce((sum, grade) => sum + grade, 0);
-            const percentage = student.results.length ? (total / (Object.keys(student.results).length * 100)) * 100 : 0;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>اسم: ${student.name}<br>رقم الجلوس: ${student.id}</td>
-                <td>${Object.entries(student.results).map(([sub, grade]) => `${sub}: ${grade}`).join('<br>')}</td>
-                <td>${total}</td>
-                <td class="${percentage >= 85 ? 'high-percentage' : percentage >= 60 ? 'medium-percentage' : 'low-percentage'}">${percentage.toFixed(1)}%</td>
-                <td>
-                    <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-        resultsDisplay.appendChild(table);
+
+function displayPDFResults(results) {
+    console.log('نتائج الـ PDF المستلمة:', results); // تسجيل النتائج الواردة
+    const resultsDisplay = document.getElementById('results-display');
+    if (!resultsDisplay) {
+        console.error('عنصر results-display غير موجود في DOM');
+        return;
     }
+    resultsDisplay.innerHTML = ''; // مسح المحتوى السابق
+
+    const table = document.createElement('table');
+    table.className = 'results-table';
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>البيانات</th>
+                <th>القيم</th>
+                <th>المجموع</th>
+                <th>النسبة</th>
+                <th>الإجراء</th>
+            </tr>
+        </thead>
+        <tbody id="pdf-results-body"></tbody>
+    `;
+    const tbody = table.querySelector('#pdf-results-body');
+
+    // قائمة المواد المتوقعة
+    const validSubjects = [
+        'مبادئ وأسس تمريض',
+        'اللغة العربية',
+        'اللغة الإنجليزية',
+        'الفيزياء',
+        'الكيمياء',
+        'التشريح/علم وظائف الأعضاء',
+        'التربية الدينية',
+        'الكمبيوتر'
+    ];
+
+    results.forEach(student => {
+        // حساب المجموع
+        const grades = Object.values(student.results);
+        const total = grades.reduce((sum, grade) => sum + (parseInt(grade) || 0), 0);
+        // حساب النسبة بناءً على عدد المواد المتوقعة (8)
+        const percentage = (total / (validSubjects.length * 100)) * 100;
+        console.log(`طالب: ${student.name}, المجموع: ${total}, النسبة: ${percentage.toFixed(1)}%`); // تسجيل الحسابات
+
+        // تحديد فئة النسبة للتنسيق
+        let percentageClass = '';
+        if (percentage >= 85) percentageClass = 'high-percentage';
+        else if (percentage >= 60) percentageClass = 'medium-percentage';
+        else percentageClass = 'low-percentage';
+
+        // إنشاء صف الجدول
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>اسم: ${student.name}<br>رقم الجلوس: ${student.id}</td>
+            <td>${Object.entries(student.results).map(([sub, grade]) => `${sub}: ${grade}`).join('<br>')}</td>
+            <td>${total}</td>
+            <td class="${percentageClass}">${percentage.toFixed(1)}%</td>
+            <td>
+                <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
+                <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    resultsDisplay.appendChild(table);
+    console.log('تم إنشاء الجدول وعرضه في results-display');
+}
 
     window.analyzePDF = async function() {
         console.log('تم النقر على زر تحليل الملف');
