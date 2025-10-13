@@ -10,13 +10,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // فحص وجود العناصر
     if (!chatInput || !sendBtn || !chatWindow) {
         console.error('Missing required elements:', { chatInput, sendBtn, chatWindow });
-        alert('خطأ: حقل الإدخال أو زر الإرسال أو نافذة الدردشة غير موجودة!');
+        showToast('خطأ: حقل الإدخال أو زر الإرسال أو نافذة الدردشة غير موجودة!', 'error');
         return;
     }
 
     // مفتاح API (ضعه في ملف .env في الباك إند للأمان)
     const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // استبدل بمفتاحك الجديد
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+    // تحديث الناف بار
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    const navBar = document.getElementById('nav-bar');
+    if (navBar) {
+        const navItems = [
+            { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
+            { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
+            { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
+            { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
+        ];
+        if (loggedInUser && loggedInUser.type === 'admin') {
+            navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
+        }
+        navBar.innerHTML = navItems.map(item => `
+            <a href="${item.href}" class="${item.href === 'chatbot.html' ? 'active' : ''}">
+                <i class="${item.icon}"></i><span class="nav-text">${item.title}</span>
+            </a>
+        `).join('');
+
+        // إضافة إشعار عند التنقل
+        document.querySelectorAll('.nav-bar a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault(); // منع الانتقال المباشر لاختبار الإشعار
+                document.querySelectorAll('.nav-bar a').forEach(l => l.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                showToast(`تم الانتقال إلى ${e.currentTarget.querySelector('.nav-text').textContent}`, 'success');
+                setTimeout(() => {
+                    window.location.href = e.currentTarget.href; // الانتقال بعد الإشعار
+                }, 500);
+            });
+        });
+    }
 
     // دالة تنسيق الوقت
     function formatTime() {
@@ -30,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // دالة تنسيق الرد
     function formatAnswer(text) {
         if (!text) return 'معلش، حصل خطأ! جرب تاني.';
-        // تحويل النص لفقرات وقوائم نقطية
         let formatted = text
             .replace(/\n\n/g, '</p><p>') // فقرات
             .replace(/\n/g, '<br>') // أسطر جديدة
@@ -59,7 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const message = chatInput.value.trim();
             if (!message) {
-                alert('اكتب سؤال أولًا!');
+                showToast('اكتب سؤال أولًا!', 'error');
                 return;
             }
 
@@ -103,29 +135,65 @@ document.addEventListener('DOMContentLoaded', function() {
             chatWindow.appendChild(botMessage);
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
-            alert('تم الرد بنجاح!');
+            showToast('تم الرد بنجاح!', 'success');
         } catch (error) {
             console.error('Error in sendMessage:', error);
-            alert('خطأ أثناء إرسال الرسالة! جرب تاني.');
+            showToast('خطأ أثناء إرسال الرسالة! جرب تاني.', 'error');
         }
     }
-const navBar = document.getElementById('nav-bar');
-const navItems = [
-    { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-    { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
-    { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' }
-];
+
     // دالة مسح الدردشة
     window.clearChat = function() {
         console.log('clearChat called');
         try {
             chatWindow.innerHTML = '';
-            alert('تم مسح الدردشة!');
+            showToast('تم مسح الدردشة!', 'success');
         } catch (error) {
             console.error('Error in clearChat:', error);
-            alert('خطأ أثناء مسح الدردشة!');
+            showToast('خطأ أثناء مسح الدردشة!', 'error');
         }
     };
+
+    // دالة عرض إشعارات Toastify
+    function showToast(message, type = 'success') {
+        let backgroundColor, boxShadow;
+        switch (type) {
+            case 'success':
+                backgroundColor = 'linear-gradient(135deg, #28a745, #218838)';
+                boxShadow = '0 4px 15px rgba(40, 167, 69, 0.5)';
+                break;
+            case 'error':
+                backgroundColor = 'linear-gradient(135deg, #dc3545, #c82333)';
+                boxShadow = '0 4px 15px rgba(220, 53, 69, 0.5)';
+                break;
+            case 'info':
+                backgroundColor = 'linear-gradient(135deg, #17a2b8, #117a8b)';
+                boxShadow = '0 4px 15px rgba(23, 162, 184, 0.5)';
+                break;
+            default:
+                backgroundColor = '#333';
+                boxShadow = '0 4px 15px rgba(0, 0, 0, 0.5)';
+        }
+        Toastify({
+            text: message,
+            duration: 4000,
+            gravity: 'top',
+            position: 'right',
+            backgroundColor: backgroundColor,
+            stopOnFocus: true,
+            style: {
+                fontSize: '18px',
+                fontFamily: '"Cairo", sans-serif',
+                padding: '20px 30px',
+                borderRadius: '10px',
+                direction: 'rtl',
+                boxShadow: boxShadow,
+                color: '#fff',
+                maxWidth: '400px',
+                textAlign: 'right',
+            }
+        }).showToast();
+    }
 
     console.log('Chatbot initialized successfully');
 });
