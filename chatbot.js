@@ -40,13 +40,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // إضافة إشعار عند التنقل
         document.querySelectorAll('.nav-bar a').forEach(link => {
             link.addEventListener('click', (e) => {
-                e.preventDefault(); // منع الانتقال المباشر لاختبار الإشعار
                 document.querySelectorAll('.nav-bar a').forEach(l => l.classList.remove('active'));
                 e.currentTarget.classList.add('active');
                 showToast(`تم الانتقال إلى ${e.currentTarget.querySelector('.nav-text').textContent}`, 'success');
-                setTimeout(() => {
-                    window.location.href = e.currentTarget.href; // الانتقال بعد الإشعار
-                }, 500);
             });
         });
     }
