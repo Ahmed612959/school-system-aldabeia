@@ -19,12 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     // تحديث الناف بار
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
     const navBar = document.getElementById('nav-bar');
     if (navBar) {
         const navItems = [
             { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-            { href: 'home.html', icon: 'fas fa-chart-line', title: 'النتائج' }, // تعديل Home.html إلى home.html
+            { href: 'home.html', icon: 'fas fa-chart-line', title: 'النتائج' }, // تصحيح إلى home.html
             { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
             { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
         ];
@@ -36,27 +36,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="${item.icon}" title="${item.title}"></i>
             </a>
         `).join('');
+        console.log('Nav bar updated with items:', navItems);
+
+        // التحقق من تحميل الأيقونات
+        if (typeof window.FontAwesome === 'undefined') {
+            console.error('Font Awesome not loaded');
+            showToast('خطأ: فشل تحميل أيقونات الناف بار!', 'error');
+        }
 
         // إضافة إشعار عند التنقل
         document.querySelectorAll('.nav-bar a').forEach(link => {
             link.addEventListener('click', (e) => {
-                e.preventDefault(); // منع الانتقال المباشر لاختبار الإشعار
+                e.preventDefault();
                 document.querySelectorAll('.nav-bar a').forEach(l => l.classList.remove('active'));
                 e.currentTarget.classList.add('active');
                 const title = e.currentTarget.querySelector('i').getAttribute('title');
-                const href = e.currentTarget.getAttribute('href'); // استرجاع href مباشرة
-                console.log('Navigating to:', href); // تسجيل للتحقق
+                const href = e.currentTarget.getAttribute('href');
+                console.log('Navigating to:', href);
                 showToast(`تم الانتقال إلى ${title}`, 'success');
                 setTimeout(() => {
                     try {
-                        window.location.href = href; // استخدام href المسترجع
+                        window.location.href = href;
                     } catch (error) {
                         console.error('Navigation error:', error);
                         showToast('خطأ أثناء الانتقال إلى الصفحة!', 'error');
                     }
-                }, 1000); // زيادة التأخير إلى 1000 ميلي ثانية
+                }, 1000);
             });
         });
+    } else {
+        console.error('Nav bar element not found');
+        showToast('خطأ: الناف بار غير موجود!', 'error');
     }
 
     // دالة تنسيق الوقت
@@ -72,10 +82,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function formatAnswer(text) {
         if (!text) return 'معلش، حصل خطأ! جرب تاني.';
         let formatted = text
-            .replace(/\n\n/g, '</p><p>') // فقرات
-            .replace(/\n/g, '<br>') // أسطر جديدة
-            .replace(/(\d+\.\s+)([^\n]+)/g, '<li>$2</li>') // تحويل 1. كذا إلى قائمة
-            .replace(/(\<li\>.*\<\/li\>)/s, '<ul>$1</ul>'); // تغليف القوائم بـ <ul>
+            .replace(/\n\n/g, '</p><p>')
+            .replace(/\n/g, '<br>')
+            .replace(/(\d+\.\s+)([^\n]+)/g, '<li>$2</li>')
+            .replace(/(\<li\>.*\<\/li\>)/s, '<ul>$1</ul>');
         return `<p>${formatted}</p>`;
     }
 
@@ -103,7 +113,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // إضافة رسالة المستخدم
             console.log('Adding user message:', message);
             const userMessage = document.createElement('div');
             userMessage.className = 'chat-message user-message';
@@ -112,7 +121,6 @@ document.addEventListener('DOMContentLoaded', function() {
             chatInput.value = '';
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
-            // إرسال طلب لـ Gemini API
             console.log('Sending request to Gemini API...');
             const response = await fetch(`${API_URL}?key=${API_KEY}`, {
                 method: 'POST',
@@ -135,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const rawAnswer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'معلش، حصل خطأ! جرب تاني.';
             const answer = formatAnswer(rawAnswer);
 
-            // إضافة رد الروبوت
             console.log('Adding bot message:', answer);
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-message bot-message';
