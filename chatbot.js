@@ -109,7 +109,12 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('خطأ أثناء إرسال الرسالة! جرب تاني.');
         }
     }
-
+const navBar = document.getElementById('nav-bar');
+const navItems = [
+    { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
+    { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
+    { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' }
+];
     // دالة مسح الدردشة
     window.clearChat = function() {
         console.log('clearChat called');
