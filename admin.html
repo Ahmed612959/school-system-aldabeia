@@ -70,51 +70,66 @@
 </div>
 
         <h2>إضافة نتيجة طالب يدويًا</h2>
-        <div class="add-result-section">
-            <form id="add-result-form">
-                <div class="input-group">
-                    <label for="student-name">اسم الطالب</label>
-                    <input type="text" id="student-name" name="student-name" placeholder="أدخل اسم الطالب">
-                </div>
-                <div class="input-group">
-                    <label for="student-id">رقم الجلوس</label>
-                    <input type="text" id="student-id" name="student-id" placeholder="أدخل رقم الجلوس">
-                </div>
-                <div class="input-group">
-                    <label for="subject1">مبادئ وأسس تمريض</label>
-                    <input type="number" id="subject1" name="subject1" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject2">اللغة العربية</label>
-                    <input type="number" id="subject2" name="subject2" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject3">اللغة الإنجليزية</label>
-                    <input type="number" id="subject3" name="subject3" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject4">الفيزياء</label>
-                    <input type="number" id="subject4" name="subject4" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject5">الكيمياء</label>
-                    <input type="number" id="subject5" name="subject5" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject6">التشريح / علم وظائف الأعضاء</label>
-                    <input type="number" id="subject6" name="subject6" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject7">التربية الدينية</label>
-                    <input type="number" id="subject7" name="subject7" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <div class="input-group">
-                    <label for="subject8">الكمبيوتر</label>
-                    <input type="number" id="subject8" name="subject8" min="0" max="100" placeholder="أدخل الدرجة">
-                </div>
-                <button type="submit" class="submit-btn">إضافة النتيجة</button>
-            </form>
+<div class="add-result-section">
+    <form id="add-result-form">
+        <div class="input-group">
+            <label for="student-name">اسم الطالب</label>
+            <input type="text" id="student-name" name="student-name" placeholder="أدخل اسم الطالب">
         </div>
+        <div class="input-group">
+            <label for="student-id">رقم الجلوس</label>
+            <input type="text" id="student-id" name="student-id" placeholder="أدخل رقم الجلوس">
+        </div>
+        <div class="input-group">
+            <label for="semester">الترم</label>
+            <select id="semester" name="semester" onchange="toggleSubjects()">
+                <option value="first">الترم الأول</option>
+                <option value="second">الترم الثاني</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="subject1">مبادئ وأسس تمريض</label>
+            <input type="number" id="subject1" name="subject1" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject2">اللغة العربية</label>
+            <input type="number" id="subject2" name="subject2" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject3">اللغة الإنجليزية</label>
+            <input type="number" id="subject3" name="subject3" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject4">الفيزياء</label>
+            <input type="number" id="subject4" name="subject4" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject5">الكيمياء</label>
+            <input type="number" id="subject5" name="subject5" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject6">التشريح / علم وظائف الأعضاء</label>
+            <input type="number" id="subject6" name="subject6" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject7">التربية الدينية</label>
+            <input type="number" id="subject7" name="subject7" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject8">الكمبيوتر</label>
+            <input type="number" id="subject8" name="subject8" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group" id="history-group">
+            <label for="subject9">التاريخ</label>
+            <input type="number" id="subject9" name="subject9" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group" id="geography-group" style="display: none;">
+            <label for="subject10">الجغرافيا</label>
+            <input type="number" id="subject10" name="subject10" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <button type="submit" class="submit-btn">إضافة النتيجة</button>
+    </form>
+</div>
 
         <h2>قائمة النتايج</h2>
         <div class="filter-section" style="text-align: center; margin-bottom: 15px;">
