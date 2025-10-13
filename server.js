@@ -33,6 +33,7 @@ const studentSchema = new mongoose.Schema({
     username: String,
     password: String,
     originalPassword: String,
+    semester: { type: String, enum: ['first', 'second'], default: 'first' },
     subjects: [{ name: String, grade: Number }],
     profile: {
         email: String,
@@ -134,7 +135,7 @@ app.get('/api/students', async (req, res) => {
 
 app.post('/api/students', async (req, res) => {
     try {
-        const { fullName, id, subjects } = req.body;
+        const { fullName, id, subjects, semester } = req.body;
         const existingAdmins = await Admin.find();
         const existingStudents = await Student.find();
         const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
@@ -146,6 +147,7 @@ app.post('/api/students', async (req, res) => {
             username,
             password: hashedPassword,
             originalPassword,
+            semester: semester || 'first', // القيمة الافتراضية إذا لم يتم تمرير semester
             subjects,
             profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
         });
@@ -159,7 +161,10 @@ app.post('/api/students', async (req, res) => {
 
 app.put('/api/students/:id', async (req, res) => {
     try {
-        await Student.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+        const { subjects, semester } = req.body;
+        const updateData = { subjects };
+        if (semester) updateData.semester = semester; // تحديث الترم إذا تم تمريره
+        await Student.findOneAndUpdate({ id: req.params.id }, updateData, { new: true });
         res.json({ message: 'تم تحديث الطالب' });
     } catch (error) {
         console.error('خطأ في تحديث الطالب:', error);
@@ -242,60 +247,7 @@ app.delete('/api/notifications/:id', async (req, res) => {
 
 
 
-app.post('/api/analyze-pdf', async (req, res) => {
-    try {
-        const { pdfData } = req.body;
-
-        // التحقق من وجود pdfData
-        if (!pdfData || typeof pdfData !== 'string') {
-            console.error('pdfData غير صالح أو مفقود:', pdfData);
-            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
-        }
-
-        // تحويل Base64 إلى Buffer
-        let buffer;
-        try {
-            buffer = Buffer.from(pdfData, 'base64');
-        } catch (error) {
-            console.error('خطأ في تحويل Base64 إلى Buffer:', error.message);
-            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
-        }
-
-        // تحليل الـ PDF
-        const data = await pdfParse(buffer);
-        const text = data.text;
-        const lines = text.split(/\r?\n/).filter(line => line.trim());
-        console.log('الأسطر المستخرجة من الـ PDF:', lines);
-
-        // قائمة المواد المتوقعة
-        const validSubjects = [
-            'مبادئ وأسس تمريض',
-            'اللغة العربية',
-            'اللغة الإنجليزية',
-            'الفيزياء',
-            'الكيمياء',
-            'التشريح/علم وظائف الأعضاء',
-            'التربية الدينية',
-            'الكمبيوتر'
-        ];
-
-        // دالة لتطبيع أسماء المواد
-        const normalizeSubject = (subject) => {
-            let normalized = subject
-                .replace(/اإل/g, 'الإ') // تصحيح "اإل" إلى "الإ"
-                .replace(/أ/g, 'ا') // استبدال "أ" بـ "ا"
-                .replace(/ی/g, 'ي') // تصحيح "ی" إلى "ي"
-                .replace(/ة/g, 'ه') // تصحيح "ة" إلى "ه"
-                .replace(/[\/\\]/g, '/') // تطبيع الفواصل
-                .replace(/إ/g, 'ا') // استبدال "إ" بـ "ا" إذا لزم
-                .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
-                .trim();
-
-            // تصحيح يدوي لأسماء المواد المعقدة
-            if (normalized.includes('مبادئ') && normalized.includes('تمريض')) {
-                return 'مبادئ وأسس تمريض';
-            }
-            if (normalized.includes('عربيه') || normalized.includes('عربية')) {
+normalized.includes('عربيه') || normalized.includes('عربية')) {
                 return 'اللغة العربية';
             }
             if (normalized.includes('انجليزيه') || normalized.includes('إنجليزية') || normalized.includes('انجلیزیه')) {
@@ -366,6 +318,169 @@ app.post('/api/analyze-pdf', async (req, res) => {
                     id: studentMatch[2].trim()
                 };
                 grades = [];
+
+// نقطة نهاية للتحقق من توفر اسم المستخدم
+app.post('/api/check-username', async (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'Username is required' });
+        }
+
+        const existingAdmins = await Admin.find({ username });
+        const existingStudents = await Student.find({ username });
+        const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
+
+        res.json({ available: isAvailable });
+    } catch (error) {
+        console.error('Error checking username:', error.message);
+        res.status(500).json({ error: 'Error checking username: ' + error.message });
+    }
+});
+  app.post('/api/analyze-pdf', async (req, res) => {
+    try {
+        const { pdfData } = req.body;
+
+        // التحقق من وجود pdfData
+        if (!pdfData || typeof pdfData !== 'string') {
+            console.error('pdfData غير صالح أو مفقود:', pdfData);
+            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
+        }
+
+        // تحويل Base64 إلى Buffer
+        let buffer;
+        try {
+            buffer = Buffer.from(pdfData, 'base64');
+        } catch (error) {
+            console.error('خطأ في تحويل Base64 إلى Buffer:', error.message);
+            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
+        }
+
+        // تحليل الـ PDF
+        const data = await pdfParse(buffer);
+        const text = data.text;
+        const lines = text.split(/\r?\n/).filter(line => line.trim());
+        console.log('الأسطر المستخرجة من الـ PDF:', lines);
+
+        // قائمة المواد المتوقعة
+        const validSubjects = [
+            'مبادئ وأسس تمريض',
+            'اللغة العربية',
+            'اللغة الإنجليزية',
+            'الفيزياء',
+            'الكيمياء',
+            'التشريح/علم وظائف الأعضاء',
+            'التربية الدينية',
+            'الكمبيوتر',
+            'التاريخ',
+            'الجغرافيا'
+        ];
+
+        // دالة لتطبيع أسماء المواد
+        const normalizeSubject = (subject) => {
+            let normalized = subject
+                .replace(/اإل/g, 'الإ') // تصحيح "اإل" إلى "الإ"
+                .replace(/أ/g, 'ا') // استبدال "أ" بـ "ا"
+                .replace(/ی/g, 'ي') // تصحيح "ی" إلى "ي"
+                .replace(/ة/g, 'ه') // تصحيح "ة" إلى "ه"
+                .replace(/[\/\\]/g, '/') // تطبيع الفواصل
+                .replace(/إ/g, 'ا') // استبدال "إ" بـ "ا" إذا لزم
+                .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
+                .trim();
+
+            // تصحيح يدوي لأسماء المواد المعقدة
+            if (normalized.includes('مبادئ') && normalized.includes('تمريض')) {
+                return 'مبادئ وأسس تمريض';
+            }
+            if (normalized.includes('عربيه') || normalized.includes('عربية')) {
+                return 'اللغة العربية';
+            }
+            if (normalized.includes('انجليزيه') || normalized.includes('إنجليزية') || normalized.includes('انجلیزیه')) {
+                return 'اللغة الإنجليزية';
+            }
+            if (normalized.includes('فيزياء') || normalized.includes('فیزیاء')) {
+                return 'الفيزياء';
+            }
+            if (normalized.includes('كيمياء') || normalized.includes('كیمیاء')) {
+                return 'الكيمياء';
+            }
+            if (normalized.includes('تشريح') || normalized.includes('تشریح') || normalized.includes('وظائف')) {
+                return 'التشريح/علم وظائف الأعضاء';
+            }
+            if (normalized.includes('تربيه') || normalized.includes('دينيه') || normalized.includes('دينية')) {
+                return 'التربية الدينية';
+            }
+            if (normalized.includes('كمبيوتر') || normalized.includes('كمبیوتر')) {
+                return 'الكمبيوتر';
+            }
+            if (normalized.includes('تاريخ') || normalized.includes('تاریخ')) {
+                return 'التاريخ';
+            }
+            if (normalized.includes('جغرافيا') || normalized.includes('جغرافیاء')) {
+                return 'الجغرافيا';
+            }
+            return normalized;
+        };
+
+        const allResults = [];
+        let currentStudent = null;
+        let grades = [];
+        let semester = 'first'; // القيمة الافتراضية
+        const ignoredLines = [];
+
+        for (const line of lines) {
+            // تنظيف السطر من المسافات الزائدة
+            const cleanedLine = line.trim().replace(/\s+/g, ' ');
+
+            // التحقق من وجود الترم
+            const semesterMatch = cleanedLine.match(/(?:الترم|Semester):?\s*(الأول|الثاني|first|second)/i);
+            if (semesterMatch) {
+                semester = semesterMatch[1].includes('الأول') || semesterMatch[1].toLowerCase() === 'first' ? 'first' : 'second';
+                console.log(`تم العثور على الترم: ${semester}`);
+                continue;
+            }
+
+            // محاولة مطابقة اسم الطالب ورقم الجلوس بنمط مرن
+            const studentMatch = cleanedLine.match(/(?:طالب|الطالب|Student):?\s*([^-\n]+?)\s*[-–—]?\s*(?:رقم الجلوس|رقم|ID):?\s*(\d+)/i);
+            if (studentMatch) {
+                // إذا كان هناك طالب سابق، احفظه
+                if (currentStudent && grades.length > 0) {
+                    allResults.push({
+                        name: currentStudent.fullName,
+                        id: currentStudent.id,
+                        semester,
+                        results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
+                    });
+                    const existingAdmins = await Admin.find();
+                    const existingStudents = await Student.find();
+                    let student = await Student.findOne({ id: currentStudent.id });
+                    if (student) {
+                        student.subjects = grades;
+                        student.semester = semester;
+                        await student.save();
+                    } else {
+                        const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
+                        const originalPassword = generatePassword(currentStudent.fullName);
+                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+                        student = new Student({
+                            fullName: currentStudent.fullName,
+                            id: currentStudent.id,
+                            username,
+                            password: hashedPassword,
+                            originalPassword,
+                            semester,
+                            subjects: grades,
+                            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
+                        });
+                        await student.save();
+                    }
+                }
+                // بدء طالب جديد
+                currentStudent = {
+                    fullName: studentMatch[1].trim(),
+                    id: studentMatch[2].trim()
+                };
+                grades = [];
                 console.log('تم العثور على طالب:', currentStudent);
             } 
             // استخراج المواد والدرجات بنمط مرن
@@ -373,8 +488,16 @@ app.post('/api/analyze-pdf', async (req, res) => {
                 const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
                 const normalizedSubject = normalizeSubject(subject);
                 if (validSubjects.includes(normalizedSubject) && !isNaN(parseInt(grade))) {
-                    grades.push({ name: normalizedSubject, grade: parseInt(grade) });
-                    console.log(`تم استخراج المادة: ${normalizedSubject}, الدرجة: ${grade}`);
+                    // التحقق من أن المادة مناسبة للترم
+                    if ((normalizedSubject === 'التاريخ' && semester === 'first') || 
+                        (normalizedSubject === 'الجغرافيا' && semester === 'second') || 
+                        !['التاريخ', 'الجغرافيا'].includes(normalizedSubject)) {
+                        grades.push({ name: normalizedSubject, grade: parseInt(grade) });
+                        console.log(`تم استخراج المادة: ${normalizedSubject}, الدرجة: ${grade}`);
+                    } else {
+                        console.log(`تم تجاهل المادة: ${normalizedSubject} (غير مناسبة للترم: ${semester})`);
+                        ignoredLines.push(cleanedLine);
+                    }
                 } else {
                     console.log(`تم تجاهل السطر غير الصالح: ${cleanedLine} (السبب: المادة "${normalizedSubject}" غير موجودة في validSubjects أو الدرجة "${grade}" ليست رقمًا)`);
                     ignoredLines.push(cleanedLine);
@@ -390,6 +513,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
             allResults.push({
                 name: currentStudent.fullName,
                 id: currentStudent.id,
+                semester,
                 results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
             });
             const existingAdmins = await Admin.find();
@@ -397,6 +521,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
             let student = await Student.findOne({ id: currentStudent.id });
             if (student) {
                 student.subjects = grades;
+                student.semester = semester;
                 await student.save();
             } else {
                 const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
@@ -408,6 +533,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
                     username,
                     password: hashedPassword,
                     originalPassword,
+                    semester,
                     subjects: grades,
                     profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
                 });
@@ -431,25 +557,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
         console.error('خطأ في تحليل PDF:', error.message, error.stack);
         res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
-});
-// نقطة نهاية للتحقق من توفر اسم المستخدم
-app.post('/api/check-username', async (req, res) => {
-    try {
-        const { username } = req.body;
-        if (!username) {
-            return res.status(400).json({ error: 'Username is required' });
-        }
-
-        const existingAdmins = await Admin.find({ username });
-        const existingStudents = await Student.find({ username });
-        const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
-
-        res.json({ available: isAvailable });
-    } catch (error) {
-        console.error('Error checking username:', error.message);
-        res.status(500).json({ error: 'Error checking username: ' + error.message });
-    }
-});
+});              
 
 // نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
@@ -522,6 +630,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
