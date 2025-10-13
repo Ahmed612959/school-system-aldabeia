@@ -598,6 +598,21 @@ function displayPDFResults(results) {
             }
         }
     };
+    window.toggleSubjects = function() {
+    const semester = document.getElementById('semester').value;
+    const historyGroup = document.getElementById('history-group');
+    const geographyGroup = document.getElementById('geography-group');
+
+    if (semester === 'first') {
+        historyGroup.style.display = 'block';
+        geographyGroup.style.display = 'none';
+        document.getElementById('subject10').value = ''; // إعادة تعيين درجة الجغرافيا
+    } else {
+        historyGroup.style.display = 'none';
+        geographyGroup.style.display = 'block';
+        document.getElementById('subject9').value = ''; // إعادة تعيين درجة التاريخ
+    }
+};
 
     window.editStudent = function(studentId) {
         const student = students.find(s => s.id === studentId);
