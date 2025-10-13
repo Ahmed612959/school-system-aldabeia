@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (navBar) {
         const navItems = [
             { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-            { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
+            { href: 'home.html', icon: 'fas fa-chart-line', title: 'النتائج' }, // تعديل Home.html إلى home.html
             { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
             { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
         ];
@@ -43,11 +43,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault(); // منع الانتقال المباشر لاختبار الإشعار
                 document.querySelectorAll('.nav-bar a').forEach(l => l.classList.remove('active'));
                 e.currentTarget.classList.add('active');
-                const title = e.currentTarget.querySelector('i').getAttribute('title'); // استخدام title بدلاً من nav-text
+                const title = e.currentTarget.querySelector('i').getAttribute('title');
+                const href = e.currentTarget.getAttribute('href'); // استرجاع href مباشرة
+                console.log('Navigating to:', href); // تسجيل للتحقق
                 showToast(`تم الانتقال إلى ${title}`, 'success');
                 setTimeout(() => {
-                    window.location.href = e.currentTarget.href; // الانتقال بعد الإشعار
-                }, 500);
+                    try {
+                        window.location.href = href; // استخدام href المسترجع
+                    } catch (error) {
+                        console.error('Navigation error:', error);
+                        showToast('خطأ أثناء الانتقال إلى الصفحة!', 'error');
+                    }
+                }, 1000); // زيادة التأخير إلى 1000 ميلي ثانية
             });
         });
     }
