@@ -10,68 +10,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // فحص وجود العناصر
     if (!chatInput || !sendBtn || !chatWindow) {
         console.error('Missing required elements:', { chatInput, sendBtn, chatWindow });
-        showToast('خطأ: حقل الإدخال أو زر الإرسال أو نافذة الدردشة غير موجودة!', 'error');
+        alert('خطأ: حقل الإدخال أو زر الإرسال أو نافذة الدردشة غير موجودة!');
         return;
     }
 
     // مفتاح API (ضعه في ملف .env في الباك إند للأمان)
-    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // استبدل بمفتاحك الجديد
+    const API_KEY = 'AIzaSyC5q7nbeo55hu7p_oJh1TB3Pqa9NCaNWWE-5ZiIUwzJDmGMtRtxk'; // استبدل بمفتاحك الجديد
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-
-    // تحديث الناف بار
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-    const navBar = document.getElementById('nav-bar');
-    if (navBar) {
-        const navItems = [
-            { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-            { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
-            { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
-            { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
-        ];
-        if (loggedInUser && loggedInUser.type === 'admin') {
-            navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
-        }
-        navBar.innerHTML = navItems.map(item => `
-            <a href="${item.href}" class="${item.href === 'chatbot.html' ? 'active' : ''}">
-                <i class="${item.icon}" title="${item.title}"></i>
-            </a>
-        `).join('');
-        console.log('Nav bar updated with items:', navItems);
-
-        // التحقق من تحميل Font Awesome بعد تأخير
-        setTimeout(() => {
-            if (typeof window.FontAwesome === 'undefined') {
-                console.error('Font Awesome not loaded');
-                showToast('خطأ: فشل تحميل أيقونات الناف بار! تأكد من الاتصال بالإنترنت أو استخدم مكتبة محلية.', 'error');
-            } else {
-                console.log('Font Awesome loaded successfully');
-            }
-        }, 2000); // تأخير 2 ثانية للسماح بتحميل المكتبة
-
-        // إضافة إشعار عند التنقل
-        document.querySelectorAll('.nav-bar a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.nav-bar a').forEach(l => l.classList.remove('active'));
-                e.currentTarget.classList.add('active');
-                const title = e.currentTarget.querySelector('i').getAttribute('title');
-                const href = e.currentTarget.getAttribute('href');
-                console.log('Navigating to:', href);
-                showToast(`تم الانتقال إلى ${title}`, 'success');
-                setTimeout(() => {
-                    try {
-                        window.location.href = href;
-                    } catch (error) {
-                        console.error('Navigation error:', error);
-                        showToast('خطأ أثناء الانتقال إلى الصفحة!', 'error');
-                    }
-                }, 1000);
-            });
-        });
-    } else {
-        console.error('Nav bar element not found');
-        showToast('خطأ: الناف بار غير موجود!', 'error');
-    }
 
     // دالة تنسيق الوقت
     function formatTime() {
@@ -85,11 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // دالة تنسيق الرد
     function formatAnswer(text) {
         if (!text) return 'معلش، حصل خطأ! جرب تاني.';
+        // تحويل النص لفقرات وقوائم نقطية
         let formatted = text
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>')
-            .replace(/(\d+\.\s+)([^\n]+)/g, '<li>$2</li>')
-            .replace(/(\<li\>.*\<\/li\>)/s, '<ul>$1</ul>');
+            .replace(/\n\n/g, '</p><p>') // فقرات
+            .replace(/\n/g, '<br>') // أسطر جديدة
+            .replace(/(\d+\.\s+)([^\n]+)/g, '<li>$2</li>') // تحويل 1. كذا إلى قائمة
+            .replace(/(\<li\>.*\<\/li\>)/s, '<ul>$1</ul>'); // تغليف القوائم بـ <ul>
         return `<p>${formatted}</p>`;
     }
 
@@ -113,10 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const message = chatInput.value.trim();
             if (!message) {
-                showToast('اكتب سؤال أولًا!', 'error');
+                alert('اكتب سؤال أولًا!');
                 return;
             }
 
+            // إضافة رسالة المستخدم
             console.log('Adding user message:', message);
             const userMessage = document.createElement('div');
             userMessage.className = 'chat-message user-message';
@@ -125,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chatInput.value = '';
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
+            // إرسال طلب لـ Gemini API
             console.log('Sending request to Gemini API...');
             const response = await fetch(`${API_URL}?key=${API_KEY}`, {
                 method: 'POST',
@@ -147,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const rawAnswer = data.candidates?.[0]?.content?.parts?.[0]?.text || 'معلش، حصل خطأ! جرب تاني.';
             const answer = formatAnswer(rawAnswer);
 
+            // إضافة رد الروبوت
             console.log('Adding bot message:', answer);
             const botMessage = document.createElement('div');
             botMessage.className = 'chat-message bot-message';
@@ -154,10 +103,10 @@ document.addEventListener('DOMContentLoaded', function() {
             chatWindow.appendChild(botMessage);
             chatWindow.scrollTop = chatWindow.scrollHeight;
 
-            showToast('تم الرد بنجاح!', 'success');
+            alert('تم الرد بنجاح!');
         } catch (error) {
             console.error('Error in sendMessage:', error);
-            showToast('خطأ أثناء إرسال الرسالة! جرب تاني.', 'error');
+            alert('خطأ أثناء إرسال الرسالة! جرب تاني.');
         }
     }
 
@@ -166,53 +115,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('clearChat called');
         try {
             chatWindow.innerHTML = '';
-            showToast('تم مسح الدردشة!', 'success');
+            alert('تم مسح الدردشة!');
         } catch (error) {
             console.error('Error in clearChat:', error);
-            showToast('خطأ أثناء مسح الدردشة!', 'error');
+            alert('خطأ أثناء مسح الدردشة!');
         }
     };
-
-    // دالة عرض إشعارات Toastify
-    function showToast(message, type = 'success') {
-        let backgroundColor, boxShadow;
-        switch (type) {
-            case 'success':
-                backgroundColor = 'linear-gradient(135deg, #28a745, #218838)';
-                boxShadow = '0 4px 15px rgba(40, 167, 69, 0.5)';
-                break;
-            case 'error':
-                backgroundColor = 'linear-gradient(135deg, #dc3545, #c82333)';
-                boxShadow = '0 4px 15px rgba(220, 53, 69, 0.5)';
-                break;
-            case 'info':
-                backgroundColor = 'linear-gradient(135deg, #17a2b8, #117a8b)';
-                boxShadow = '0 4px 15px rgba(23, 162, 184, 0.5)';
-                break;
-            default:
-                backgroundColor = '#333';
-                boxShadow = '0 4px 15px rgba(0, 0, 0, 0.5)';
-        }
-        Toastify({
-            text: message,
-            duration: 4000,
-            gravity: 'top',
-            position: 'right',
-            backgroundColor: backgroundColor,
-            stopOnFocus: true,
-            style: {
-                fontSize: '18px',
-                fontFamily: '"Cairo", sans-serif',
-                padding: '20px 30px',
-                borderRadius: '10px',
-                direction: 'rtl',
-                boxShadow: boxShadow,
-                color: '#fff',
-                maxWidth: '400px',
-                textAlign: 'right',
-            }
-        }).showToast();
-    }
 
     console.log('Chatbot initialized successfully');
 });
