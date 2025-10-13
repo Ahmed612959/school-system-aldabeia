@@ -22,7 +22,7 @@ html, body {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    overflow: hidden; /* منع التمرير الخارجي للصفحة */
+    overflow: hidden; /* منع التمرير الخارجي */
 }
 
 *, *:before, *:after {
@@ -101,7 +101,7 @@ html, body {
 
 .chat-window {
     flex: 1;
-    overflow-y: auto; /* تمرير داخلي للرسائل فقط */
+    overflow-y: auto; /* تمرير داخلي للرسائل */
     padding: 12px; /* مطابق لـ table padding */
     background: linear-gradient(180deg, #f9f9f9, #ffffff); /* مطابق لـ table */
     border-radius: 8px;
@@ -129,7 +129,19 @@ html, body {
     position: relative;
     word-wrap: break-word;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    animation: fadeIn 0.5s ease-in; /* مطابق لـ .result-table */
+    max-height: 200px; /* الحد الأقصى للرسالة الطويلة */
+    overflow-y: auto; /* تمرير داخلي للرسائل الطويلة */
+    scrollbar-width: thin;
+    scrollbar-color: #d4af37 #f9f9f9;
+}
+
+.chat-message::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-message::-webkit-scrollbar-thumb {
+    background: #d4af37;
+    border-radius: 6px;
 }
 
 .user-message {
@@ -137,6 +149,7 @@ html, body {
     color: #1a2526;
     margin-left: auto;
     border-radius: 8px 8px 0 8px;
+    animation: slideInRight 0.5s ease-in-out; /* أنيميشن لرسائل المستخدم */
 }
 
 .user-message::after {
@@ -156,6 +169,7 @@ html, body {
     color: #1a2526;
     margin-right: auto;
     border-radius: 8px 8px 8px 0;
+    animation: slideInLeft 0.5s ease-in-out; /* أنيميشن لرسائل البوت */
 }
 
 .bot-message::after {
@@ -261,16 +275,20 @@ html, body {
     position: fixed;
     bottom: 0;
     z-index: 1000;
+    border-top-left-radius: 15px; /* حواف منحنية */
+    border-top-right-radius: 15px;
 }
 
 .nav-bar a {
     color: #d4af37; /* مطابق لـ home.css */
     text-decoration: none;
     font-size: 1.1em; /* مطابق لـ home.css */
-    transition: color 0.3s ease; /* مطابق لـ home.css */
+    transition: color 0.3s ease, transform 0.3s ease; /* تأثير تحويم */
     display: flex;
     align-items: center;
     gap: 8px; /* مسافة بين الأيقونة والنص */
+    padding: 8px 12px; /* حشوة إضافية للجمال */
+    border-radius: 10px; /* حواف منحنية للروابط */
 }
 
 .nav-bar a i {
@@ -279,10 +297,13 @@ html, body {
 
 .nav-bar a:hover {
     color: #fff; /* مطابق لـ home.css */
+    transform: scale(1.1); /* تأثير تكبير خفيف */
+    background: rgba(255, 255, 255, 0.1); /* خلفية خفيفة عند التحويم */
 }
 
 .nav-bar a.active {
     color: #fff; /* تمييز الرابط النشط */
+    background: rgba(212, 175, 55, 0.2); /* خلفية مميزة للرابط النشط */
 }
 
 /* أنماط العناوين */
@@ -294,7 +315,29 @@ h3 {
     text-align: center;
 }
 
-/* تأثيرات الحركة */
+/* أنيميشن للرسائل */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; } /* مطابق لـ home.css */
@@ -323,6 +366,7 @@ h3 {
     .chat-message {
         font-size: 12px; /* مطابق لـ table font-size */
         padding: 10px;
+        max-height: 180px; /* تقليل الارتفاع للشاشات المتوسطة */
     }
     .chat-input {
         padding: 12px;
@@ -339,9 +383,12 @@ h3 {
     }
     .nav-bar {
         padding: 10px 0;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
     }
     .nav-bar a {
         font-size: 0.95em; /* مطابق لـ home.css */
+        padding: 7px 10px;
     }
     .nav-bar a i {
         font-size: 1.1em;
@@ -373,6 +420,7 @@ h3 {
         font-size: 10px; /* مطابق لـ table font-size */
         padding: 8px;
         max-width: 85%;
+        max-height: 160px; /* تقليل الارتفاع */
     }
     .chat-input {
         padding: 10px;
@@ -389,9 +437,12 @@ h3 {
     }
     .nav-bar {
         padding: 10px 0;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
     }
     .nav-bar a {
         font-size: 0.95em; /* مطابق لـ home.css */
+        padding: 6px 8px;
     }
     .nav-bar a i {
         font-size: 1em;
@@ -421,6 +472,7 @@ h3 {
         font-size: 9px; /* مطابق لـ table font-size */
         padding: 6px;
         max-width: 90%;
+        max-height: 140px; /* تقليل الارتفاع */
     }
     .chat-input {
         padding: 8px;
@@ -437,9 +489,12 @@ h3 {
     }
     .nav-bar {
         padding: 8px 0;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
     }
     .nav-bar a {
         font-size: 0.9em; /* مطابق لـ home.css */
+        padding: 5px 7px;
     }
     .nav-bar a i {
         font-size: 0.95em;
@@ -469,6 +524,7 @@ h3 {
         font-size: 8px;
         padding: 5px;
         max-width: 95%;
+        max-height: 120px; /* تقليل الارتفاع */
     }
     .chat-input {
         padding: 6px;
@@ -485,9 +541,12 @@ h3 {
     }
     .nav-bar {
         padding: 6px 0;
+        border-top-left-radius: 6px;
+        border-top-right-radius: 6px;
     }
     .nav-bar a {
         font-size: 0.85em;
+        padding: 4px 6px;
     }
     .nav-bar a i {
         font-size: 0.9em;
