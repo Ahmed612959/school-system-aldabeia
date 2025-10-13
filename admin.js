@@ -531,59 +531,79 @@ function displayPDFResults(results) {
     });
 
     document.getElementById('add-result-form')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const fullName = document.getElementById('student-name').value.trim();
-        const studentId = document.getElementById('student-id').value.trim();
-        const subject1 = parseInt(document.getElementById('subject1').value) || 0;
-        const subject2 = parseInt(document.getElementById('subject2').value) || 0;
-        const subject3 = parseInt(document.getElementById('subject3').value) || 0;
-        const subject4 = parseInt(document.getElementById('subject4').value) || 0;
-        const subject5 = parseInt(document.getElementById('subject5').value) || 0;
-        const subject6 = parseInt(document.getElementById('subject6').value) || 0;
-        const subject7 = parseInt(document.getElementById('subject7').value) || 0;
-        const subject8 = parseInt(document.getElementById('subject8').value) || 0;
+    e.preventDefault();
+    const fullName = document.getElementById('student-name').value.trim();
+    const studentId = document.getElementById('student-id').value.trim();
+    const semester = document.getElementById('semester').value;
+    const subject1 = parseInt(document.getElementById('subject1').value) || 0;
+    const subject2 = parseInt(document.getElementById('subject2').value) || 0;
+    const subject3 = parseInt(document.getElementById('subject3').value) || 0;
+    const subject4 = parseInt(document.getElementById('subject4').value) || 0;
+    const subject5 = parseInt(document.getElementById('subject5').value) || 0;
+    const subject6 = parseInt(document.getElementById('subject6').value) || 0;
+    const subject7 = parseInt(document.getElementById('subject7').value) || 0;
+    const subject8 = parseInt(document.getElementById('subject8').value) || 0;
+    const subject9 = parseInt(document.getElementById('subject9').value) || 0;
+    const subject10 = parseInt(document.getElementById('subject10').value) || 0;
 
-        if (!fullName || !studentId) {
-            showToast('يرجى إدخال اسم الطالب ورقم الجلوس!', 'error');
-            return;
-        }
-        if ([subject1, subject2, subject3, subject4, subject5, subject6, subject7, subject8].some(g => g < 0 || g > 100)) {
-            showToast('تأكد أن جميع الدرجات بين 0 و100!', 'error');
-            return;
-        }
+    if (!fullName || !studentId) {
+        showToast('يرجى إدخال اسم الطالب ورقم الجلوس!', 'error');
+        return;
+    }
 
-        const subjects = [
-            { name: "مبادئ وأسس تمريض", grade: subject1 },
-            { name: "اللغة العربية", grade: subject2 },
-            { name: "اللغة الإنجليزية", grade: subject3 },
-            { name: "الفيزياء", grade: subject4 },
-            { name: "الكيمياء", grade: subject5 },
-            { name: "التشريح / علم وظائف الأعضاء", grade: subject6 },
-            { name: "التربية الدينية", grade: subject7 },
-            { name: "الكمبيوتر", grade: subject8 }
-        ];
+    if ([subject1, subject2, subject3, subject4, subject5, subject6, subject7, subject8, subject9, subject10].some(g => g < 0 || g > 100)) {
+        showToast('تأكد أن جميع الدرجات بين 0 و100!', 'error');
+        return;
+    }
 
-        const existingStudent = students.find(s => s.id === studentId);
-        if (existingStudent) {
-            const response = await saveToServer(`/api/students/${studentId}`, { subjects }, 'PUT');
-            if (response) {
-                students = await getFromServer('/api/students');
-                renderResults();
-                renderStats();
-                showToast(`تم تحديث درجات الطالب ${fullName} بنجاح!`, 'success');
-                this.reset();
-            }
-        } else {
-            const response = await saveToServer('/api/students', { fullName, id: studentId, subjects });
-            if (response) {
-                students = await getFromServer('/api/students');
-                renderResults();
-                renderStats();
-                showToast(`تم إضافة الطالب بنجاح!\nاسم المستخدم: ${response.student.username}\nكلمة المرور: ${response.student.originalPassword}`, 'success');
-                this.reset();
-            }
+    const subjects = [
+        { name: "مبادئ وأسس تمريض", grade: subject1 },
+        { name: "اللغة العربية", grade: subject2 },
+        { name: "اللغة الإنجليزية", grade: subject3 },
+        { name: "الفيزياء", grade: subject4 },
+        { name: "الكيمياء", grade: subject5 },
+        { name: "التشريح / علم وظائف الأعضاء", grade: subject6 },
+        { name: "التربية الدينية", grade: subject7 },
+        { name: "الكمبيوتر", grade: subject8 }
+    ];
+
+    if (semester === 'first') {
+        if (subject9 > 0) { // إضافة التاريخ فقط إذا كانت الدرجة أكبر من 0
+            subjects.push({ name: "التاريخ", grade: subject9 });
         }
-    });
+    } else {
+        if (subject10 > 0) { // إضافة الجغرافيا فقط إذا كانت الدرجة أكبر من 0
+            subjects.push({ name: "الجغرافيا", grade: subject10 });
+        }
+    }
+
+    console.log('البيانات المرسلة:', { fullName, studentId, semester, subjects }); // تسجيل البيانات
+
+    const existingStudent = students.find(s => s.id === studentId);
+    if (existingStudent) {
+        const response = await saveToServer(`/api/students/${studentId}`, { subjects, semester }, 'PUT');
+        if (response) {
+            students = await getFromServer('/api/students');
+            console.log('البيانات المحدثة من الخادم:', students.find(s => s.id === studentId)); // تسجيل بيانات الطالب المحدثة
+            renderResults();
+            renderStats();
+            showToast(`تم تحديث درجات الطالب ${fullName} بنجاح!`, 'success');
+            this.reset();
+            toggleSubjects();
+        }
+    } else {
+        const response = await saveToServer('/api/students', { fullName, id: studentId, subjects, semester });
+        if (response) {
+            students = await getFromServer('/api/students');
+            console.log('بيانات الطالب الجديد:', response); // تسجيل بيانات الطالب الجديد
+            renderResults();
+            renderStats();
+            showToast(`تم إضافة الطالب بنجاح!\nاسم المستخدم: ${response.student.username}\nكلمة المرور: ${response.student.originalPassword}`, 'success');
+            this.reset();
+            toggleSubjects();
+        }
+    }
+});
 
     window.deleteStudent = async function(studentId) {
         if (confirm('هل أنت متأكد؟ لن تتمكن من استرجاع بيانات هذا الطالب!')) {
