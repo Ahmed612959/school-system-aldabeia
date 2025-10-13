@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (navBar) {
         const navItems = [
             { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-            { href: 'home.html', icon: 'fas fa-chart-line', title: 'النتائج' }, // تصحيح إلى home.html
+            { href: 'home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
             { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
             { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
         ];
@@ -38,11 +38,15 @@ document.addEventListener('DOMContentLoaded', function() {
         `).join('');
         console.log('Nav bar updated with items:', navItems);
 
-        // التحقق من تحميل الأيقونات
-        if (typeof window.FontAwesome === 'undefined') {
-            console.error('Font Awesome not loaded');
-            showToast('خطأ: فشل تحميل أيقونات الناف بار!', 'error');
-        }
+        // التحقق من تحميل Font Awesome بعد تأخير
+        setTimeout(() => {
+            if (typeof window.FontAwesome === 'undefined') {
+                console.error('Font Awesome not loaded');
+                showToast('خطأ: فشل تحميل أيقونات الناف بار! تأكد من الاتصال بالإنترنت أو استخدم مكتبة محلية.', 'error');
+            } else {
+                console.log('Font Awesome loaded successfully');
+            }
+        }, 2000); // تأخير 2 ثانية للسماح بتحميل المكتبة
 
         // إضافة إشعار عند التنقل
         document.querySelectorAll('.nav-bar a').forEach(link => {
