@@ -1,89 +1,109 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
+@font-face {
+    font-family: 'Cairo';
+    src: url('Cairo-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Cairo';
+    src: url('Cairo-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
 }
 
 html, body {
+    margin: 0;
+    padding: 0;
     width: 100%;
-    height: 100vh;
-    background: linear-gradient(to bottom right, #A7F3D0, #FFFFFF);
-    overflow: hidden;
+    min-height: 100vh;
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(135deg, #1a2526, #2f3b3c); /* مطابق لـ home.css */
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
 }
 
 .container {
+    flex: 1;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
+    padding: 15px; /* مطابق لـ .main-container في home.css */
+    width: 100%;
+    max-width: 1400px; /* مطابق لـ .result-form-container */
+    margin: 0 auto;
 }
 
 /* شريط العنوان */
 .chat-header {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    padding: 15px 20px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    background: #1a2526; /* مطابق لـ .main-header */
+    color: #d4af37;
+    padding: 15px; /* مطابق لـ .main-header */
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4); /* مطابق لـ .main-header */
     position: sticky;
     top: 0;
     z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .chat-header .logo {
-    width: 50px;
-    height: 50px;
+    width: 12%;
+    max-width: 90px;
+    min-width: 50px;
+    margin-bottom: 8px; /* مطابق لـ .logo في home.css */
+    border: 2px solid #d4af37;
     border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid #10B981;
-    box-shadow: 0 0 12px rgba(16, 185, 129, 0.5);
-    margin-left: 15px;
-    transition: transform 0.3s;
-}
-
-.chat-header .logo:hover {
-    transform: rotate(360deg);
+    padding: 4px;
+    object-fit: contain;
+    margin-left: 8px;
 }
 
 .chat-header h1 {
-    margin: 0;
-    font-size: 1.8em;
-    color: #064E3B;
+    font-size: 1.4em; /* مطابق لـ .main-header h1 */
     font-weight: bold;
+    margin: 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
     flex: 1;
-    text-align: right;
 }
 
 .chat-header .status-icon {
-    color: #10B981;
-    font-size: 16px;
-    margin-left: 10px;
+    color: #d4af37;
+    font-size: 0.9em;
+    margin-left: 8px;
 }
 
 /* منطقة الدردشة */
 .chatbot-section {
+    background: #fff; /* مطابق لـ .result-form-container */
+    padding: 25px; /* مطابق لـ .result-form-container */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* مطابق لـ .result-form-container */
+    width: 100%;
+    max-width: 1400px;
+    border: 1px solid #d4af37;
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #FFFFFF;
     overflow-y: auto;
-    padding: 20px;
-    z-index: 600;
+    margin: 15px 0; /* مطابق لـ .main-container */
 }
 
 .chat-window {
     flex: 1;
     overflow-y: auto;
-    padding: 15px;
-    background: #F9FAFB;
-    border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    padding: 12px; /* مطابق لـ table padding */
+    background: linear-gradient(180deg, #f9f9f9, #ffffff); /* مطابق لـ table */
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     scrollbar-width: thin;
-    scrollbar-color: #10B981 #F9FAFB;
+    scrollbar-color: #d4af37 #f9f9f9;
 }
 
 .chat-window::-webkit-scrollbar {
@@ -91,29 +111,28 @@ html, body {
 }
 
 .chat-window::-webkit-scrollbar-thumb {
-    background: #10B981;
-    border-radius: 10px;
+    background: #d4af37;
+    border-radius: 8px;
 }
 
 .chat-message {
-    margin: 10px 15px;
-    padding: 10px 15px;
-    border-radius: 10px;
-    max-width: 70%;
-    font-size: 1em;
+    margin: 12px; /* مشابه لـ table padding */
+    padding: 12px; /* مشابه لـ th, td */
+    border-radius: 8px;
+    max-width: 80%;
+    font-size: 13px; /* مطابق لـ table font-size */
     line-height: 1.5;
     position: relative;
     word-wrap: break-word;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.5s ease-in; /* مطابق لـ .result-table */
 }
 
 .user-message {
-    background: #075E54;
-    color: #FFFFFF;
+    background: #d4af37; /* مطابق لـ .submit-btn */
+    color: #1a2526;
     margin-left: auto;
-    border-radius: 10px 10px 0 10px;
-    position: relative;
+    border-radius: 8px 8px 0 8px;
 }
 
 .user-message::after {
@@ -124,16 +143,15 @@ html, body {
     width: 0;
     height: 0;
     border: 10px solid transparent;
-    border-left-color: #075E54;
-    border-bottom-color: #075E54;
+    border-left-color: #d4af37;
+    border-bottom-color: #d4af37;
 }
 
 .bot-message {
-    background: #ECE5DD;
-    color: #111827;
+    background: #f0f0f0; /* مطابق لـ tr:hover td */
+    color: #1a2526;
     margin-right: auto;
-    border-radius: 10px 10px 10px 0;
-    position: relative;
+    border-radius: 8px 8px 8px 0;
 }
 
 .bot-message::after {
@@ -144,14 +162,14 @@ html, body {
     width: 0;
     height: 0;
     border: 10px solid transparent;
-    border-right-color: #ECE5DD;
-    border-bottom-color: #ECE5DD;
+    border-right-color: #f0f0f0;
+    border-bottom-color: #f0f0f0;
 }
 
 .message-time {
-    font-size: 0.7em;
-    color: #6B7280;
-    margin-top: 3px;
+    font-size: 9px; /* مطابق لأصغر حجم في home.css */
+    color: #1a2526;
+    margin-top: 4px;
     text-align: right;
     display: block;
     opacity: 0.7;
@@ -159,181 +177,302 @@ html, body {
 
 /* شريط الإدخال */
 .chat-input {
-    display: flex !important;
+    display: flex;
     align-items: center;
-    background: #FFFFFF;
-    padding: 15px 20px;
-    border-top: 1px solid #E5E7EB;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-    z-index: 999; /* تقليل z-index عشان الـ Nav Bar يطلع فوقه */
+    background: #fff;
+    padding: 15px; /* مطابق لـ .main-container */
+    border-top: 1px solid #d4af37;
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.4); /* مطابق لـ .nav-bar */
     position: sticky;
-    bottom: 0;
-    min-height: 70px;
-    margin-bottom: 70px; /* زيادة المسافة لضمان ظهور الـ Nav Bar */
+    bottom: 48px; /* إفساح مجال للناف بار */
+    z-index: 999;
 }
 
 .chat-input input {
     flex: 1;
-    background: #F9FAFB;
-    border: 1px solid #E5E7EB;
-    padding: 15px 20px;
-    border-radius: 25px;
-    color: #111827;
-    font-size: 1.1em;
-    margin: 0 10px;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    display: block !important;
-    min-width: 250px;
-    max-width: 600px;
+    background: #fff;
+    border: 1px solid #d4af37; /* مطابق لـ .input-group input */
+    padding: 8px; /* مطابق لـ .input-group input */
+    border-radius: 5px;
+    font-size: 0.95em; /* مطابق لـ .input-group input */
+    margin: 0 8px;
+    transition: border-color 0.3s ease;
 }
 
 .chat-input input:focus {
-    border-color: #10B981;
-    box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
     outline: none;
+    border-color: #1a2526;
+    box-shadow: 0 0 5px rgba(26, 37, 38, 0.3); /* مطابق لـ .input-group input:focus */
 }
 
 .chat-input input::placeholder {
-    color: #6B7280;
+    color: #1a2526;
+    opacity: 0.7;
 }
 
 .chat-input button {
-    background: none;
     border: none;
     cursor: pointer;
-    padding: 10px;
-    color: #10B981;
-    font-size: 1em;
-    transition: all 0.3s;
+    padding: 10px 18px; /* مطابق لـ .submit-btn */
+    border-radius: 5px;
+    font-size: 0.95em; /* مطابق لـ .submit-btn */
+    font-weight: bold;
+    transition: all 0.3s ease;
 }
 
 .chat-input button.send-btn {
-    background: #FFFFFF;
-    border-radius: 20px;
-    padding: 12px 25px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
+    background: #d4af37; /* مطابق لـ .submit-btn */
+    color: #1a2526;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .chat-input button.send-btn:hover {
-    background: #10B981;
-    color: #FFFFFF;
+    background: #1a2526;
+    color: #d4af37; /* مطابق لـ .submit-btn:hover */
 }
 
 .chat-input button.clear-btn {
-    background: #EF4444;
-    color: #FFFFFF;
-    border-radius: 20px;
-    padding: 12px 25px;
-    font-size: 1em;
-    margin-right: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    background: #dc3545; /* مطابق لـ .logout-btn */
+    color: #fff;
+    margin-right: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .chat-input button.clear-btn:hover {
-    background: #DC2626;
+    background: #c82333; /* مطابق لـ .logout-btn:hover */
 }
 
 /* الناف بار السفلي */
 .nav-bar {
+    background: #1a2526; /* مطابق لـ .nav-bar في home.css */
     display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: #A7F3D0;
-    padding: 10px 0;
+    justify-content: space-around; /* مطابق لـ home.css */
+    padding: 12px 0; /* مطابق لـ home.css */
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.4); /* مطابق لـ home.css */
+    width: 100%;
     position: fixed;
     bottom: 0;
-    width: 100%;
-    z-index: 1000; /* زيادة z-index عشان يظهر فوق كل حاجة */
-    height: 60px;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 1000;
 }
 
 .nav-bar a {
-    color: #064E3B;
+    color: #d4af37; /* مطابق لـ home.css */
     text-decoration: none;
+    font-size: 1.1em; /* مطابق لـ home.css */
+    transition: color 0.3s ease; /* مطابق لـ home.css */
     display: flex;
-    flex-direction: column;
     align-items: center;
-    font-size: 0.9em;
-    padding: 8px 15px;
-    transition: color 0.3s;
+    gap: 8px; /* مسافة بين الأيقونة والنص */
 }
 
-.nav-bar a.active {
-    color: #10B981;
+.nav-bar a i {
+    font-size: 1.2em; /* حجم الأيقونة */
 }
 
 .nav-bar a:hover {
-    color: #10B981;
+    color: #fff; /* مطابق لـ home.css */
 }
 
-.nav-bar .nav-icon {
-    font-size: 1.4em;
-    margin-bottom: 4px;
-}
-
-.nav-bar .nav-text {
-    font-size: 0.8em;
-    font-weight: 500;
-}
-
-/* تأثيرات الحركة */
-@keyframes slideIn {
-    0% { opacity: 0; transform: translateY(10px); }
-    100% { opacity: 1; transform: translateY(0); }
+.nav-bar a.active {
+    color: #fff; /* تمييز الرابط النشط */
 }
 
 /* أنماط العناوين */
 h3 {
-    color: #064E3B;
-    font-size: 1.1em;
-    margin: 15px 20px;
-    text-align: right;
+    color: #1a2526;
+    font-size: 0.95em; /* مطابق لـ .result-form-container h3 */
+    margin-bottom: 12px;
     font-weight: bold;
+    text-align: center;
 }
 
-/* استجابة للشاشات الصغيرة */
+/* تأثيرات الحركة */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; } /* مطابق لـ home.css */
+}
+
+/* استجابة للشاشات المختلفة */
+@media (max-width: 1200px) {
+    .container {
+        max-width: 1100px; /* مطابق لـ .result-form-container */
+        padding: 12px;
+    }
+    .chat-header {
+        padding: 12px;
+    }
+    .chat-header h1 {
+        font-size: 1.2em;
+    }
+    .chatbot-section {
+        padding: 20px;
+        max-width: 1100px;
+    }
+    .chat-window {
+        padding: 10px;
+    }
+    .chat-message {
+        font-size: 12px; /* مطابق لـ table font-size */
+        padding: 10px;
+    }
+    .chat-input {
+        padding: 12px;
+    }
+    .chat-input input {
+        font-size: 0.9em;
+        padding: 7px;
+    }
+    .chat-input button.send-btn, .chat-input button.clear-btn {
+        font-size: 0.9em;
+        padding: 8px 12px;
+    }
+    .nav-bar {
+        padding: 10px 0;
+    }
+    .nav-bar a {
+        font-size: 0.95em; /* مطابق لـ home.css */
+    }
+    .nav-bar a i {
+        font-size: 1.1em;
+    }
+}
+
 @media (max-width: 768px) {
-    .chat-header h1 { font-size: 1.6em; }
-    .chat-window { padding: 10px; }
-    .chat-message { font-size: 0.95em; max-width: 75%; }
-    .chat-input { margin-bottom: 65px; min-height: 65px; }
-    .chat-input input { 
-        font-size: 1em; 
-        min-width: 200px; 
-        padding: 12px 15px; 
-        max-width: 400px; 
+    .container {
+        padding: 12px; /* مطابق لـ .result-form-container */
+        max-width: 100%;
     }
-    .chat-input button.send-btn, .chat-input button.clear-btn { 
-        font-size: 0.9em; 
-        padding: 10px 20px; 
+    .chat-header .logo {
+        width: 18%;
+        max-width: 70px;
+        min-width: 45px; /* مطابق لـ .logo */
     }
-    .nav-bar { height: 55px; }
-    .nav-bar a { font-size: 0.85em; padding: 8px 12px; }
-    .nav-bar .nav-icon { font-size: 1.3em; }
-    .nav-bar .nav-text { font-size: 0.75em; }
+    .chat-header h1 {
+        font-size: 1.1em; /* مطابق لـ .main-header h1 */
+    }
+    .chatbot-section {
+        padding: 12px; /* مطابق لـ .result-form-container */
+        max-width: 100%;
+    }
+    .chat-window {
+        padding: 8px; /* مطابق لـ table padding */
+    }
+    .chat-message {
+        font-size: 10px; /* مطابق لـ table font-size */
+        padding: 8px;
+        max-width: 85%;
+    }
+    .chat-input {
+        padding: 10px;
+        bottom: 45px; /* تعديل للناف بار */
+    }
+    .chat-input input {
+        font-size: 0.9em; /* مطابق لـ .input-group input */
+        padding: 7px;
+    }
+    .chat-input button.send-btn, .chat-input button.clear-btn {
+        font-size: 0.9em; /* مطابق لـ .submit-btn */
+        padding: 8px 12px;
+    }
+    .nav-bar {
+        padding: 10px 0;
+    }
+    .nav-bar a {
+        font-size: 0.95em; /* مطابق لـ home.css */
+    }
+    .nav-bar a i {
+        font-size: 1em;
+    }
 }
 
 @media (max-width: 480px) {
-    .chat-header .logo { width: 40px; height: 40px; }
-    .chat-header h1 { font-size: 1.4em; }
-    .chat-message { font-size: 0.9em; max-width: 80%; }
-    .chat-input { margin-bottom: 60px; min-height: 60px; }
-    .chat-input input { 
-        font-size: 0.95em; 
-        min-width: 150px; 
-        padding: 10px 15px; 
-        max-width: 300px; 
+    .container {
+        padding: 10px; /* مطابق لـ .result-form-container */
     }
-    .chat-input button.send-btn, .chat-input button.clear-btn { 
-        font-size: 0.8em; 
-        padding: 8px 15px; 
+    .chat-header .logo {
+        width: 22%;
+        max-width: 60px;
+        min-width: 40px; /* مطابق لـ .logo */
     }
-    .nav-bar { height: 50px; }
-    .nav-bar a { font-size: 0.8em; padding: 6px 10px; }
-    .nav-bar .nav-icon { font-size: 1.2em; }
-    .nav-bar .nav-text { font-size: 0.7em; }
+    .chat-header h1 {
+        font-size: 0.95em; /* مطابق لـ .main-header h1 */
+    }
+    .chatbot-section {
+        padding: 10px;
+    }
+    .chat-window {
+        padding: 6px; /* مطابق لـ table padding */
+    }
+    .chat-message {
+        font-size: 9px; /* مطابق لـ table font-size */
+        padding: 6px;
+        max-width: 90%;
+    }
+    .chat-input {
+        padding: 8px;
+        bottom: 40px; /* تعديل للناف بار */
+    }
+    .chat-input input {
+        font-size: 0.85em; /* مطابق لـ .input-group input */
+        padding: 6px;
+    }
+    .chat-input button.send-btn, .chat-input button.clear-btn {
+        font-size: 0.85em; /* مطابق لـ .submit-btn */
+        padding: 7px 10px;
+    }
+    .nav-bar {
+        padding: 8px 0;
+    }
+    .nav-bar a {
+        font-size: 0.9em; /* مطابق لـ home.css */
+    }
+    .nav-bar a i {
+        font-size: 0.95em;
+    }
+}
+
+@media (max-width: 360px) {
+    .container {
+        padding: 8px;
+    }
+    .chat-header .logo {
+        width: 25%;
+        max-width: 50px;
+        min-width: 35px;
+    }
+    .chat-header h1 {
+        font-size: 0.85em;
+    }
+    .chatbot-section {
+        padding: 8px;
+    }
+    .chat-window {
+        padding: 5px;
+    }
+    .chat-message {
+        font-size: 8px;
+        padding: 5px;
+        max-width: 95%;
+    }
+    .chat-input {
+        padding: 6px;
+        bottom: 38px;
+    }
+    .chat-input input {
+        font-size: 0.8em;
+        padding: 5px;
+    }
+    .chat-input button.send-btn, .chat-input button.clear-btn {
+        font-size: 0.8em;
+        padding: 6px 8px;
+    }
+    .nav-bar {
+        padding: 6px 0;
+    }
+    .nav-bar a {
+        font-size: 0.85em;
+    }
+    .nav-bar a i {
+        font-size: 0.9em;
+    }
 }
