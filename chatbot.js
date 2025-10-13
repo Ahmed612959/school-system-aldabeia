@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         navBar.innerHTML = navItems.map(item => `
             <a href="${item.href}" class="${item.href === 'chatbot.html' ? 'active' : ''}">
-                <i class="${item.icon}"></i><span class="nav-text">${item.title}</span>
+                <i class="${item.icon}" title="${item.title}"></i>
             </a>
         `).join('');
 
@@ -43,7 +43,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault(); // منع الانتقال المباشر لاختبار الإشعار
                 document.querySelectorAll('.nav-bar a').forEach(l => l.classList.remove('active'));
                 e.currentTarget.classList.add('active');
-                showToast(`تم الانتقال إلى ${e.currentTarget.querySelector('.nav-text').textContent}`, 'success');
+                const title = e.currentTarget.querySelector('i').getAttribute('title'); // استخدام title بدلاً من nav-text
+                showToast(`تم الانتقال إلى ${title}`, 'success');
                 setTimeout(() => {
                     window.location.href = e.currentTarget.href; // الانتقال بعد الإشعار
                 }, 500);
