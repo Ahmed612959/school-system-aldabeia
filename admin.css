@@ -622,6 +622,77 @@ html, body {
 .notifications-section {
     margin-bottom: 25px;
     text-align: center;
+    background: #fff; /* خلفية بيضاء للتناسق مع .admin-container */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* ظل مشابه للجداول */
+    border: 1px solid #d4af37; /* حدود ذهبية */
+}
+
+.notifications-section h2 {
+    font-size: 1.1em; /* حجم مشابه لعناوين الأقسام الأخرى */
+    margin-bottom: 15px;
+    color: #1a2526;
+    font-weight: bold;
+}
+
+.notifications-section h3 {
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    color: #1a2526;
+    font-weight: bold;
+}
+
+.notifications-section .input-group {
+    margin-bottom: 15px;
+}
+
+.notifications-section .input-group label {
+    display: block;
+    font-size: 0.95em;
+    color: #1a2526;
+    margin-bottom: 4px;
+}
+
+.notifications-section textarea {
+    width: 100%;
+    max-width: 400px; /* عرض مشابه لمدخلات المخالفات */
+    margin: 0 auto;
+    padding: 8px;
+    border: 1px solid #d4af37;
+    border-radius: 5px;
+    font-size: 0.95em;
+    resize: vertical;
+    line-height: 1.4;
+    background: #fff;
+    color: #1a2526;
+    transition: border-color 0.3s ease;
+}
+
+.notifications-section textarea:focus {
+    outline: none;
+    border-color: #1a2526;
+    box-shadow: 0 0 5px rgba(26, 37, 38, 0.3);
+}
+
+.notifications-section .submit-btn {
+    background: #d4af37;
+    color: #1a2526;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 5px;
+    font-size: 0.95em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, color 0.3s ease;
+    width: auto; /* عرض تلقائي للتناسق مع الأزرار الأخرى */
+    display: inline-block;
+    margin-top: 8px;
+}
+
+.notifications-section .submit-btn:hover {
+    background: #1a2526;
+    color: #d4af37;
 }
 
 .notifications-list {
@@ -630,34 +701,180 @@ html, body {
 
 .notifications-table {
     width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    display: block;
+    margin-top: 10px;
 }
 
 .notifications-table table {
     width: 100%;
+    max-width: 100%;
     border-collapse: collapse;
-    background: #f9f9f9;
+    background: linear-gradient(180deg, #f9f9f9, #ffffff); /* تدرج مشابه لـ .results-table */
     border-radius: 8px;
     overflow: hidden;
+    table-layout: fixed; /* تحسين توزيع الأعمدة */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .notifications-table th,
 .notifications-table td {
-    padding: 10px;
+    padding: 8px;
     text-align: center;
     border-bottom: 1px solid #d4af37;
     white-space: normal;
     word-wrap: break-word;
+    font-size: 13px;
+    vertical-align: middle;
 }
 
 .notifications-table th {
-    background: #1a2526;
+    background: linear-gradient(90deg, #1a2526, #2f3b3c); /* تدرج مشابه لـ .results-table */
     color: #d4af37;
     font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 .notifications-table td {
     color: #1a2526;
+    background: #fff;
+    transition: background 0.3s ease;
+}
+
+.notifications-table tr:hover td {
+    background: #f0f0f0; /* تأثير تحويم مشابه لـ .results-table */
+}
+
+.notifications-table th:nth-child(1), .notifications-table td:nth-child(1) { /* نص الإشعار */
+    width: 60%;
+    min-width: 200px;
+}
+
+.notifications-table th:nth-child(2), .notifications-table td:nth-child(2) { /* تاريخ الإضافة */
+    width: 20%;
+    min-width: 100px;
+}
+
+.notifications-table th:nth-child(3), .notifications-table td:nth-child(3) { /* الإجراء */
+    width: 20%;
+    min-width: 80px;
+}
+
+.notifications-table .delete-btn {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.notifications-table .delete-btn:hover {
+    background: #c82333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .notifications-section {
+        padding: 12px;
+    }
+    .notifications-section h2 {
+        font-size: 1em;
+    }
+    .notifications-section textarea {
+        max-width: 350px;
+        font-size: 0.9em;
+    }
+    .notifications-section .submit-btn {
+        padding: 8px 14px;
+        font-size: 0.9em;
+    }
+    .notifications-table th,
+    .notifications-table td {
+        font-size: 12px;
+        padding: 6px;
+    }
+    .notifications-table th:nth-child(1), .notifications-table td:nth-child(1) { min-width: 180px; }
+    .notifications-table th:nth-child(2), .notifications-table td:nth-child(2) { min-width: 90px; }
+    .notifications-table th:nth-child(3), .notifications-table td:nth-child(3) { min-width: 70px; }
+}
+
+@media (max-width: 768px) {
+    .notifications-section {
+        padding: 10px;
+    }
+    .notifications-section h2 {
+        font-size: 0.95em;
+    }
+    .notifications-section h3 {
+        font-size: 0.85em;
+    }
+    .notifications-section textarea {
+        max-width: 300px;
+        font-size: 0.85em;
+        padding: 6px;
+    }
+    .notifications-section .submit-btn {
+        padding: 6px 12px;
+        font-size: 0.85em;
+    }
+    .notifications-table th,
+    .notifications-table td {
+        font-size: 10px;
+        padding: 5px;
+    }
+    .notifications-table th:nth-child(1), .notifications-table td:nth-child(1) { min-width: 150px; }
+    .notifications-table th:nth-child(2), .notifications-table td:nth-child(2) { min-width: 80px; }
+    .notifications-table th:nth-child(3), .notifications-table td:nth-child(3) { min-width: 60px; }
+    .notifications-table .delete-btn {
+        padding: 4px 6px;
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notifications-section {
+        padding: 8px;
+    }
+    .notifications-section h2 {
+        font-size: 0.9em;
+    }
+    .notifications-section h3 {
+        font-size: 0.8em;
+    }
+    .notifications-section textarea {
+        max-width: 250px;
+        font-size: 0.8em;
+        padding: 5px;
+    }
+    .notifications-section .submit-btn {
+        padding: 5px 10px;
+        font-size: 0.8em;
+    }
+    .notifications-table {
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .notifications-table table {
+        min-width: 350px; /* منع الانهيار الزائد */
+    }
+    .notifications-table th,
+    .notifications-table td {
+        font-size: 9px;
+        padding: 4px;
+    }
+    .notifications-table th:nth-child(1), .notifications-table td:nth-child(1) { min-width: 130px; }
+    .notifications-table th:nth-child(2), .notifications-table td:nth-child(2) { min-width: 70px; }
+    .notifications-table th:nth-child(3), .notifications-table td:nth-child(3) { min-width: 50px; }
+    .notifications-table .delete-btn {
+        padding: 3px 5px;
+        font-size: 9px;
+    }
 }
 .violations-section {
     margin-bottom: 15px;
