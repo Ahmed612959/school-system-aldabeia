@@ -22,6 +22,7 @@ html, body {
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
+    overflow: hidden; /* منع التمرير الخارجي للصفحة */
 }
 
 *, *:before, *:after {
@@ -36,6 +37,8 @@ html, body {
     width: 100%;
     max-width: 1400px; /* مطابق لـ .result-form-container */
     margin: 0 auto;
+    height: 100vh; /* ملء ارتفاع الشاشة */
+    overflow: hidden; /* منع التمرير الخارجي */
 }
 
 /* شريط العنوان */
@@ -91,13 +94,14 @@ html, body {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
-    margin: 15px 0; /* مطابق لـ .main-container */
+    overflow: hidden; /* منع التمرير الخارجي */
+    margin: 15px 0 60px; /* إفساح مجال لشريط الإدخال والناف بار */
+    position: relative;
 }
 
 .chat-window {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto; /* تمرير داخلي للرسائل فقط */
     padding: 12px; /* مطابق لـ table padding */
     background: linear-gradient(180deg, #f9f9f9, #ffffff); /* مطابق لـ table */
     border-radius: 8px;
@@ -183,8 +187,12 @@ html, body {
     padding: 15px; /* مطابق لـ .main-container */
     border-top: 1px solid #d4af37;
     box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.4); /* مطابق لـ .nav-bar */
-    position: sticky;
-    bottom: 48px; /* إفساح مجال للناف بار */
+    position: fixed; /* تثبيت شريط الإدخال */
+    bottom: 48px; /* فوق الناف بار */
+    width: 100%;
+    max-width: 1400px;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 999;
 }
 
@@ -307,6 +315,7 @@ h3 {
     .chatbot-section {
         padding: 20px;
         max-width: 1100px;
+        margin-bottom: 55px; /* تعديل للناف بار */
     }
     .chat-window {
         padding: 10px;
@@ -317,6 +326,8 @@ h3 {
     }
     .chat-input {
         padding: 12px;
+        bottom: 45px;
+        max-width: 1100px;
     }
     .chat-input input {
         font-size: 0.9em;
@@ -353,6 +364,7 @@ h3 {
     .chatbot-section {
         padding: 12px; /* مطابق لـ .result-form-container */
         max-width: 100%;
+        margin-bottom: 50px; /* تعديل للناف بار */
     }
     .chat-window {
         padding: 8px; /* مطابق لـ table padding */
@@ -364,7 +376,8 @@ h3 {
     }
     .chat-input {
         padding: 10px;
-        bottom: 45px; /* تعديل للناف بار */
+        bottom: 45px;
+        max-width: 100%;
     }
     .chat-input input {
         font-size: 0.9em; /* مطابق لـ .input-group input */
@@ -399,6 +412,7 @@ h3 {
     }
     .chatbot-section {
         padding: 10px;
+        margin-bottom: 45px; /* تعديل للناف بار */
     }
     .chat-window {
         padding: 6px; /* مطابق لـ table padding */
@@ -410,7 +424,8 @@ h3 {
     }
     .chat-input {
         padding: 8px;
-        bottom: 40px; /* تعديل للناف بار */
+        bottom: 40px;
+        max-width: 100%;
     }
     .chat-input input {
         font-size: 0.85em; /* مطابق لـ .input-group input */
@@ -445,6 +460,7 @@ h3 {
     }
     .chatbot-section {
         padding: 8px;
+        margin-bottom: 40px;
     }
     .chat-window {
         padding: 5px;
@@ -457,6 +473,7 @@ h3 {
     .chat-input {
         padding: 6px;
         bottom: 38px;
+        max-width: 100%;
     }
     .chat-input input {
         font-size: 0.8em;
