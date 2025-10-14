@@ -705,7 +705,65 @@ app.post('/api/check-username', async (req, res) => {
         res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });              
+// نموذج الاختبار
+const examSchema = new mongoose.Schema({
+    name: String,
+    stage: String,
+    code: String,
+    questions: [{
+        type: String,
+        text: String,
+        options: [String],
+        correctAnswer: String,
+        correctAnswers: [String]
+    }]
+});
+const Exam = mongoose.model('Exam', examSchema);
 
+// نموذج نتائج الاختبار
+const examResultSchema = new mongoose.Schema({
+    examCode: String,
+    studentId: String,
+    score: Number,
+    date: { type: Date, default: Date.now }
+});
+const ExamResult = mongoose.model('ExamResult', examResultSchema);
+
+// إنشاء اختبار
+app.post('/api/exams', async (req, res) => {
+    try {
+        const exam = new Exam(req.body);
+        await exam.save();
+        res.json({ message: 'تم حفظ الاختبار', code: exam.code });
+    } catch (error) {
+        console.error('Error saving exam:', error);
+        res.status(500).json({ error: 'فشل في حفظ الاختبار' });
+    }
+});
+
+// جلب اختبار باستخدام الكود
+app.get('/api/exams/:code', async (req, res) => {
+    try {
+        const exam = await Exam.findOne({ code: req.params.code });
+        if (!exam) return res.status(404).json({ error: 'الاختبار غير موجود' });
+        res.json(exam);
+    } catch (error) {
+        console.error('Error fetching exam:', error);
+        res.status(500).json({ error: 'فشل في جلب الاختبار' });
+    }
+});
+
+// إرسال نتيجة الاختبار
+app.post('/api/exams/submit', async (req, res) => {
+    try {
+        const result = new ExamResult(req.body);
+        await result.save();
+        res.json({ message: 'تم حفظ النتيجة' });
+    } catch (error) {
+        console.error('Error submitting exam:', error);
+        res.status(500).json({ error: 'فشل في إرسال النتيجة' });
+    }
+});
 // نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
     try {
@@ -777,6 +835,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
