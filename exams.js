@@ -25,17 +25,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // الوصول إلى الاختبار
     document.getElementById('exam-access-form').addEventListener('submit', async function(e) {
         e.preventDefault();
-        const code = document.getElementById('exam-code').value.trim().toUpperCase();
+        const code = document.getElementById('exam-code').value.trim();
         if (!code) {
             showToast('يرجى إدخال كود الاختبار!', 'error');
             return;
         }
 
         try {
-            const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${code}`);
+            const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`);
             if (!response.ok) {
                 const errorData = await response.json();
-                showToast(`كود الاختبار غير صحيح: ${errorData.error || 'غير معروف'}`, 'error');
+                console.error('Error response from server:', errorData);
+                showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
                 return;
             }
             const exam = await response.json();
@@ -63,17 +64,17 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('exam-container').style.display = 'block';
         } catch (error) {
             console.error('Error fetching exam:', error);
-            showToast('خطأ في جلب الاختبار!', 'error');
+            showToast(`خطأ في جلب الاختبار: ${error.message}`, 'error');
         }
     });
 
     // إرسال الإجابات
     document.getElementById('submit-exam').addEventListener('click', async function() {
-        const code = document.getElementById('exam-code').value.trim().toUpperCase();
+        const code = document.getElementById('exam-code').value.trim();
         const form = document.getElementById('exam-form');
         const formData = new FormData(form);
         const answers = [];
-        const exam = await (await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${code}`)).json();
+        const exam = await (await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`)).json();
 
         exam.questions.forEach((q, index) => {
             if (q.type === 'multiple' || q.type === 'truefalse') {
