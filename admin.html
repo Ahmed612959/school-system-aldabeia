@@ -223,6 +223,11 @@
             <input type="text" id="exam-name" placeholder="أدخل اسم الاختبار" required>
         </div>
         <div class="input-group">
+            <label for="exam-code">كود الاختبار <span class="required">*</span></label>
+            <input type="text" id="exam-code" placeholder="أدخل كود الاختبار (مثل EXAM123)" required>
+            <span id="code-availability" style="display: none;"></span>
+        </div>
+        <div class="input-group">
             <label for="exam-stage">المرحلة</label>
             <select id="exam-stage">
                 <option value="first">الأولى ثانوي</option>
