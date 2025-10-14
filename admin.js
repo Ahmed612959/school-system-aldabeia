@@ -677,6 +677,7 @@ async function checkExamCodeAvailability(code) {
     }
 }
 
+
 // دالة لإنشاء واجهة إدخال الأسئلة بناءً على نوع السؤال
 function renderQuestionInputs() {
     const type = document.getElementById('question-type').value;
@@ -823,7 +824,7 @@ function renderQuestionsList() {
 
 document.getElementById('save-exam').addEventListener('click', async function() {
     const examName = document.getElementById('exam-name').value.trim();
-    const examCode = document.getElementById('exam-code').value.trim().toUpperCase();
+    const examCode = document.getElementById('exam-code').value.trim();
     const stage = document.getElementById('exam-stage').value;
 
     if (!examName || !examCode || questions.length === 0) {
@@ -843,6 +844,7 @@ document.getElementById('save-exam').addEventListener('click', async function() 
     }
 
     try {
+        console.log('Saving exam with data:', JSON.stringify({ name: examName, stage, code: examCode, questions }, null, 2));
         const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
