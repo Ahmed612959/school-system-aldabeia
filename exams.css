@@ -1,0 +1,108 @@
+/* exams.css */
+body {
+    font-family: 'Cairo', sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    direction: rtl;
+}
+
+.main-header {
+    background-color: #1a2526;
+    color: #d4af37;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.logo {
+    width: 50px;
+}
+
+.main-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.exam-access, #exam-container {
+    margin-bottom: 20px;
+}
+
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.input-group input, .input-group textarea, .input-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.submit-btn {
+    background-color: #d4af37;
+    color: #1a2526;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-btn:hover {
+    background-color: #b8972e;
+}
+
+.question {
+    margin-bottom: 20px;
+}
+
+.question p {
+    font-weight: bold;
+}
+
+.list-answers div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.list-answers span {
+    width: 30px;
+}
+
+.nav-bar {
+    background-color: #1a2526;
+    padding: 10px;
+    text-align: center;
+}
+
+.nav-bar a {
+    color: #d4af37;
+    margin: 0 15px;
+    font-size: 1.5em;
+}
+
+.nav-bar a:hover {
+    color: #fff;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #1a2526;
+    color: #d4af37;
+}
+
+.required {
+    color: #d4af37;
+}
