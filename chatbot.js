@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (navBar) {
         const navItems = [
             { href: 'index.html', icon: 'fas fa-home', title: currentLanguage === 'ar' ? 'الرئيسية' : 'Home' },
-            { href: 'home.html', icon: 'fas fa-chart-line', title: currentLanguage === 'ar' ? 'النتائج' : 'Results' },
+            { href: 'Home.html', icon: 'fas fa-chart-line', title: currentLanguage === 'ar' ? 'النتائج' : 'Results' },
             { href: 'profile.html', icon: 'fas fa-user', title: currentLanguage === 'ar' ? 'الملف الشخصي' : 'Profile' },
             { href: 'chatbot.html', icon: 'fas fa-robot', title: currentLanguage === 'ar' ? 'المساعد الذكي' : 'Smart Assistant' }
         ];
