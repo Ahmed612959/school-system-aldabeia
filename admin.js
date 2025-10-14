@@ -661,6 +661,22 @@ function displayPDFResults(results) {
         }
     };
 
+ // دالة للتحقق من توفر كود الاختبار
+async function checkExamCodeAvailability(code) {
+    try {
+        const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams/check-code', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code })
+        });
+        const data = await response.json();
+        return data.available;
+    } catch (error) {
+        console.error('Error checking exam code:', error);
+        return false;
+    }
+}
+
 // دالة لإنشاء واجهة إدخال الأسئلة بناءً على نوع السؤال
 function renderQuestionInputs() {
     const type = document.getElementById('question-type').value;
@@ -805,35 +821,53 @@ function renderQuestionsList() {
     });
 }
 
-// حفظ الاختبار
 document.getElementById('save-exam').addEventListener('click', async function() {
     const examName = document.getElementById('exam-name').value.trim();
+    const examCode = document.getElementById('exam-code').value.trim().toUpperCase();
     const stage = document.getElementById('exam-stage').value;
-    if (!examName || questions.length === 0) {
-        showToast('يرجى إدخال اسم الاختبار وإضافة سؤال واحد على الأقل!', 'error');
+
+    if (!examName || !examCode || questions.length === 0) {
+        showToast('يرجى إدخال اسم الاختبار، كود الاختبار، وإضافة سؤال واحد على الأقل!', 'error');
         return;
     }
 
-    const code = Math.random().toString(36).substr(2, 8).toUpperCase(); // كود عشوائي
+    if (examCode.length < 6) {
+        showToast('كود الاختبار يجب أن يكون 6 أحرف على الأقل!', 'error');
+        return;
+    }
+
+    const isCodeAvailable = await checkExamCodeAvailability(examCode);
+    if (!isCodeAvailable) {
+        showToast('كود الاختبار مستخدم مسبقًا! يرجى اختيار كود آخر.', 'error');
+        return;
+    }
+
     try {
         const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: examName, stage, code, questions })
+            body: JSON.stringify({ name: examName, stage, code: examCode, questions })
         });
+
         if (response.ok) {
-            showToast(`تم حفظ الاختبار "${examName}" بكود: ${code}`, 'success');
+            const result = await response.json();
+            showToast(`تم حفظ الاختبار "${examName}" بكود: ${examCode}`, 'success');
             questions = [];
             renderQuestionsList();
             document.getElementById('exam-name').value = '';
+            document.getElementById('exam-code').value = '';
+            document.getElementById('code-availability').style.display = 'none';
         } else {
-            showToast('خطأ في حفظ الاختبار!', 'error');
+            const errorData = await response.json();
+            console.error('Error saving exam:', errorData);
+            showToast(`خطأ في حفظ الاختبار: ${errorData.error || 'غير معروف'}`, 'error');
         }
     } catch (error) {
         console.error('Error saving exam:', error);
-        showToast('خطأ في حفظ الاختبار!', 'error');
+        showToast(`خطأ في حفظ الاختبار: ${error.message}`, 'error');
     }
 });
+
 
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
