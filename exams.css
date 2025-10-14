@@ -1,35 +1,109 @@
-/* exams.css */
-body {
-    font-family: 'Cairo', sans-serif;
-    background-color: #f4f4f4;
-    margin: 0;
-    direction: rtl;
+/* استيراد الخطوط */
+@font-face {
+    font-family: 'Cairo';
+    src: url('Cairo-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
 }
 
-.main-header {
-    background-color: #1a2526;
-    color: #d4af37;
-    padding: 10px;
+@font-face {
+    font-family: 'Cairo';
+    src: url('Cairo-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+}
+
+/* إعدادات عامة */
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100vh;
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(135deg, #1a2526, #2f3b3c);
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+/* تنسيق الهيدر */
+.main-header {
+    background: #1a2526;
+    color: #d4af37;
+    padding: 15px;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    position: relative;
 }
 
 .logo {
-    width: 50px;
+    width: 12%;
+    max-width: 90px;
+    min-width: 50px;
+    margin-bottom: 8px;
+    border: 2px solid #d4af37;
+    border-radius: 50%;
+    padding: 4px;
+    object-fit: contain;
 }
 
+.main-header h1 {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.logout-btn {
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-left: 8px;
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.logout-btn:hover {
+    background: #c82333;
+}
+
+/* تنسيق المحتوى الرئيسي */
 .main-container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
 }
 
-.exam-access, #exam-container {
-    margin-bottom: 20px;
+/* تنسيق قسم إدخال كود الاختبار */
+#exam-access {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #d4af37;
+}
+
+#exam-access h2 {
+    color: #1a2526;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-align: center;
 }
 
 .input-group {
@@ -38,71 +112,241 @@ body {
 
 .input-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    font-size: 0.95em;
+    color: #1a2526;
+    margin-bottom: 4px;
 }
 
-.input-group input, .input-group textarea, .input-group select {
+.input-group input {
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
+    padding: 8px;
+    border: 1px solid #d4af37;
     border-radius: 5px;
+    font-size: 0.95em;
+    transition: border-color 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #1a2526;
+    box-shadow: 0 0 5px rgba(26, 37, 38, 0.3);
 }
 
 .submit-btn {
-    background-color: #d4af37;
+    background: #d4af37;
     color: #1a2526;
-    padding: 10px 20px;
     border: none;
+    padding: 10px 18px;
     border-radius: 5px;
+    font-size: 0.95em;
+    font-weight: bold;
     cursor: pointer;
+    transition: background 0.3s ease;
+    width: 100%;
 }
 
 .submit-btn:hover {
-    background-color: #b8972e;
+    background: #1a2526;
+    color: #d4af37;
+}
+
+/* تنسيق قسم الاختبار */
+#exam-container {
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 800px;
+    border: 1px solid #d4af37;
+}
+
+#exam-title {
+    color: #1a2526;
+    font-size: 1.1em;
+    margin-bottom: 15px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#exam-form {
+    margin-bottom: 20px;
 }
 
 .question {
     margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(180deg, #f9f9f9, #ffffff);
+    border-radius: 8px;
+    border: 1px solid #d4af37;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .question p {
+    color: #1a2526;
+    font-size: 0.95em;
+    margin-bottom: 10px;
     font-weight: bold;
+}
+
+.question label {
+    display: block;
+    font-size: 0.9em;
+    color: #1a2526;
+    margin-bottom: 8px;
+}
+
+.question input[type="radio"] {
+    margin-right: 8px;
+}
+
+.question textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #d4af37;
+    border-radius: 5px;
+    font-size: 0.9em;
+    transition: border-color 0.3s ease;
+}
+
+.question textarea:focus {
+    outline: none;
+    border-color: #1a2526;
+    box-shadow: 0 0 5px rgba(26, 37, 38, 0.3);
+}
+
+.list-answers {
+    margin-top: 10px;
 }
 
 .list-answers div {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .list-answers span {
     width: 30px;
+    font-size: 0.9em;
+    color: #1a2526;
 }
 
+.list-answers input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #d4af37;
+    border-radius: 5px;
+    font-size: 0.9em;
+    transition: border-color 0.3s ease;
+}
+
+.list-answers input:focus {
+    outline: none;
+    border-color: #1a2526;
+    box-shadow: 0 0 5px rgba(26, 37, 38, 0.3);
+}
+
+/* تنسيق الناف بار */
 .nav-bar {
-    background-color: #1a2526;
-    padding: 10px;
-    text-align: center;
+    background: #1a2526;
+    display: flex;
+    justify-content: space-around;
+    padding: 12px 0;
+    box-shadow: 0 -3px 8px rgba(0, 0, 0, 0.4);
 }
 
 .nav-bar a {
     color: #d4af37;
-    margin: 0 15px;
-    font-size: 1.5em;
+    text-decoration: none;
+    font-size: 1.1em;
+    transition: color 0.3s ease;
 }
 
 .nav-bar a:hover {
     color: #fff;
 }
 
+/* تنسيق الفوتر */
 footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #1a2526;
+    background: #1a2526;
     color: #d4af37;
+    text-align: center;
+    padding: 8px;
 }
 
-.required {
-    color: #d4af37;
+footer p {
+    font-size: 0.95em;
+    font-weight: normal;
+}
+
+/* تأثيرات الرسوم المتحركة */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+#exam-access, #exam-container {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* التجاوب */
+@media (max-width: 1200px) {
+    #exam-access, #exam-container {
+        max-width: 700px;
+    }
+}
+
+@media (max-width: 768px) {
+    .logo {
+        width: 18%;
+        max-width: 70px;
+        min-width: 45px;
+    }
+    .main-header h1 {
+        font-size: 1.1em;
+    }
+    #exam-access, #exam-container {
+        padding: 12px;
+        max-width: 100%;
+    }
+    .input-group input, .question textarea, .list-answers input {
+        font-size: 0.9em;
+    }
+    .submit-btn {
+        font-size: 0.9em;
+        padding: 8px 12px;
+    }
+    .question p, .question label {
+        font-size: 0.85em;
+    }
+    .nav-bar a {
+        font-size: 0.95em;
+    }
+}
+
+@media (max-width: 480px) {
+    .logo {
+        width: 22%;
+        max-width: 60px;
+        min-width: 40px;
+    }
+    .main-header h1 {
+        font-size: 0.95em;
+    }
+    #exam-access, #exam-container {
+        padding: 10px;
+    }
+    .input-group input, .question textarea, .list-answers input {
+        font-size: 0.85em;
+    }
+    .submit-btn {
+        font-size: 0.85em;
+        padding: 7px 10px;
+    }
+    .question p, .question label {
+        font-size: 0.8em;
+    }
+    .nav-bar a {
+        font-size: 0.9em;
+    }
 }
