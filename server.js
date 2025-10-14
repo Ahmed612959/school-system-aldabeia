@@ -705,14 +705,17 @@ app.post('/api/check-username', async (req, res) => {
         res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });              
+// في server.js
+const mongoose = require('mongoose');
+
 // نموذج الاختبار
 const examSchema = new mongoose.Schema({
-    name: String,
-    stage: String,
-    code: String,
+    name: { type: String, required: true },
+    stage: { type: String, required: true },
+    code: { type: String, required: true, unique: true },
     questions: [{
-        type: String,
-        text: String,
+        type: { type: String, required: true },
+        text: { type: String, required: true },
         options: [String],
         correctAnswer: String,
         correctAnswers: [String]
@@ -722,22 +725,42 @@ const Exam = mongoose.model('Exam', examSchema);
 
 // نموذج نتائج الاختبار
 const examResultSchema = new mongoose.Schema({
-    examCode: String,
-    studentId: String,
-    score: Number,
+    examCode: { type: String, required: true },
+    studentId: { type: String, required: true },
+    score: { type: Number, required: true },
     date: { type: Date, default: Date.now }
 });
 const ExamResult = mongoose.model('ExamResult', examResultSchema);
 
+// التحقق من توفر كود الاختبار
+app.post('/api/exams/check-code', async (req, res) => {
+    try {
+        const { code } = req.body;
+        const exam = await Exam.findOne({ code });
+        res.json({ available: !exam });
+    } catch (error) {
+        console.error('Error checking exam code:', error);
+        res.status(500).json({ error: 'فشل في التحقق من الكود' });
+    }
+});
+
 // إنشاء اختبار
 app.post('/api/exams', async (req, res) => {
     try {
-        const exam = new Exam(req.body);
+        const { name, stage, code, questions } = req.body;
+        if (!name || !stage || !code || !questions || !Array.isArray(questions)) {
+            return res.status(400).json({ error: 'البيانات غير مكتملة أو غير صحيحة' });
+        }
+        const exam = new Exam({ name, stage, code, questions });
         await exam.save();
-        res.json({ message: 'تم حفظ الاختبار', code: exam.code });
+        res.json({ message: 'تم حفظ الاختبار', code });
     } catch (error) {
         console.error('Error saving exam:', error);
-        res.status(500).json({ error: 'فشل في حفظ الاختبار' });
+        if (error.code === 11000) {
+            res.status(400).json({ error: 'كود الاختبار مستخدم مسبقًا' });
+        } else {
+            res.status(500).json({ error: `فشل في حفظ الاختبار: ${error.message}` });
+        }
     }
 });
 
@@ -835,6 +858,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
