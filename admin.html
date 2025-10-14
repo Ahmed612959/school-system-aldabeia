@@ -214,6 +214,39 @@
 
         <h2>إحصائيات</h2>
         <div class="stats-section" id="stats-section"></div>
+       <!-- قسم إنشاء الاختبارات الإلكترونية -->
+<section class="exams-section">
+    <h2>إنشاء اختبار إلكتروني</h2>
+    <div class="exam-form-container">
+        <div class="input-group">
+            <label for="exam-name">اسم الاختبار <span class="required">*</span></label>
+            <input type="text" id="exam-name" placeholder="أدخل اسم الاختبار" required>
+        </div>
+        <div class="input-group">
+            <label for="exam-stage">المرحلة</label>
+            <select id="exam-stage">
+                <option value="first">الأولى ثانوي</option>
+                <option value="second">الثانية ثانوي</option>
+            </select>
+        </div>
+        <div class="question-form">
+            <h3>إضافة سؤال</h3>
+            <div class="input-group">
+                <label for="question-type">نوع السؤال</label>
+                <select id="question-type">
+                    <option value="multiple">اختياري</option>
+                    <option value="essay">مقالي</option>
+                    <option value="list">قائمة</option>
+                    <option value="truefalse">صح/خطأ</option>
+                </select>
+            </div>
+            <div id="question-inputs"></div>
+            <button id="add-question" class="submit-btn">إضافة السؤال</button>
+        </div>
+        <div id="questions-list"></div>
+        <button id="save-exam" class="submit-btn">حفظ الاختبار</button>
+    </div>
+</section>
         <!-- إضافة هذا القسم بعد <div id="stats-section" class="stats-section"></div> -->
 <div class="notifications-section">
     <h2>إدارة الإشعارات</h2>
