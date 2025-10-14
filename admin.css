@@ -1228,3 +1228,60 @@ html, body {
         font-size: 0.55em;
     }
 }
+.exams-section {
+    margin-bottom: 20px;
+}
+
+.exam-form-container {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.question-form {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 20px;
+}
+
+.options-container, .list-container {
+    margin-top: 10px;
+}
+
+.options-container div, .list-container div {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.option-input, .list-input {
+    flex: 1;
+    margin-left: 10px;
+}
+
+.correct-option {
+    cursor: pointer;
+    color: #ccc;
+    font-size: 1.2em;
+}
+
+.correct-option.selected {
+    color: #28a745;
+}
+
+.question-item {
+    background-color: #f9f9f9;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.delete-question {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
