@@ -6,6 +6,15 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
+    // التحقق من وجود عناصر DOM
+    const examAccess = document.getElementById('exam-access');
+    const examContainer = document.getElementById('exam-container');
+    if (!examAccess || !examContainer) {
+        console.error('DOM elements missing:', { examAccess, examContainer });
+        showToast('خطأ في تحميل الصفحة! يرجى إعادة تحميل الصفحة.', 'error');
+        return;
+    }
+
     // عرض الناف بار
     const navBar = document.getElementById('nav-bar');
     const navItems = [
@@ -32,7 +41,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
+            console.log('Fetching exam with code:', code);
             const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`);
+            console.log('Response status:', response.status);
             if (!response.ok) {
                 const errorData = await response.json();
                 console.error('Error response from server:', errorData);
@@ -40,6 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
             const exam = await response.json();
+            console.log('Exam data:', exam);
             document.getElementById('exam-title').textContent = exam.name;
             const examForm = document.getElementById('exam-form');
             examForm.innerHTML = exam.questions.map((q, index) => `
@@ -60,8 +72,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     ` : ''}
                 </div>
             `).join('');
-            document.getElementById('exam-access').style.display = 'none';
-            document.getElementById('exam-container').style.display = 'block';
+            examAccess.style.display = 'none';
+            examContainer.style.display = 'block';
         } catch (error) {
             console.error('Error fetching exam:', error);
             showToast(`خطأ في جلب الاختبار: ${error.message}`, 'error');
@@ -73,57 +85,63 @@ document.addEventListener('DOMContentLoaded', function() {
         const code = document.getElementById('exam-code').value.trim();
         const form = document.getElementById('exam-form');
         const formData = new FormData(form);
-        const answers = [];
-        const exam = await (await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`)).json();
-
-        exam.questions.forEach((q, index) => {
-            if (q.type === 'multiple' || q.type === 'truefalse') {
-                answers.push({ questionIndex: index, answer: formData.get(`q${index}`) });
-            } else if (q.type === 'essay') {
-                answers.push({ questionIndex: index, answer: formData.get(`q${index}`) });
-            } else if (q.type === 'list') {
-                const listAnswers = [1, 2, 3, 4, 5].map(i => formData.get(`q${index}-${i}`)).filter(val => val);
-                answers.push({ questionIndex: index, answers: listAnswers });
-            }
-        });
-
-        // تصحيح الاختبار
-        let score = 0;
-        exam.questions.forEach((q, i) => {
-            const userAnswer = answers.find(a => a.questionIndex === i);
-            if (q.type === 'multiple' || q.type === 'truefalse') {
-                if (userAnswer && userAnswer.answer === q.correctAnswer) score++;
-            } else if (q.type === 'essay') {
-                if (userAnswer && userAnswer.answer) {
-                    const userWords = userAnswer.answer.toLowerCase().split(/\s+/).filter(word => word);
-                    const correctWords = q.correctAnswer.toLowerCase().split(/\s+/).filter(word => word);
-                    const matches = userWords.filter(word => correctWords.includes(word)).length;
-                    if (matches / correctWords.length >= 0.7) score++;
-                }
-            } else if (q.type === 'list') {
-                if (userAnswer && userAnswer.answers) {
-                    const userWords = userAnswer.answers.map(a => a.toLowerCase());
-                    const correctWords = q.correctAnswers.map(a => a.toLowerCase());
-                    const matches = userWords.filter(word => correctWords.includes(word)).length;
-                    if (matches / correctWords.length >= 0.7) score++;
-                }
-            }
-        });
-
-        const percentage = (score / exam.questions.length) * 100;
         try {
+            const examResponse = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`);
+            if (!examResponse.ok) {
+                const errorData = await examResponse.json();
+                console.error('Error fetching exam for submission:', errorData);
+                showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
+                return;
+            }
+            const exam = await examResponse.json();
+            const answers = [];
+            exam.questions.forEach((q, index) => {
+                if (q.type === 'multiple' || q.type === 'truefalse') {
+                    answers.push({ questionIndex: index, answer: formData.get(`q${index}`) });
+                } else if (q.type === 'essay') {
+                    answers.push({ questionIndex: index, answer: formData.get(`q${index}`) });
+                } else if (q.type === 'list') {
+                    const listAnswers = [1, 2, 3, 4, 5].map(i => formData.get(`q${index}-${i}`)).filter(val => val);
+                    answers.push({ questionIndex: index, answers: listAnswers });
+                }
+            });
+
+            // تصحيح الاختبار
+            let score = 0;
+            exam.questions.forEach((q, i) => {
+                const userAnswer = answers.find(a => a.questionIndex === i);
+                if (q.type === 'multiple' || q.type === 'truefalse') {
+                    if (userAnswer && userAnswer.answer === q.correctAnswer) score++;
+                } else if (q.type === 'essay') {
+                    if (userAnswer && userAnswer.answer) {
+                        const userWords = userAnswer.answer.toLowerCase().split(/\s+/).filter(word => word);
+                        const correctWords = q.correctAnswer.toLowerCase().split(/\s+/).filter(word => word);
+                        const matches = userWords.filter(word => correctWords.includes(word)).length;
+                        if (matches / correctWords.length >= 0.7) score++;
+                    }
+                } else if (q.type === 'list') {
+                    if (userAnswer && userAnswer.answers) {
+                        const userWords = userAnswer.answers.map(a => a.toLowerCase());
+                        const correctWords = q.correctAnswers.map(a => a.toLowerCase());
+                        const matches = userWords.filter(word => correctWords.includes(word)).length;
+                        if (matches / correctWords.length >= 0.7) score++;
+                    }
+                }
+            });
+
+            const percentage = (score / exam.questions.length) * 100;
             await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ examCode: code, studentId: loggedInUser.username, score: percentage })
             });
             showToast(`نتيجتك: ${percentage.toFixed(1)}%`, 'success');
-            document.getElementById('exam-container').style.display = 'none';
-            document.getElementById('exam-access').style.display = 'block';
+            examContainer.style.display = 'none';
+            examAccess.style.display = 'block';
             document.getElementById('exam-code').value = '';
         } catch (error) {
             console.error('Error submitting exam:', error);
-            showToast('خطأ في إرسال الإجابات!', 'error');
+            showToast(`خطأ في إرسال الإجابات: ${error.message}`, 'error');
         }
     });
 
