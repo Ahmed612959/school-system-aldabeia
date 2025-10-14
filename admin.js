@@ -661,6 +661,182 @@ function displayPDFResults(results) {
         }
     };
 
+// دالة لإنشاء واجهة إدخال الأسئلة بناءً على نوع السؤال
+function renderQuestionInputs() {
+    const type = document.getElementById('question-type').value;
+    const inputsDiv = document.getElementById('question-inputs');
+    inputsDiv.innerHTML = '';
+
+    if (type === 'multiple') {
+        inputsDiv.innerHTML = `
+            <div class="input-group">
+                <label for="question-text">نص السؤال <span class="required">*</span></label>
+                <input type="text" id="question-text" placeholder="أدخل نص السؤال" required>
+            </div>
+            <div class="input-group">
+                <label>الخيارات (اختر الإجابة الصحيحة بعلامة الصح)</label>
+                <div class="options-container">
+                    <div><input type="text" class="option-input" placeholder="الخيار 1"><i class="fas fa-check correct-option"></i></div>
+                    <div><input type="text" class="option-input" placeholder="الخيار 2"><i class="fas fa-check correct-option"></i></div>
+                    <div><input type="text" class="option-input" placeholder="الخيار 3"><i class="fas fa-check correct-option"></i></div>
+                    <div><input type="text" class="option-input" placeholder="الخيار 4"><i class="fas fa-check correct-option"></i></div>
+                </div>
+            </div>
+        `;
+    } else if (type === 'essay') {
+        inputsDiv.innerHTML = `
+            <div class="input-group">
+                <label for="question-text">نص السؤال <span class="required">*</span></label>
+                <input type="text" id="question-text" placeholder="أدخل نص السؤال" required>
+            </div>
+            <div class="input-group">
+                <label for="answer-text">الإجابة النموذجية <span class="required">*</span></label>
+                <textarea id="answer-text" rows="4" placeholder="أدخل الإجابة النموذجية"></textarea>
+            </div>
+        `;
+    } else if (type === 'list') {
+        inputsDiv.innerHTML = `
+            <div class="input-group">
+                <label for="question-text">نص السؤال <span class="required">*</span></label>
+                <input type="text" id="question-text" placeholder="أدخل نص السؤال" required>
+            </div>
+            <div class="input-group">
+                <label>الإجابات (مرقمة من 1 إلى 5)</label>
+                <div class="list-container">
+                    <div><span>1.</span><input type="text" class="list-input" placeholder="الإجابة 1"></div>
+                    <div><span>2.</span><input type="text" class="list-input" placeholder="الإجابة 2"></div>
+                    <div><span>3.</span><input type="text" class="list-input" placeholder="الإجابة 3"></div>
+                    <div><span>4.</span><input type="text" class="list-input" placeholder="الإجابة 4"></div>
+                    <div><span>5.</span><input type="text" class="list-input" placeholder="الإجابة 5"></div>
+                </div>
+            </div>
+        `;
+    } else if (type === 'truefalse') {
+        inputsDiv.innerHTML = `
+            <div class="input-group">
+                <label for="question-text">نص السؤال <span class="required">*</span></label>
+                <input type="text" id="question-text" placeholder="أدخل نص السؤال" required>
+            </div>
+            <div class="input-group">
+                <label>الإجابة</label>
+                <select id="truefalse-answer">
+                    <option value="true">صح</option>
+                    <option value="false">خطأ</option>
+                </select>
+            </div>
+        `;
+    }
+
+    // إدارة اختيار الإجابة الصحيحة للأسئلة الاختيارية
+    document.querySelectorAll('.correct-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.correct-option').forEach(opt => opt.classList.remove('selected'));
+            this.classList.add('selected');
+        });
+    });
+}
+
+// تحديث واجهة إدخال الأسئلة عند تغيير نوع السؤال
+document.getElementById('question-type').addEventListener('change', renderQuestionInputs);
+
+// إضافة سؤال إلى القائمة
+let questions = [];
+document.getElementById('add-question').addEventListener('click', function() {
+    const type = document.getElementById('question-type').value;
+    const questionText = document.getElementById('question-text')?.value.trim();
+    if (!questionText) {
+        showToast('يرجى إدخال نص السؤال!', 'error');
+        return;
+    }
+
+    let question = { type, text: questionText };
+    if (type === 'multiple') {
+        const options = Array.from(document.querySelectorAll('.option-input')).map(input => input.value.trim());
+        const correctIndex = Array.from(document.querySelectorAll('.correct-option')).findIndex(opt => opt.classList.contains('selected'));
+        if (options.some(opt => !opt) || correctIndex === -1) {
+            showToast('يرجى إدخال جميع الخيارات واختيار الإجابة الصحيحة!', 'error');
+            return;
+        }
+        question.options = options;
+        question.correctAnswer = options[correctIndex];
+    } else if (type === 'essay') {
+        const answer = document.getElementById('answer-text').value.trim();
+        if (!answer) {
+            showToast('يرجى إدخال الإجابة النموذجية!', 'error');
+            return;
+        }
+        question.correctAnswer = answer;
+    } else if (type === 'list') {
+        const answers = Array.from(document.querySelectorAll('.list-input')).map(input => input.value.trim()).filter(val => val);
+        if (answers.length === 0) {
+            showToast('يرجى إدخال إجابة واحدة على الأقل!', 'error');
+            return;
+        }
+        question.correctAnswers = answers;
+    } else if (type === 'truefalse') {
+        question.correctAnswer = document.getElementById('truefalse-answer').value;
+    }
+
+    questions.push(question);
+    renderQuestionsList();
+    showToast('تم إضافة السؤال بنجاح!', 'success');
+});
+
+// عرض قائمة الأسئلة
+function renderQuestionsList() {
+    const questionsList = document.getElementById('questions-list');
+    questionsList.innerHTML = questions.map((q, index) => `
+        <div class="question-item">
+            <p><strong>سؤال ${index + 1} (${q.type === 'multiple' ? 'اختياري' : q.type === 'essay' ? 'مقالي' : q.type === 'list' ? 'قائمة' : 'صح/خطأ'}):</strong> ${q.text}</p>
+            ${q.options ? `<p>الخيارات: ${q.options.join(', ')} (الصحيح: ${q.correctAnswer})</p>` : ''}
+            ${q.correctAnswer && !q.options ? `<p>الإجابة: ${q.correctAnswer}</p>` : ''}
+            ${q.correctAnswers ? `<p>الإجابات: ${q.correctAnswers.join(', ')}</p>` : ''}
+            <button class="delete-question" data-index="${index}">حذف</button>
+        </div>
+    `).join('');
+
+    document.querySelectorAll('.delete-question').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const index = this.dataset.index;
+            questions.splice(index, 1);
+            renderQuestionsList();
+            showToast('تم حذف السؤال!', 'success');
+        });
+    });
+}
+
+// حفظ الاختبار
+document.getElementById('save-exam').addEventListener('click', async function() {
+    const examName = document.getElementById('exam-name').value.trim();
+    const stage = document.getElementById('exam-stage').value;
+    if (!examName || questions.length === 0) {
+        showToast('يرجى إدخال اسم الاختبار وإضافة سؤال واحد على الأقل!', 'error');
+        return;
+    }
+
+    const code = Math.random().toString(36).substr(2, 8).toUpperCase(); // كود عشوائي
+    try {
+        const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: examName, stage, code, questions })
+        });
+        if (response.ok) {
+            showToast(`تم حفظ الاختبار "${examName}" بكود: ${code}`, 'success');
+            questions = [];
+            renderQuestionsList();
+            document.getElementById('exam-name').value = '';
+        } else {
+            showToast('خطأ في حفظ الاختبار!', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving exam:', error);
+        showToast('خطأ في حفظ الاختبار!', 'error');
+    }
+});
+
+// استدعاء دالة إنشاء الواجهة عند التحميل
+renderQuestionInputs();
     loadInitialData();
     renderAdminWelcomeMessage();
 });
