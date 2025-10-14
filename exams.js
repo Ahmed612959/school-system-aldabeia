@@ -12,13 +12,14 @@ document.addEventListener('DOMContentLoaded', function() {
         { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
         { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
         { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
-        { href: 'exams.html', icon: 'fas fa-book', title: 'الاختبارات' }
+        { href: 'exams.html', icon: 'fas fa-book', title: 'الاختبارات' },
+        { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
     ];
     if (loggedInUser.type === 'admin') {
         navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
     }
     navBar.innerHTML = navItems.map(item => `
-        <a href="${item.href}" title="${item.title}"><i class="${item.item}"></i></a>
+        <a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>
     `).join('');
 
     // الوصول إلى الاختبار
@@ -33,7 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${code}`);
             if (!response.ok) {
-                showToast('كود الاختبار غير صحيح!', 'error');
+                const errorData = await response.json();
+                showToast(`كود الاختبار غير صحيح: ${errorData.error || 'غير معروف'}`, 'error');
                 return;
             }
             const exam = await response.json();
@@ -95,14 +97,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     const userWords = userAnswer.answer.toLowerCase().split(/\s+/).filter(word => word);
                     const correctWords = q.correctAnswer.toLowerCase().split(/\s+/).filter(word => word);
                     const matches = userWords.filter(word => correctWords.includes(word)).length;
-                    if (matches / correctWords.length >= 0.7) score++; // نسبة تطابق 70%
+                    if (matches / correctWords.length >= 0.7) score++;
                 }
             } else if (q.type === 'list') {
                 if (userAnswer && userAnswer.answers) {
                     const userWords = userAnswer.answers.map(a => a.toLowerCase());
                     const correctWords = q.correctAnswers.map(a => a.toLowerCase());
                     const matches = userWords.filter(word => correctWords.includes(word)).length;
-                    if (matches / correctWords.length >= 0.7) score++; // نسبة تطابق 70%
+                    if (matches / correctWords.length >= 0.7) score++;
                 }
             }
         });
@@ -124,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // دالة Toastify (من Home.js)
+    // دالة Toastify
     function showToast(message, type = 'success') {
         let backgroundColor, boxShadow;
         switch (type) {
