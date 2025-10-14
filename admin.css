@@ -1285,3 +1285,7 @@ html, body {
     border-radius: 5px;
     cursor: pointer;
 }
+#code-availability {
+    margin-top: 5px;
+    font-size: 0.9em;
+}
