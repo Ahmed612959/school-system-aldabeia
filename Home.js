@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const navBar = document.getElementById('nav-bar');
     if (!navBar) {
         console.error('عنصر nav-bar غير موجود في Home.html! تأكد من وجود <nav id="nav-bar"> في الـ HTML.');
+        showToast('خطأ: الناف بار غير موجود!', 'error');
         return;
     }
     if (loggedInUser) {
@@ -64,6 +65,21 @@ document.addEventListener('DOMContentLoaded', function() {
         navBar.innerHTML = navItems.map(item => `
             <a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>
         `).join('');
+        // التحقق من تحميل Font Awesome
+        setTimeout(() => {
+            const icon = document.querySelector('.nav-bar a i');
+            if (!icon || getComputedStyle(icon).fontFamily.indexOf('Font Awesome') === -1) {
+                console.error('Font Awesome icons not rendered');
+                document.querySelectorAll('.nav-bar a i').forEach(icon => {
+                    icon.style.fontFamily = '"Tajawal", sans-serif';
+                    icon.style.fontSize = '0.7em';
+                    icon.textContent = icon.getAttribute('title');
+                });
+                showToast('خطأ: فشل تحميل أيقونات الناف بار! يتم عرض النصوص بدلاً من ذلك.', 'error');
+            } else {
+                console.log('Font Awesome icons rendered successfully');
+            }
+        }, 2000);
     } else {
         navBar.innerHTML = `
             <a href="index.html" title="الرئيسية"><i class="fas fa-home"></i></a>
@@ -132,13 +148,15 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const searchName = document.getElementById('search-name').value.trim();
             const searchId = document.getElementById('search-id').value.trim();
-            if (!searchName && !searchId) {
-                showToast('يرجى إدخال اسم الطالب أو رقم الجلوس!', 'error');
+            if (!searchName || !searchId) {
+                showToast('يرجى إدخال الاسم ورقم الجلوس معًا!', 'error');
+                resultTableBody.innerHTML = `<tr><td colspan="4">يرجى إدخال الاسم ورقم الجلوس!</td></tr>`;
+                violationsTableBody.innerHTML = `<tr><td colspan="5">يرجى إدخال الاسم ورقم الجلوس!</td></tr>`;
                 return;
             }
             const student = students.find(s => 
-                (searchName && s.fullName.toLowerCase().includes(searchName.toLowerCase())) ||
-                (searchId && s.id === searchId)
+                s.fullName.toLowerCase().includes(searchName.toLowerCase()) && 
+                s.id === searchId
             );
             resultTableBody.innerHTML = '';
             violationsTableBody.innerHTML = '';
@@ -180,8 +198,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     violationRow.innerHTML = `<td colspan="5">لا توجد إنذارات أو مخالفات لهذا الطالب.</td>`;
                     violationsTableBody.appendChild(violationRow);
                 }
+                showToast('تم العثور على النتيجة بنجاح!', 'success');
             } else {
-                showToast('لم يتم العثور على الطالب! تأكد من الاسم أو رقم الجلوس.', 'error');
+                showToast('لم يتم العثور على الطالب! تأكد من الاسم ورقم الجلوس.', 'error');
                 const row = document.createElement('tr');
                 row.innerHTML = `<td colspan="4">لم يتم العثور على نتيجة! تأكد من الاسم ورقم الجلوس.</td>`;
                 resultTableBody.appendChild(row);
@@ -244,7 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
             stopOnFocus: true,
             style: {
                 fontSize: '18px',
-                fontFamily: '"Tajawal", "Arial", sans-serif',
+                fontFamily: '"Tajawal", sans-serif',
                 padding: '20px 30px',
                 borderRadius: '10px',
                 direction: 'rtl',
