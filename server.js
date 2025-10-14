@@ -733,6 +733,9 @@ const ExamResult = mongoose.model('ExamResult', examResultSchema);
 app.post('/api/exams/check-code', async (req, res) => {
     try {
         const { code } = req.body;
+        if (!code) {
+            return res.status(400).json({ error: 'كود الاختبار مطلوب' });
+        }
         const exam = await Exam.findOne({ code });
         res.json({ available: !exam });
     } catch (error) {
@@ -764,12 +767,15 @@ app.post('/api/exams', async (req, res) => {
 // جلب اختبار باستخدام الكود
 app.get('/api/exams/:code', async (req, res) => {
     try {
-        const exam = await Exam.findOne({ code: req.params.code });
-        if (!exam) return res.status(404).json({ error: 'الاختبار غير موجود' });
+        const code = decodeURIComponent(req.params.code);
+        const exam = await Exam.findOne({ code });
+        if (!exam) {
+            return res.status(404).json({ error: 'الاختبار غير موجود' });
+        }
         res.json(exam);
     } catch (error) {
         console.error('Error fetching exam:', error);
-        res.status(500).json({ error: 'فشل في جلب الاختبار' });
+        res.status(500).json({ error: `فشل في جلب الاختبار: ${error.message}` });
     }
 });
 
@@ -784,6 +790,7 @@ app.post('/api/exams/submit', async (req, res) => {
         res.status(500).json({ error: 'فشل في إرسال النتيجة' });
     }
 });
+
 // نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
     try {
@@ -855,6 +862,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
