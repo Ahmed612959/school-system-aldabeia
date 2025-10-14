@@ -705,9 +705,6 @@ app.post('/api/check-username', async (req, res) => {
         res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });              
-// في server.js
-const mongoose = require('mongoose');
-
 // نموذج الاختبار
 const examSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -858,6 +855,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
