@@ -9,8 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // التحقق من وجود عناصر DOM
     const examAccess = document.getElementById('exam-access');
     const examContainer = document.getElementById('exam-container');
-    if (!examAccess || !examContainer) {
-        console.error('DOM elements missing:', { examAccess, examContainer });
+    const timerDisplay = document.getElementById('timer');
+    if (!examAccess || !examContainer || !timerDisplay) {
+        console.error('DOM elements missing:', { examAccess, examContainer, timerDisplay });
         showToast('خطأ في تحميل الصفحة! يرجى إعادة تحميل الصفحة.', 'error');
         return;
     }
@@ -30,6 +31,8 @@ document.addEventListener('DOMContentLoaded', function() {
     navBar.innerHTML = navItems.map(item => `
         <a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>
     `).join('');
+
+    let timerInterval = null;
 
     // الوصول إلى الاختبار
     document.getElementById('exam-access-form').addEventListener('submit', async function(e) {
@@ -74,26 +77,38 @@ document.addEventListener('DOMContentLoaded', function() {
             `).join('');
             examAccess.style.display = 'none';
             examContainer.style.display = 'block';
+
+            // بدء المؤقت
+            const duration = exam.duration * 60; // تحويل الدقائق إلى ثوان
+            let timeLeft = duration;
+            timerDisplay.textContent = `الوقت المتبقي: ${formatTime(timeLeft)}`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `الوقت المتبقي: ${formatTime(timeLeft)}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = 'انتهى الوقت!';
+                    submitExam(code, exam); // إرسال الإجابات تلقائيًا
+                }
+            }, 1000);
         } catch (error) {
             console.error('Error fetching exam:', error);
             showToast(`خطأ في جلب الاختبار: ${error.message}`, 'error');
         }
     });
 
-    // إرسال الإجابات
-    document.getElementById('submit-exam').addEventListener('click', async function() {
-        const code = document.getElementById('exam-code').value.trim();
+    // دالة تنسيق الوقت
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // دالة إرسال الإجابات
+    async function submitExam(code, exam) {
         const form = document.getElementById('exam-form');
         const formData = new FormData(form);
         try {
-            const examResponse = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`);
-            if (!examResponse.ok) {
-                const errorData = await examResponse.json();
-                console.error('Error fetching exam for submission:', errorData);
-                showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
-                return;
-            }
-            const exam = await examResponse.json();
             const answers = [];
             exam.questions.forEach((q, index) => {
                 if (q.type === 'multiple' || q.type === 'truefalse') {
@@ -136,6 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({ examCode: code, studentId: loggedInUser.username, score: percentage })
             });
             showToast(`نتيجتك: ${percentage.toFixed(1)}%`, 'success');
+            clearInterval(timerInterval);
             examContainer.style.display = 'none';
             examAccess.style.display = 'block';
             document.getElementById('exam-code').value = '';
@@ -143,6 +159,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error submitting exam:', error);
             showToast(`خطأ في إرسال الإجابات: ${error.message}`, 'error');
         }
+    }
+
+    // إرسال الإجابات يدويًا
+    document.getElementById('submit-exam').addEventListener('click', async function() {
+        const code = document.getElementById('exam-code').value.trim();
+        const examResponse = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(code)}`);
+        if (!examResponse.ok) {
+            const errorData = await examResponse.json();
+            console.error('Error fetching exam for submission:', errorData);
+            showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
+            return;
+        }
+        const exam = await examResponse.json();
+        submitExam(code, exam);
     });
 
     // دالة Toastify
