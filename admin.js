@@ -822,18 +822,25 @@ function renderQuestionsList() {
     });
 }
 
+// حفظ الاختبار
 document.getElementById('save-exam').addEventListener('click', async function() {
     const examName = document.getElementById('exam-name').value.trim();
     const examCode = document.getElementById('exam-code').value.trim();
     const stage = document.getElementById('exam-stage').value;
+    const duration = document.getElementById('exam-duration').value.trim();
 
-    if (!examName || !examCode || questions.length === 0) {
-        showToast('يرجى إدخال اسم الاختبار، كود الاختبار، وإضافة سؤال واحد على الأقل!', 'error');
+    if (!examName || !examCode || !duration || questions.length === 0) {
+        showToast('يرجى إدخال اسم الاختبار، كود الاختبار، مدة الاختبار، وإضافة سؤال واحد على الأقل!', 'error');
         return;
     }
 
     if (examCode.length < 6) {
         showToast('كود الاختبار يجب أن يكون 6 أحرف على الأقل!', 'error');
+        return;
+    }
+
+    if (duration <= 0) {
+        showToast('مدة الاختبار يجب أن تكون أكبر من صفر!', 'error');
         return;
     }
 
@@ -844,11 +851,11 @@ document.getElementById('save-exam').addEventListener('click', async function() 
     }
 
     try {
-        console.log('Saving exam with data:', JSON.stringify({ name: examName, stage, code: examCode, questions }, null, 2));
+        console.log('Saving exam with data:', JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions }, null, 2));
         const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: examName, stage, code: examCode, questions })
+            body: JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions })
         });
 
         if (response.ok) {
@@ -858,6 +865,7 @@ document.getElementById('save-exam').addEventListener('click', async function() 
             renderQuestionsList();
             document.getElementById('exam-name').value = '';
             document.getElementById('exam-code').value = '';
+            document.getElementById('exam-duration').value = '';
             document.getElementById('code-availability').style.display = 'none';
         } else {
             const errorData = await response.json();
