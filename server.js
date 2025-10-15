@@ -710,6 +710,7 @@ const examSchema = new mongoose.Schema({
     name: { type: String, required: true },
     stage: { type: String, required: true },
     code: { type: String, required: true, unique: true },
+    duration: { type: Number, required: true }, // مدة الاختبار بالدقائق
     questions: [{
         type: { type: String, required: true },
         text: { type: String, required: true },
@@ -725,7 +726,7 @@ const examResultSchema = new mongoose.Schema({
     examCode: { type: String, required: true },
     studentId: { type: String, required: true },
     score: { type: Number, required: true },
-    date: { type: Date, default: Date.now }
+    completionTime: { type: Date, default: Date.now } // وقت إكمال الاختبار
 });
 const ExamResult = mongoose.model('ExamResult', examResultSchema);
 
@@ -747,11 +748,11 @@ app.post('/api/exams/check-code', async (req, res) => {
 // إنشاء اختبار
 app.post('/api/exams', async (req, res) => {
     try {
-        const { name, stage, code, questions } = req.body;
-        if (!name || !stage || !code || !questions || !Array.isArray(questions)) {
+        const { name, stage, code, duration, questions } = req.body;
+        if (!name || !stage || !code || !duration || !questions || !Array.isArray(questions)) {
             return res.status(400).json({ error: 'البيانات غير مكتملة أو غير صحيحة' });
         }
-        const exam = new Exam({ name, stage, code, questions });
+        const exam = new Exam({ name, stage, code, duration, questions });
         await exam.save();
         res.json({ message: 'تم حفظ الاختبار', code });
     } catch (error) {
@@ -768,6 +769,7 @@ app.post('/api/exams', async (req, res) => {
 app.get('/api/exams/:code', async (req, res) => {
     try {
         const code = decodeURIComponent(req.params.code);
+        console.log('Fetching exam with code:', code);
         const exam = await Exam.findOne({ code });
         if (!exam) {
             return res.status(404).json({ error: 'الاختبار غير موجود' });
@@ -782,7 +784,8 @@ app.get('/api/exams/:code', async (req, res) => {
 // إرسال نتيجة الاختبار
 app.post('/api/exams/submit', async (req, res) => {
     try {
-        const result = new ExamResult(req.body);
+        const { examCode, studentId, score } = req.body;
+        const result = new ExamResult({ examCode, studentId, score });
         await result.save();
         res.json({ message: 'تم حفظ النتيجة' });
     } catch (error) {
@@ -791,6 +794,17 @@ app.post('/api/exams/submit', async (req, res) => {
     }
 });
 
+// جلب قائمة المستخدمين الذين أكملوا الاختبار
+app.get('/api/exams/:code/results', async (req, res) => {
+    try {
+        const code = decodeURIComponent(req.params.code);
+        const results = await ExamResult.find({ examCode: code }).select('studentId score completionTime');
+        res.json(results);
+    } catch (error) {
+        console.error('Error fetching exam results:', error);
+        res.status(500).json({ error: `فشل في جلب نتائج الاختبار: ${error.message}` });
+    }
+});
 // نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
     try {
@@ -862,6 +876,7 @@ app.post('/api/register-student', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
+
 
 
 
