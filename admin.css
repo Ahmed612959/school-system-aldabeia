@@ -1289,7 +1289,6 @@ html, body {
     margin-top: 5px;
     font-size: 0.9em;
 }
-
 /* تنسيق قسم نتائج الاختبار */
 .test-results-section {
     background: linear-gradient(180deg, #ffffff, #f9f9f9);
@@ -1393,8 +1392,6 @@ html, body {
 .test-results-table {
     width: 100%;
     max-width: 100%;
-    overflow-x: auto;
-    display: block;
     margin-top: 20px;
     animation: fadeIn 0.6s ease-in-out;
 }
@@ -1407,7 +1404,7 @@ html, body {
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    table-layout: fixed;
+    table-layout: auto; /* تغيير إلى auto لتكييف العرض مع المحتوى */
 }
 
 .test-results-table th, .test-results-table td {
@@ -1417,6 +1414,9 @@ html, body {
     font-size: 0.95em;
     vertical-align: middle;
     transition: background 0.3s ease, transform 0.2s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; /* منع التفاف النص للحفاظ على عرض مناسب */
 }
 
 .test-results-table th {
@@ -1480,20 +1480,17 @@ html, body {
     font-weight: normal;
 }
 
-/* تنسيق أعمدة الجدول */
+/* تنسيق أعمدة الجدول بنسب مئوية للتكيف مع عرض الشاشة */
 .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { /* اسم المستخدم */
     width: 40%;
-    min-width: 200px;
 }
 
 .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { /* النتيجة */
     width: 30%;
-    min-width: 150px;
 }
 
 .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { /* تاريخ الإكمال */
     width: 30%;
-    min-width: 150px;
 }
 
 /* تأثيرات الرسوم المتحركة */
@@ -1524,9 +1521,6 @@ html, body {
         font-size: 0.9em;
         padding: 12px;
     }
-    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { min-width: 180px; }
-    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { min-width: 130px; }
-    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { min-width: 130px; }
 }
 
 @media (max-width: 768px) {
@@ -1546,20 +1540,10 @@ html, body {
         width: 160px;
         padding: 8px 16px;
     }
-    .test-results-table {
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    .test-results-table table {
-        min-width: 500px;
-    }
     .test-results-table th, .test-results-table td {
         font-size: 0.85em;
         padding: 10px;
     }
-    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { min-width: 150px; }
-    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { min-width: 120px; }
-    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { min-width: 120px; }
     .test-results-table td:nth-child(2)::before {
         width: 10px;
         height: 10px;
@@ -1587,12 +1571,13 @@ html, body {
         font-size: 0.8em;
         padding: 8px;
     }
-    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { min-width: 130px; }
-    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { min-width: 100px; }
-    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { min-width: 100px; }
     .test-results-table td:nth-child(2)::before {
         width: 8px;
         height: 8px;
         left: 6px;
     }
-        }
+    /* تقليل النسب لتناسب الشاشات الصغيرة */
+    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { width: 35%; }
+    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { width: 30%; }
+    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { width: 35%; }
+    }
