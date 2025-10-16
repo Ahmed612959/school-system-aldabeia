@@ -1292,66 +1292,67 @@ html, body {
 /* تنسيق قسم نتائج الاختبار */
 .test-results-section {
     background: linear-gradient(180deg, #ffffff, #f9f9f9);
-    padding: 30px;
-    border-radius: 20px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    padding: 20px; /* تقليل الحشوة لتتناسب مع الإطار */
+    border-radius: 12px; /* حدود منحنية أقل حدة لتتناسب مع .admin-container */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* ظل أخف لتجنب المظهر الثقيل */
     width: 100%;
-    max-width: 900px;
-    margin: 30px auto;
-    border: 3px solid #d4af37;
+    max-width: 800px; /* تقليل العرض الأقصى لتجنب الخروج عن الإطار */
+    margin: 20px auto; /* تقليل الهامش للتناسق */
+    border: 2px solid #d4af37; /* حدود ذهبية أقل سماكة */
     animation: fadeIn 0.6s ease-in-out;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
+    box-sizing: border-box; /* ضمان احتواء الحشوة والهوامش */
 }
 
 .test-results-section:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-3px); /* تقليل الحركة لمظهر أكثر نعومة */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 }
 
 .test-results-section h2 {
     color: #1a2526;
-    font-size: 1.5em;
+    font-size: 1.3em; /* تقليل حجم العنوان للتناسق */
     font-weight: bold;
     text-align: center;
-    margin-bottom: 25px;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     position: relative;
 }
 
 .test-results-section h2::after {
     content: '';
     display: block;
-    width: 80px;
-    height: 4px;
+    width: 60px; /* تقليل عرض الخط السفلي */
+    height: 3px;
     background: linear-gradient(90deg, #d4af37, #b8962e);
-    margin: 10px auto;
+    margin: 8px auto;
     border-radius: 2px;
 }
 
 /* تنسيق حقل إدخال كود الاختبار */
 .test-results-section .input-group {
-    margin-bottom: 20px;
-    max-width: 500px;
+    margin-bottom: 15px;
+    max-width: 400px; /* تقليل العرض الأقصى للحقل */
     margin-left: auto;
     margin-right: auto;
 }
 
 .test-results-section .input-group label {
     display: block;
-    font-size: 1em;
+    font-size: 0.95em;
     color: #1a2526;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-weight: bold;
     text-align: right;
 }
 
 .test-results-section .input-group input {
     width: 100%;
-    padding: 12px;
+    padding: 10px; /* تقليل الحشوة */
     border: 2px solid #d4af37;
-    border-radius: 12px;
-    font-size: 1em;
+    border-radius: 8px; /* حدود أقل انحناءً */
+    font-size: 0.95em;
     background: #f9f9f9;
     color: #1a2526;
     transition: all 0.3s ease;
@@ -1361,7 +1362,7 @@ html, body {
     outline: none;
     border-color: #1a2526;
     background: #fff;
-    box-shadow: 0 0 8px rgba(26, 37, 38, 0.3);
+    box-shadow: 0 0 6px rgba(26, 37, 38, 0.3);
 }
 
 /* تنسيق زر عرض النتائج */
@@ -1369,30 +1370,30 @@ html, body {
     background: linear-gradient(135deg, #d4af37, #b8962e);
     color: #1a2526;
     border: none;
-    padding: 12px 24px;
-    border-radius: 25px;
-    font-size: 1em;
+    padding: 10px 20px; /* تقليل الحشوة */
+    border-radius: 20px; /* حدود دائرية أقل حدة */
+    font-size: 0.95em;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     display: block;
-    margin: 15px auto;
-    width: 200px;
-    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3);
+    margin: 10px auto;
+    width: 180px; /* تقليل عرض الزر */
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
 }
 
 .test-results-section .submit-btn:hover {
     background: linear-gradient(135deg, #1a2526, #2f3b3c);
     color: #d4af37;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(26, 37, 38, 0.4);
+    box-shadow: 0 4px 12px rgba(26, 37, 38, 0.4);
 }
 
 /* تنسيق جدول النتائج */
 .test-results-table {
     width: 100%;
     max-width: 100%;
-    margin-top: 20px;
+    margin-top: 15px;
     animation: fadeIn 0.6s ease-in-out;
 }
 
@@ -1401,22 +1402,22 @@ html, body {
     border-collapse: separate;
     border-spacing: 0;
     background: linear-gradient(180deg, #ffffff, #f9f9f9);
-    border-radius: 15px;
+    border-radius: 12px; /* حدود منحنية أقل حدة */
     overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    table-layout: auto; /* تغيير إلى auto لتكييف العرض مع المحتوى */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* ظل أخف */
+    table-layout: auto; /* لتكيف العرض مع المحتوى */
 }
 
 .test-results-table th, .test-results-table td {
-    padding: 15px;
+    padding: 12px; /* تقليل الحشوة */
     text-align: center;
     border-bottom: 1px solid #d4af37;
-    font-size: 0.95em;
+    font-size: 0.9em; /* تقليل حجم الخط */
     vertical-align: middle;
-    transition: background 0.3s ease, transform 0.2s ease;
+    transition: background 0.3s ease;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap; /* منع التفاف النص للحفاظ على عرض مناسب */
+    white-space: nowrap; /* منع التفاف النص */
 }
 
 .test-results-table th {
@@ -1427,7 +1428,7 @@ html, body {
     top: 0;
     z-index: 1;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px; /* تقليل التباعد */
 }
 
 .test-results-table td {
@@ -1436,53 +1437,52 @@ html, body {
 }
 
 .test-results-table tr:hover td {
-    background: rgba(212, 175, 55, 0.15);
-    transform: scale(1.01);
+    background: rgba(212, 175, 55, 0.1); /* خلفية hover أخف */
 }
 
 /* تنسيق النتائج بناءً على الأداء */
 .test-results-table td:nth-child(2) {
     position: relative;
-    padding-left: 30px;
+    padding-left: 25px; /* تقليل المساحة للدائرة */
 }
 
 .test-results-table td:nth-child(2)::before {
     content: '';
     position: absolute;
-    left: 10px;
+    left: 8px;
     top: 50%;
     transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
+    width: 10px; /* تقليل حجم الدائرة */
+    height: 10px;
     border-radius: 50%;
     transition: all 0.3s ease;
 }
 
 .test-results-table td:nth-child(2)[data-score="excellent"]::before {
     background: #28a745;
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.5);
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.5);
 }
 
 .test-results-table td:nth-child(2)[data-score="good"]::before {
     background: #d4af37;
-    box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.5);
 }
 
 .test-results-table td:nth-child(2)[data-score="poor"]::before {
     background: #dc3545;
-    box-shadow: 0 0 8px rgba(220, 53, 69, 0.5);
+    box-shadow: 0 0 6px rgba(220, 53, 69, 0.5);
 }
 
 /* تنسيق تاريخ الإكمال */
 .test-results-table td:nth-child(3) {
-    font-size: 0.9em;
+    font-size: 0.85em;
     color: #555;
     font-weight: normal;
 }
 
-/* تنسيق أعمدة الجدول بنسب مئوية للتكيف مع عرض الشاشة */
+/* تنسيق أعمدة الجدول بنسب مئوية */
 .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { /* اسم المستخدم */
-    width: 40%;
+    width: 35%; /* تقليل النسبة لتجنب التوسع */
 }
 
 .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { /* النتيجة */
@@ -1490,43 +1490,20 @@ html, body {
 }
 
 .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { /* تاريخ الإكمال */
-    width: 30%;
+    width: 35%;
 }
 
 /* تأثيرات الرسوم المتحركة */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 /* التجاوب */
 @media (max-width: 1200px) {
     .test-results-section {
-        max-width: 700px;
-        padding: 25px;
-    }
-    .test-results-section h2 {
-        font-size: 1.3em;
-    }
-    .test-results-section .input-group input {
-        font-size: 0.95em;
-        padding: 10px;
-    }
-    .test-results-section .submit-btn {
-        font-size: 0.95em;
-        width: 180px;
-        padding: 10px 20px;
-    }
-    .test-results-table th, .test-results-table td {
-        font-size: 0.9em;
-        padding: 12px;
-    }
-}
-
-@media (max-width: 768px) {
-    .test-results-section {
-        padding: 20px;
-        max-width: 100%;
+        max-width: 600px; /* تقليل العرض الأقصى */
+        padding: 15px;
     }
     .test-results-section h2 {
         font-size: 1.2em;
@@ -1544,23 +1521,21 @@ html, body {
         font-size: 0.85em;
         padding: 10px;
     }
-    .test-results-table td:nth-child(2)::before {
-        width: 10px;
-        height: 10px;
-        left: 8px;
-    }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .test-results-section {
-        padding: 15px;
+        padding: 12px;
+        max-width: 100%;
+        margin: 15px auto;
     }
     .test-results-section h2 {
-        font-size: 1em;
+        font-size: 1.1em;
     }
     .test-results-section .input-group input {
         font-size: 0.85em;
         padding: 7px;
+        max-width: 300px;
     }
     .test-results-section .submit-btn {
         font-size: 0.85em;
@@ -1576,8 +1551,39 @@ html, body {
         height: 8px;
         left: 6px;
     }
-    /* تقليل النسب لتناسب الشاشات الصغيرة */
-    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { width: 35%; }
-    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { width: 30%; }
-    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { width: 35%; }
+    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { width: 33%; }
+    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { width: 33%; }
+    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { width: 34%; }
+}
+
+@media (max-width: 480px) {
+    .test-results-section {
+        padding: 10px;
+        margin: 10px auto;
     }
+    .test-results-section h2 {
+        font-size: 1em;
+    }
+    .test-results-section .input-group input {
+        font-size: 0.8em;
+        padding: 6px;
+        max-width: 250px;
+    }
+    .test-results-section .submit-btn {
+        font-size: 0.8em;
+        width: 120px;
+        padding: 6px 12px;
+    }
+    .test-results-table th, .test-results-table td {
+        font-size: 0.75em;
+        padding: 6px;
+    }
+    .test-results-table td:nth-child(2)::before {
+        width: 7px;
+        height: 7px;
+        left: 5px;
+    }
+    .test-results-table th:nth-child(1), .test-results-table td:nth-child(1) { width: 33%; }
+    .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { width: 33%; }
+    .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { width: 34%; }
+}
