@@ -1289,3 +1289,236 @@ html, body {
     margin-top: 5px;
     font-size: 0.9em;
 }
+/* تنسيق قسم النتائج */
+.exam-results-section {
+    background: linear-gradient(180deg, #ffffff, #f9f9f9);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 900px;
+    margin: 30px auto;
+    border: 2px solid #d4af37;
+    animation: fadeIn 0.6s ease-in-out;
+    transition: transform 0.3s ease;
+}
+
+.exam-results-section:hover {
+    transform: translateY(-5px);
+}
+
+.exam-results-section h2 {
+    color: #1a2526;
+    font-size: 1.4em;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 25px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+.exam-results-section h2::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: #d4af37;
+    margin: 10px auto;
+    border-radius: 2px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    font-size: 1em;
+    color: #1a2526;
+    margin-bottom: 6px;
+    font-weight: bold;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #d4af37;
+    border-radius: 12px;
+    font-size: 1em;
+    background: #f9f9f9;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #1a2526;
+    background: #fff;
+    box-shadow: 0 0 8px rgba(26, 37, 38, 0.3);
+}
+
+.submit-btn {
+    background: linear-gradient(135deg, #d4af37, #b8962e);
+    color: #1a2526;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 100%;
+    box-shadow: 0 3px 10px rgba(212, 175, 55, 0.3);
+}
+
+.submit-btn:hover {
+    background: linear-gradient(135deg, #1a2526, #2f3b3c);
+    color: #d4af37;
+    transform: translateY(-2px);
+}
+
+/* تنسيق جدول النتائج */
+.results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: linear-gradient(180deg, #ffffff, #f9f9f9);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.results-table th, .results-table td {
+    padding: 15px;
+    text-align: center;
+    font-size: 0.95em;
+    border-bottom: 1px solid #d4af37;
+    transition: background 0.3s ease;
+}
+
+.results-table th {
+    background: linear-gradient(90deg, #1a2526, #2f3b3c);
+    color: #d4af37;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.results-table td {
+    color: #1a2526;
+    background: #fff;
+}
+
+.results-table tr:hover td {
+    background: rgba(212, 175, 55, 0.1);
+    transform: scale(1.01);
+}
+
+.results-table tr {
+    transition: transform 0.2s ease;
+}
+
+/* تنسيق النتائج بناءً على الأداء */
+.results-table td:nth-child(2) {
+    position: relative;
+}
+
+.results-table td:nth-child(2)::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.results-table td:nth-child(2)[data-score="excellent"]::before {
+    background: #28a745;
+}
+
+.results-table td:nth-child(2)[data-score="good"]::before {
+    background: #d4af37;
+}
+
+.results-table td:nth-child(2)[data-score="poor"]::before {
+    background: #dc3545;
+}
+
+/* تنسيق تاريخ الإكمال */
+.results-table td:nth-child(3) {
+    font-size: 0.9em;
+    color: #555;
+}
+
+/* تأثيرات الرسوم المتحركة */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* التجاوب */
+@media (max-width: 1200px) {
+    .exam-results-section {
+        max-width: 700px;
+    }
+    .results-table th, .results-table td {
+        font-size: 0.9em;
+        padding: 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .exam-results-section {
+        padding: 20px;
+        max-width: 100%;
+    }
+    .exam-results-section h2 {
+        font-size: 1.2em;
+    }
+    .input-group input {
+        font-size: 0.9em;
+        padding: 10px;
+    }
+    .submit-btn {
+        font-size: 0.9em;
+        padding: 10px 15px;
+    }
+    .results-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .results-table th, .results-table td {
+        font-size: 0.85em;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .exam-results-section {
+        padding: 15px;
+    }
+    .exam-results-section h2 {
+        font-size: 1em;
+    }
+    .input-group input {
+        font-size: 0.85em;
+        padding: 8px;
+    }
+    .submit-btn {
+        font-size: 0.85em;
+        padding: 8px 12px;
+    }
+    .results-table th, .results-table td {
+        font-size: 0.8em;
+        padding: 8px;
+    }
+    .results-table td:nth-child(2)::before {
+        width: 10px;
+        height: 10px;
+    }
+}
