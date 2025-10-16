@@ -1333,29 +1333,31 @@ html, body {
 /* تنسيق حقل إدخال كود الاختبار */
 .test-results-section .input-group {
     margin-bottom: 15px;
-    max-width: 400px; /* تقليل العرض الأقصى للحقل */
-    margin-left: auto;
-    margin-right: auto;
+    max-width: 350px; /* تقليل العرض لتمركز أفضل */
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* تمركز الحقل والعنوان أفقيًا */
 }
 
 .test-results-section .input-group label {
-    display: block;
     font-size: 0.95em;
     color: #1a2526;
     margin-bottom: 6px;
     font-weight: bold;
-    text-align: right;
+    text-align: center; /* تمركز النص */
 }
 
 .test-results-section .input-group input {
     width: 100%;
-    padding: 10px; /* تقليل الحشوة */
+    padding: 10px;
     border: 2px solid #d4af37;
-    border-radius: 8px; /* حدود أقل انحناءً */
+    border-radius: 8px;
     font-size: 0.95em;
     background: #f9f9f9;
     color: #1a2526;
     transition: all 0.3s ease;
+    text-align: center; /* تمركز النص داخل الحقل */
 }
 
 .test-results-section .input-group input:focus {
