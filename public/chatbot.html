@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المساعد الذكي - معهد رعاية الضبعية</title>
+    <link rel="stylesheet" href="chatbot.css">
+    <!-- إضافة Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous">
+    <!-- إضافة Toastify -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7676282531413677" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- شريط العنوان -->
+        <div class="chat-header">
+            <img src="logo.png" alt="شعار المعهد" class="logo">
+            <h1>المساعد الذكي 🚀</h1>
+            <span class="status-icon">●</span>
+        </div>
+        <!-- منطقة الدردشة -->
+        <div class="chatbot-section">
+            <h3>اسألني أي سؤال!</h3>
+            <div class="chat-window" id="chat-window"></div>
+            <!-- حقل الإدخال وأزرار التحكم -->
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="اكتب سؤالك هنا..." autocomplete="off">
+                <button class="clear-btn" onclick="clearChat()">مسح</button>
+                <button class="send-btn">إرسال</button>
+            </div>
+        </div>
+        <nav class="nav-bar" id="nav-bar">
+            <a href="index.html" class="nav-item"><i class="fas fa-home" title="الرئيسية"></i></a>
+            <a href="home.html" class="nav-item"><i class="fas fa-chart-line" title="النتائج"></i></a>
+            <a href="profile.html" class="nav-item"><i class="fas fa-user" title="الملف الشخصي"></i></a>
+            <a href="chatbot.html" class="nav-item active"><i class="fas fa-robot" title="المساعد الذكي"></i></a>
+        </nav>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="chatbot.js"></script>
+</body>
+</html>
