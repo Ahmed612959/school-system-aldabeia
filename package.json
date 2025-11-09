@@ -1,16 +1,16 @@
 {
-  "name": "school-system-aldabeia",
+  "name": "school-system-nursing",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "mongoose": "^7.6.3",
+    "express": "^4.21.2",
+    "mongoose": "^7.8.7",
     "cors": "^2.8.5",
-    "body-parser": "^1.20.2",
+    "body-parser": "^1.20.3",
     "pdf-parse": "^1.1.1",
-    "crypto": "^1.0.1",
     "serverless-http": "^3.2.0"
   }
 }
