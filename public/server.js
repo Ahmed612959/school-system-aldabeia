@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const path = require('path');
+
 const pdfParse = require('pdf-parse');
 const crypto = require('crypto');
 
@@ -880,3 +880,4 @@ app.post('/api/register-student', async (req, res) => {
 // === Vercel Serverless Handler ===
 const serverless = require('serverless-http');
 module.exports.handler = serverless(app);
+
