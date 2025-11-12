@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '.')));
+app.use(express.static('public'));
 
 // ربط MongoDB
 const uri = "mongodb+srv://myadmin:MySecurePass123@cluster0.1cou98u.mongodb.net/adminDB?retryWrites=true&w=majority";
@@ -873,19 +873,8 @@ app.post('/api/register-student', async (req, res) => {
         res.status(500).json({ error: 'Error creating account: ' + error.message });
     }
 });
-app.listen(PORT, () => {
-    console.log(`الخادم يعمل على http://localhost:${PORT}`);
+// === Vercel Serverless Handler ===
+const serverless = require('serverless-http');
+module.exports.handler = serverless(app);
 });
-
-
-
-
-
-
-
-
-
-
-
-
 
