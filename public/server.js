@@ -14,12 +14,16 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// ربط MongoDB
-const uri = "mongodb+srv://myadmin:MySecurePass123@cluster0.1cou98u.mongodb.net/adminDB?retryWrites=true&w=majority";
-mongoose.connect(uri)
-    .then(() => console.log('تم الاتصال بقاعدة البيانات MongoDB'))
-    .catch(err => console.error('خطأ في الاتصال بـ MongoDB:', err));
+// ربط MongoDB من Environment Variables
+const uri = process.env.MONGODB_URI;
+if (!uri) {
+  console.error('MONGODB_URI is missing!');
+  process.exit(1);
+}
 
+mongoose.connect(uri)
+  .then(() => console.log('تم الاتصال بـ MongoDB'))
+  .catch(err => console.error('خطأ في الاتصال:', err));
 // تعريف النماذج (Schemas)
 const adminSchema = new mongoose.Schema({
     fullName: String,
@@ -876,5 +880,3 @@ app.post('/api/register-student', async (req, res) => {
 // === Vercel Serverless Handler ===
 const serverless = require('serverless-http');
 module.exports.handler = serverless(app);
-});
-
