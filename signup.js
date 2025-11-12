@@ -1,60 +1,36 @@
-// signup.js - محدث 100% لموقعك الرسمي
-// https://school-system-nursing.netlify.app
-// تاريخ التحديث: 9 نوفمبر 2025
-
-// دالة عرض الرسائل المنبثقة (Toast)
-function showToast(message, type = 'error') {
+// دالة لعرض رسائل التنبيه
+function showToast(message, type) {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        font-weight: bold;
-        z-index: 9999;
-        animation: slideIn 0.5s ease;
-        background-color: ${type === 'success' ? '#28a745' : '#dc3545'};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
+    toast.style.position = 'fixed';
+    toast.style.bottom = '20px';
+    toast.style.right = '20px';
+    toast.style.padding = '12px 24px';
+    toast.style.borderRadius = '8px';
+    toast.style.color = 'white';
+    toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    toast.style.zIndex = '10000';
+    toast.style.fontWeight = '500';
     document.body.appendChild(toast);
-
-    // إضافة أنيميشن بسيط
-    const style = document.createElement('style');
-    style.innerHTML = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideIn 0.5s ease reverse';
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
+    setTimeout(() => toast.remove(), 3500);
 }
 
-// إرسال البيانات للسيرفر
+// إرسال طلب إلى الخادم
 async function saveToServer(endpoint, data) {
-    const API_BASE = 'https://school-system-nursing.netlify.app/api';
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-
+        const result = await response.json();
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `خطأ ${response.status}`);
+            throw new Error(result.error || 'حدث خطأ في الخادم');
         }
-        return await response.json();
+        return result;
     } catch (error) {
-        console.error('خطأ في الاتصال بالسيرفر:', error);
         throw error;
     }
 }
@@ -62,15 +38,15 @@ async function saveToServer(endpoint, data) {
 // التحقق من توفر اسم المستخدم
 async function checkUsernameAvailability(username) {
     try {
-        const response = await fetch('https://school-system-nursing.netlify.app/api/check-username', {
+        const response = await fetch('/api/check-username', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
         });
         const data = await response.json();
-        return data.available === true;
+        return data.available;
     } catch (error) {
-        console.error('فشل التحقق من اسم المستخدم:', error);
+        console.error('Error checking username:', error);
         return false;
     }
 }
@@ -87,40 +63,35 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const birthdate = document.getElementById('birthdate').value;
     const address = document.getElementById('address').value.trim();
     const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword')?.value || password;
+
+    // إعادة تعيين رسائل الخطأ
+    document.getElementById('username-availability').style.display = 'none';
 
     // التحقق من الحقول
     if (!fullName || !username || !studentCodeNumbers || !email || !phone || !birthdate || !address || !password) {
-        showToast('يرجى ملء جميع الحقول المطلوبة!', 'error');
+        showToast('يرجى ملء جميع الحقول!', 'error');
         return;
     }
 
-    if (password !== confirmPassword) {
-        showToast('كلمتا المرور غير متطابقتين!', 'error');
-        return;
-    }
-
+    // التحقق من كود الطالب (3 أرقام)
     if (!/^\d{3}$/.test(studentCodeNumbers)) {
         showToast('كود الطالب يجب أن يكون 3 أرقام فقط!', 'error');
         return;
     }
 
+    // التحقق من صيغة اسم المستخدم
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        showToast('اسم المستخدم: 3-20 حرف أو رقم فقط (بدون مسافات أو رموز)', 'error');
+        showToast('اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)!', 'error');
         return;
     }
 
-    const studentCode = `STU${studentCodeNumbers}`;
-
     // التحقق من توفر اسم المستخدم
+    const isUsernameAvailable = await checkUsernameAvailability(username);
     const availabilitySpan = document.getElementById('username-availability');
-    const isAvailable = await checkUsernameAvailability(username);
-
-    if (!isAvailable) {
-        availabilitySpan.textContent = 'هذا الاسم مستخدم بالفعل!';
+    if (!isUsernameAvailable) {
+        availabilitySpan.textContent = 'اسم المستخدم غير متاح!';
         availabilitySpan.style.color = '#dc3545';
         availabilitySpan.style.display = 'block';
-        showToast('اسم المستخدم غير متاح!', 'error');
         return;
     } else {
         availabilitySpan.textContent = 'اسم المستخدم متاح!';
@@ -128,11 +99,14 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         availabilitySpan.style.display = 'block';
     }
 
+    // دمج STU مع الأرقام
+    const studentCode = `STU${studentCodeNumbers}`;
+
     try {
-        const result = await saveToServer('/register-student', {
+        const response = await saveToServer('/api/register-student', {
             fullName,
             username,
-            id: studentCode,
+            id: studentCode,        // مهم جدًا: id = STU123
             email,
             phone,
             birthdate,
@@ -140,56 +114,42 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             password
         });
 
-        showToast(`تم إنشاء الحساب بنجاح!
-اسم المستخدم: ${username}
-كلمة المرور: ${password}
-سيتم تحويلك لتسجيل الدخول...`, 'success');
-
+        showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username}`, 'success');
         setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 3500);
+            window.location.href = 'login.html';
+        }, 3000);
 
     } catch (error) {
-        console.error('فشل إنشاء الحساب:', error);
-        showToast(`فشل إنشاء الحساب: ${error.message}`, 'error');
+        console.error('Error creating account:', error);
+        // رسائل مخصصة من الـ Backend
+        const msg = error.message;
+        if (msg.includes('Student code')) showToast('كود الطالب مستخدم من قبل!', 'error');
+        else if (msg.includes('Username')) showToast('اسم المستخدم مستخدم من قبل!', 'error');
+        else if (msg.includes('Email')) showToast('البريد الإلكتروني مستخدم من قبل!', 'error');
+        else showToast(`خطأ: ${msg}`, 'error');
     }
 });
 
-// التحقق الفوري من اسم المستخدم أثناء الكتابة
-document.getElementById('username')?.addEventListener('input', async function(e) {
+// التحقق من توفر اسم المستخدم أثناء الكتابة (مع تأخير)
+let usernameTimeout;
+document.getElementById('username')?.addEventListener('input', async (e) => {
     const username = e.target.value.trim();
     const availabilitySpan = document.getElementById('username-availability');
 
-    if (username.length === 0) {
-        availabilitySpan.style.display = 'none';
-        return;
-    }
+    clearTimeout(usernameTimeout);
 
-    if (username.length < 3) {
-        availabilitySpan.textContent = 'يجب أن يكون 3 أحرف على الأقل';
+    if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        availabilitySpan.textContent = 'اسم المستخدم يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)!';
         availabilitySpan.style.color = '#dc3545';
         availabilitySpan.style.display = 'block';
         return;
     }
 
-    if (!/^[a-zA-Z0-9]+$/.test(username)) {
-        availabilitySpan.textContent = 'أحرف وأرقام فقط!';
-        availabilitySpan.style.color = '#dc3545';
+    // تأخير 500ms عشان ما يرسل طلبات كتير
+    usernameTimeout = setTimeout(async () => {
+        const isAvailable = await checkUsernameAvailability(username);
+        availabilitySpan.textContent = isAvailable ? 'اسم المستخدم متاح!' : 'اسم المستخدم غير متاح!';
+        availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
         availabilitySpan.style.display = 'block';
-        return;
-    }
-
-    availabilitySpan.textContent = 'جاري التحقق...';
-    availabilitySpan.style.color = '#ffc107';
-    availabilitySpan.style.display = 'block';
-
-    const isAvailable = await checkUsernameAvailability(username);
-
-    if (isAvailable) {
-        availabilitySpan.textContent = 'متاح!';
-        availabilitySpan.style.color = '#28a745';
-    } else {
-        availabilitySpan.textContent = 'غير متاح!';
-        availabilitySpan.style.color = '#dc3545';
-    }
+    }, 500);
 });
