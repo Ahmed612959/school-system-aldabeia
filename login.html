@@ -2,10 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تسجيل الدخول - معهد رعاية الضبعية</title>
     <link rel="stylesheet" href="login.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- تحميل CryptoJS من CDN (بدل ملف محلي) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
     <header class="main-header">
@@ -28,17 +30,16 @@
                 <button type="submit" class="submit-btn">تسجيل الدخول</button>
             </form>
             <p style="text-align: center; margin-top: 15px;">
-                ليس لديك حساب؟ <a href="signup.html" class="signup-link">إنشاء حساب</a>
+                ليس لديك حساب؟ <a href="register.html" class="signup-link">إنشاء حساب</a>
             </p>
         </div>
     </div>
 
     <footer>
-        <p>Developed by Ahmed Mousa <span class="heart">❤</span></p>
+        <p>Developed by Ahmed Mousa <span class="heart">Heart</span></p>
     </footer>
 
-    <script src="crypto-js.js"></script>
-    <script src="dataManager.js"></script>
+    <!-- فقط auth.js -->
     <script src="auth.js"></script>
 </body>
-</html>
+</html> 
