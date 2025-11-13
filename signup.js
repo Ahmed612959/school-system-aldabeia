@@ -1,18 +1,20 @@
 // دالة لعرض رسائل التنبيه
-function showToast(message, type) {
+function showToast(message, type = 'error') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     toast.textContent = message;
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.padding = '12px 24px';
-    toast.style.borderRadius = '8px';
-    toast.style.color = 'white';
-    toast.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
-    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    toast.style.zIndex = '10000';
-    toast.style.fontWeight = '500';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background-color: ${type === 'success' ? '#28a745' : '#dc3545'};
+    `;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 3500);
 }
@@ -27,10 +29,11 @@ async function saveToServer(endpoint, data) {
         });
         const result = await response.json();
         if (!response.ok) {
-            throw new Error(result.error || 'حدث خطأ في الخادم');
+            throw new Error(result.error || 'خطأ في الخادم');
         }
         return result;
     } catch (error) {
+        console.error('خطأ في الاتصال بالخادم:', error);
         throw error;
     }
 }
@@ -44,9 +47,12 @@ async function checkUsernameAvailability(username) {
             body: JSON.stringify({ username })
         });
         const data = await response.json();
-        return data.available;
+        
+        // تحسين: التحقق من الرد الصحيح
+        console.log('Backend response for username check:', data);
+        return data && typeof data.available === 'boolean' ? data.available : false;
     } catch (error) {
-        console.error('Error checking username:', error);
+        console.error('خطأ في التحقق من اسم المستخدم:', error);
         return false;
     }
 }
@@ -85,13 +91,21 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return;
     }
 
+    // التحقق من الإيميل
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('البريد الإلكتروني غير صحيح!', 'error');
+        return;
+    }
+
     // التحقق من توفر اسم المستخدم
+    showToast('جاري التحقق من اسم المستخدم...', 'info');
     const isUsernameAvailable = await checkUsernameAvailability(username);
     const availabilitySpan = document.getElementById('username-availability');
     if (!isUsernameAvailable) {
-        availabilitySpan.textContent = 'اسم المستخدم غير متاح!';
+        availabilitySpan.textContent = 'اسم المستخدم مستخدم من قبل!';
         availabilitySpan.style.color = '#dc3545';
         availabilitySpan.style.display = 'block';
+        showToast('اسم المستخدم مستخدم من قبل!', 'error');
         return;
     } else {
         availabilitySpan.textContent = 'اسم المستخدم متاح!';
@@ -103,10 +117,11 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const studentCode = `STU${studentCodeNumbers}`;
 
     try {
+        showToast('جاري إنشاء الحساب...', 'info');
         const response = await saveToServer('/api/register-student', {
             fullName,
             username,
-            id: studentCode,        // مهم جدًا: id = STU123
+            id: studentCode,
             email,
             phone,
             birthdate,
@@ -120,13 +135,18 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         }, 3000);
 
     } catch (error) {
-        console.error('Error creating account:', error);
+        console.error('خطأ في إنشاء الحساب:', error);
         // رسائل مخصصة من الـ Backend
         const msg = error.message;
-        if (msg.includes('Student code')) showToast('كود الطالب مستخدم من قبل!', 'error');
-        else if (msg.includes('Username')) showToast('اسم المستخدم مستخدم من قبل!', 'error');
-        else if (msg.includes('Email')) showToast('البريد الإلكتروني مستخدم من قبل!', 'error');
-        else showToast(`خطأ: ${msg}`, 'error');
+        if (msg.includes('Student code')) {
+            showToast('كود الطالب مستخدم من قبل!', 'error');
+        } else if (msg.includes('Username')) {
+            showToast('اسم المستخدم مستخدم من قبل!', 'error');
+        } else if (msg.includes('Email')) {
+            showToast('البريد الإلكتروني مستخدم من قبل!', 'error');
+        } else {
+            showToast(`خطأ في إنشاء الحساب: ${msg}`, 'error');
+        }
     }
 });
 
@@ -138,18 +158,25 @@ document.getElementById('username')?.addEventListener('input', async (e) => {
 
     clearTimeout(usernameTimeout);
 
+    if (username.length === 0) {
+        availabilitySpan.style.display = 'none';
+        return;
+    }
+
     if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        availabilitySpan.textContent = 'اسم المستخدم يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)!';
+        availabilitySpan.textContent = 'يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)';
         availabilitySpan.style.color = '#dc3545';
         availabilitySpan.style.display = 'block';
         return;
     }
 
-    // تأخير 500ms عشان ما يرسل طلبات كتير
+    availabilitySpan.textContent = 'جاري التحقق...';
+    availabilitySpan.style.color = '#ffc107';
+    availabilitySpan.style.display = 'block';
+
     usernameTimeout = setTimeout(async () => {
         const isAvailable = await checkUsernameAvailability(username);
-        availabilitySpan.textContent = isAvailable ? 'اسم المستخدم متاح!' : 'اسم المستخدم غير متاح!';
+        availabilitySpan.textContent = isAvailable ? 'متاح!' : 'غير متاح!';
         availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
-        availabilitySpan.style.display = 'block';
     }, 500);
-});
+}); 
