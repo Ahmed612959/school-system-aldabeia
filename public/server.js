@@ -536,35 +536,43 @@ app.post('/api/register-student', async (req, res) => {
         const { fullName, username, id, email, phone, birthdate, address, password } = req.body;
 
         if (!fullName || !username || !id || !email || !phone || !birthdate || !address || !password) {
-            return res.status(400).json({ error: 'All fields are required' });
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         if (!/^STU\d{3}$/.test(id)) {
-            return res.status(400).json({ error: 'Student code must be in the format STU followed by 3 digits' });
+            return res.status(400).json({ error: 'كود الطالب يجب أن يكون STU + 3 أرقام' });
         }
 
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            return res.status(400).json({ error: 'Username must be 3-20 characters (letters and numbers only)' });
+            return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        const existingAdmins = await Admin.find();
-        const existingStudents = await Student.find();
-        const allUsers = [...existingAdmins, ...existingStudents];
+        // === التحقق من التكرار (سريع ودقيق) ===
+        const [existingId, existingUsername, existingEmail] = await Promise.all([
+            Student.findOne({ id }).lean(),
+            Promise.all([
+                Admin.findOne({ username }).lean(),
+                Student.findOne({ username }).lean()
+            ]),
+            Student.findOne({ 'profile.email': email }).lean()
+        ]);
 
-        if (allUsers.some(user => user.id === id)) {
-            return res.status(400).json({ error: 'Student code already used' });
+        if (existingId) {
+            return res.status(400).json({ error: 'كود الطالب مستخدم من قبل' });
         }
 
-        if (allUsers.some(user => user.username === username)) {
-            return res.status(400).json({ error: 'Username already used' });
+        if (existingUsername.some(u => u)) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
         }
 
-        if (allUsers.some(user => user.profile && user.profile.email === email)) {
-            return res.status(400).json({ error: 'Email already used' });
+        if (existingEmail) {
+            return res.status(400).json({ error: 'البريد الإلكتروني مستخدم من قبل' });
         }
 
+        // === تشفير كلمة المرور ===
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
+        // === إنشاء الطالب ===
         const student = new Student({
             fullName,
             id,
@@ -576,13 +584,17 @@ app.post('/api/register-student', async (req, res) => {
         });
 
         await student.save();
-        res.json({ message: 'Student account created successfully', username });
+
+        console.log(`Student registered: ${username} (${id})`);
+        res.json({ message: 'تم إنشاء الحساب بنجاح', username });
+
     } catch (error) {
-        console.error('Error creating student account:', error);
-        res.status(500).json({ error: 'Error creating account: ' + error.message });
+        console.error('Error in register-student:', error);
+        res.status(500).json({ error: 'خطأ في إنشاء الحساب: ' + error.message });
     }
 });
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
