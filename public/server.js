@@ -426,16 +426,23 @@ app.post('/api/analyze-pdf', async (req, res) => {
 app.post('/api/check-username', async (req, res) => {
     try {
         const { username } = req.body;
-        if (!username) return res.status(400).json({ error: 'Username is required' });
+        if (!username) {
+            return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+        }
 
-        const existingAdmins = await Admin.find({ username });
-        const existingStudents = await Student.find({ username });
+        // جلب كل المستخدمين مرة واحدة (admins + students)
+        const [existingAdmins, existingStudents] = await Promise.all([
+            Admin.find({ username }).lean(),
+            Student.find({ username }).lean()
+        ]);
+
         const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
 
+        console.log(`Check username: ${username} → Available: ${isAvailable}`);
         res.json({ available: isAvailable });
     } catch (error) {
         console.error('Error checking username:', error);
-        res.status(500).json({ error: 'Error checking username: ' + error.message });
+        res.status(500).json({ error: 'خطأ في التحقق من اسم المستخدم' });
     }
 });
 
@@ -578,3 +585,4 @@ app.post('/api/register-student', async (req, res) => {
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
