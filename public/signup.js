@@ -1,8 +1,8 @@
-// signup.js - محدث 100% لموقعك الرسمي
-// https://school-system-nursing.netlify.app
-// تاريخ التحديث: 9 نوفمبر 2025
+// signup.js - مُحسّن 100% لـ Vercel
+// https://schoolx-five.vercel.app
+// تاريخ التحديث: 14 نوفمبر 2025
 
-// دالة عرض الرسائل المنبثقة (Toast)
+// دالة عرض الرسائل المنبثقة
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -22,7 +22,6 @@ function showToast(message, type = 'error') {
     `;
     document.body.appendChild(toast);
 
-    // إضافة أنيميشن بسيط
     const style = document.createElement('style');
     style.innerHTML = `
         @keyframes slideIn {
@@ -38,18 +37,17 @@ function showToast(message, type = 'error') {
     }, 3000);
 }
 
-// إرسال البيانات للسيرفر
+// إرسال البيانات للسيرفر (مسار نسبي لـ Vercel)
 async function saveToServer(endpoint, data) {
-    const API_BASE = 'https://school-system-nursing.netlify.app/api';
     try {
-        const response = await fetch(`${API_BASE}${endpoint}`, {
+        const response = await fetch(`/api${endpoint}`, { // <-- مسار نسبي
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `خطأ ${response.status}`);
         }
         return await response.json();
@@ -62,7 +60,7 @@ async function saveToServer(endpoint, data) {
 // التحقق من توفر اسم المستخدم
 async function checkUsernameAvailability(username) {
     try {
-        const response = await fetch('https://school-system-nursing.netlify.app/api/check-username', {
+        const response = await fetch('/api/check-username', { // <-- مسار نسبي
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
@@ -106,7 +104,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        showToast('اسم المستخدم: 3-20 حرف أو رقم فقط (بدون مسافات أو رموز)', 'error');
+        showToast('اسم المستخدم: 3-20 حرف أو رقم فقط!', 'error');
         return;
     }
 
@@ -129,6 +127,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 
     try {
+        showToast('جاري إنشاء الحساب...', 'info');
         const result = await saveToServer('/register-student', {
             fullName,
             username,
@@ -140,14 +139,10 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             password
         });
 
-        showToast(`تم إنشاء الحساب بنجاح!
-اسم المستخدم: ${username}
-كلمة المرور: ${password}
-سيتم تحويلك لتسجيل الدخول...`, 'success');
-
+        showToast(`تم إنشاء الحساب بنجاح!`, 'success');
         setTimeout(() => {
-            window.location.href = 'index.html';
-        }, 3500);
+            window.location.href = 'login.html'; // <-- توجيه لتسجيل الدخول
+        }, 2000);
 
     } catch (error) {
         console.error('فشل إنشاء الحساب:', error);
@@ -156,9 +151,12 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 });
 
 // التحقق الفوري من اسم المستخدم أثناء الكتابة
-document.getElementById('username')?.addEventListener('input', async function(e) {
+let usernameTimeout;
+document.getElementById('username')?.addEventListener('input', function (e) {
     const username = e.target.value.trim();
     const availabilitySpan = document.getElementById('username-availability');
+
+    clearTimeout(usernameTimeout);
 
     if (username.length === 0) {
         availabilitySpan.style.display = 'none';
@@ -183,13 +181,9 @@ document.getElementById('username')?.addEventListener('input', async function(e)
     availabilitySpan.style.color = '#ffc107';
     availabilitySpan.style.display = 'block';
 
-    const isAvailable = await checkUsernameAvailability(username);
-
-    if (isAvailable) {
-        availabilitySpan.textContent = 'متاح!';
-        availabilitySpan.style.color = '#28a745';
-    } else {
-        availabilitySpan.textContent = 'غير متاح!';
-        availabilitySpan.style.color = '#dc3545';
-    }
-});
+    usernameTimeout = setTimeout(async () => {
+        const isAvailable = await checkUsernameAvailability(username);
+        availabilitySpan.textContent = isAvailable ? 'متاح!' : 'غير متاح!';
+        availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
+    }, 500);
+}); 
