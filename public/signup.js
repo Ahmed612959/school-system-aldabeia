@@ -1,4 +1,4 @@
-// signup.js - مُحسّن 100% لـ Vercel
+// signup.js - مُحسّن 100% لـ Vercel + تشفير كلمة المرور
 // https://schoolx-five.vercel.app
 // تاريخ التحديث: 14 نوفمبر 2025
 
@@ -37,10 +37,10 @@ function showToast(message, type = 'error') {
     }, 3000);
 }
 
-// إرسال البيانات للسيرفر (مسار نسبي لـ Vercel)
+// إرسال البيانات للسيرفر
 async function saveToServer(endpoint, data) {
     try {
-        const response = await fetch(`/api${endpoint}`, { // <-- مسار نسبي
+        const response = await fetch(`/api${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -60,7 +60,7 @@ async function saveToServer(endpoint, data) {
 // التحقق من توفر اسم المستخدم
 async function checkUsernameAvailability(username) {
     try {
-        const response = await fetch('/api/check-username', { // <-- مسار نسبي
+        const response = await fetch('/api/check-username', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
@@ -126,6 +126,20 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         availabilitySpan.style.display = 'block';
     }
 
+    // تشفير كلمة المرور قبل الإرسال
+    let hashedPassword;
+    try {
+        if (typeof CryptoJS === 'undefined') {
+            showToast('مكتبة التشفير غير محملة!', 'error');
+            return;
+        }
+        hashedPassword = CryptoJS.SHA256(password).toString();
+        console.log('تم تشفير كلمة المرور في signup.js');
+    } catch (error) {
+        showToast('خطأ في تشفير كلمة المرور!', 'error');
+        return;
+    }
+
     try {
         showToast('جاري إنشاء الحساب...', 'info');
         const result = await saveToServer('/register-student', {
@@ -136,12 +150,12 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             phone,
             birthdate,
             address,
-            password
+            password: hashedPassword  // <-- مرسل مشفر
         });
 
-        showToast(`تم إنشاء الحساب بنجاح!`, 'success');
+        showToast('تم إنشاء الحساب بنجاح!', 'success');
         setTimeout(() => {
-            window.location.href = 'login.html'; // <-- توجيه لتسجيل الدخول
+            window.location.href = 'login.html';
         }, 2000);
 
     } catch (error) {
