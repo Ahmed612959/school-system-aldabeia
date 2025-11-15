@@ -880,17 +880,16 @@ document.getElementById('save-exam').addEventListener('click', async function() 
 });
 // عرض نتائج الاختبار
 document.getElementById('fetch-results').addEventListener('click', async function() {
-    const examCode = document.getElementById('results-exam-code').value.trim();
+    const examCode = document.getElementById('results-exam-cod').value.trim();
     if (!examCode) {
         showToast('يرجى إدخال كود الاختبار!', 'error');
         return;
     }
 
     try {
-        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(examCode)}/results`);
+        const response = await fetch(`/api/exams/${encodeURIComponent(examCode)}/results`);
         if (!response.ok) {
             const errorData = await response.json();
-            console.error('Error fetching results:', errorData);
             showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
             return;
         }
