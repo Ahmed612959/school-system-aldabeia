@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
         try {
             const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-            const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
+            const response = await fetch(`/api/${cleanEndpoint}`);
             if (!response.ok) throw new Error(`خطأ ${response.status}`);
             const data = await response.json();
             console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function saveToServer(endpoint, data, method = 'POST', id = null) {
         try {
             const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-            const url = id ? `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}/${id}` : `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`;
+            const url = id ? `/api/${cleanEndpoint}/${id}` : `/api/${cleanEndpoint}`;
             const options = {
                 method,
                 headers: { 'Content-Type': 'application/json' },
@@ -977,6 +977,13 @@ document.getElementById('fetch-results').addEventListener('click', async functio
         showToast(`خطأ في جلب النتائج: ${error.message}`, 'error');
     }
 });
+    // أضف هذا في آخر الملف قبل `});`
+window.logout = function () {
+    if (confirm('هل تريد تسجيل الخروج؟')) {
+        localStorage.removeItem('loggedInUser');
+        window.location.href = 'login.html';
+    }
+};
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
