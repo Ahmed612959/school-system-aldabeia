@@ -880,7 +880,7 @@ document.getElementById('save-exam').addEventListener('click', async function() 
 });
 // عرض نتائج الاختبار
 document.getElementById('fetch-results').addEventListener('click', async function() {
-    const examCode = document.getElementById('results-exam-cod').value.trim();
+    const examCode = document.getElementById('results-exam-code').value.trim();
     if (!examCode) {
         showToast('يرجى إدخال كود الاختبار!', 'error');
         return;
