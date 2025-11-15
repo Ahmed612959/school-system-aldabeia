@@ -664,7 +664,7 @@ function displayPDFResults(results) {
  // دالة للتحقق من توفر كود الاختبار
 async function checkExamCodeAvailability(code) {
     try {
-        const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams/check-code', {
+        const response = await fetch('/api/exams/check-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code })
@@ -673,6 +673,7 @@ async function checkExamCodeAvailability(code) {
         return data.available;
     } catch (error) {
         console.error('Error checking exam code:', error);
+        showToast('فشل التحقق من كود الاختبار!', 'error');
         return false;
     }
 }
@@ -852,11 +853,11 @@ document.getElementById('save-exam').addEventListener('click', async function() 
 
     try {
         console.log('Saving exam with data:', JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions }, null, 2));
-        const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions })
-        });
+        const response = await fetch('/api/exams', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions })
+});
 
         if (response.ok) {
             const result = await response.json();
@@ -875,53 +876,6 @@ document.getElementById('save-exam').addEventListener('click', async function() 
     } catch (error) {
         console.error('Error saving exam:', error);
         showToast(`خطأ في حفظ الاختبار: ${error.message}`, 'error');
-    }
-});
-// عرض نتائج الاختبار
-document.getElementById('fetch-results').addEventListener('click', async function() {
-    const examCode = document.getElementById('results-exam-code').value.trim();
-    if (!examCode) {
-        showToast('يرجى إدخال كود الاختبار!', 'error');
-        return;
-    }
-
-    try {
-        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(examCode)}/results`);
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('Error fetching results:', errorData);
-            showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
-            return;
-        }
-        const results = await response.json();
-        const resultsList = document.getElementById('exam-results-list');
-        if (results.length === 0) {
-            resultsList.innerHTML = '<p>لا توجد نتائج لهذا الاختبار.</p>';
-            return;
-        }
-        resultsList.innerHTML = `
-            <table class="results-table">
-                <thead>
-                    <tr>
-                        <th>اسم المستخدم</th>
-                        <th>النتيجة (%)</th>
-                        <th>تاريخ الإكمال</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${results.map(result => `
-                        <tr>
-                            <td>${result.studentId}</td>
-                            <td>${result.score.toFixed(1)}</td>
-                            <td>${new Date(result.completionTime).toLocaleString('ar-EG')}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-    } catch (error) {
-        console.error('Error fetching exam results:', error);
-        showToast(`خطأ في جلب النتائج: ${error.message}`, 'error');
     }
 });
 // عرض نتائج الاختبار
