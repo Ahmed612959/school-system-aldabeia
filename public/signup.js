@@ -1,16 +1,16 @@
-// signup.js - يشتغل 100% مع الباك إند الحالي
+// signup.js - النسخة الصحيحة 100% اللي هتشتغل مع auth.js الحالي
 document.addEventListener('DOMContentLoaded', function () {
 
-    // دالة تشفير مطابقة تمامًا لـ Node.js sha256 hex
-    async function hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // استخدم نفس التشفير الموجود في auth.js (CryptoJS)
+    function hashPassword(password) {
+        if (typeof CryptoJS === 'undefined') {
+            alert('مكتبة التشفير غير محملة!');
+            throw new Error('CryptoJS not loaded');
+        }
+        return CryptoJS.SHA256(password).toString();
     }
 
-    // التحقق من توفر اسم المستخدم
+    // فحص توفر اسم المستخدم (مع .json لأن الباك إند كده)
     const usernameInput = document.getElementById('username');
     const availabilitySpan = document.getElementById('username-availability');
 
@@ -22,21 +22,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            const students = await fetch('/api/students').then(r => r.ok ? r.json() : []);
-            const admins = await fetch('/api/admins').then(r => r.ok ? r.json() : []);
+            const [students, admins] = await Promise.all([
+                fetch('/api/students.json').then(r => r.ok ? r.json() : []),
+                fetch('/api/admins.json').then(r => r.ok ? r.json() : [])
+            ]);
 
             const exists = [...students, ...admins].some(u => u.username === username);
-            if (exists) {
-                availabilitySpan.textContent = '⚠️ اسم المستخدم موجود بالفعل';
-                availabilitySpan.style.color = '#dc3545';
-                availabilitySpan.style.display = 'block';
-            } else {
-                availabilitySpan.textContent = '✅ اسم المستخدم متاح';
-                availabilitySpan.style.color = '#28a745';
-                availabilitySpan.style.display = 'block';
-            }
+            availabilitySpan.textContent = exists ? 'اسم المستخدم موجود بالفعل' : 'اسم المستخدم متاح';
+            availabilitySpan.style.color = exists ? '#dc3545' : '#28a745';
+            availabilitySpan.style.display = 'block';
         } catch (err) {
-            console.error('فشل التحقق من اسم المستخدم');
+            console.error('فشل فحص اسم المستخدم');
         }
     });
 
@@ -53,29 +49,27 @@ document.addEventListener('DOMContentLoaded', function () {
         const address = document.getElementById('address').value.trim();
         const password = document.getElementById('password').value;
 
-        // تحقق من القوة
         if (password.length < 6) {
             alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل!');
             return;
         }
 
-        if (username.length < 3 || !/^[a-zA-Z0-9]+$/.test(username)) {
-            alert('اسم المستخدم يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)');
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+            alert('اسم المستخدم: أحرف وأرقام فقط، من 3-20 حرف');
             return;
         }
 
-        // توليد كود الطالب النهائي
         const studentId = `STU${studentCode}`;
 
-        // تشفير كلمة المرور بنفس طريقة الباك إند
-        const hashedPassword = await hashPassword(password);
-        console.log('كلمة المرور بعد التشفير (ستُخزن):', hashedPassword);
+        // تشفير بنفس طريقة auth.js
+        const hashedPassword = hashPassword(password);
+        console.log('كلمة المرور المشفرة (سيتم تخزينها):', hashedPassword);
 
         const newStudent = {
             id: studentId,
             fullName,
             username,
-            password: hashedPassword,
+            password: hashedPassword,  // نفس الـ hash اللي في auth.js
             email,
             phone,
             birthdate,
@@ -86,6 +80,7 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         try {
+            // إرسال للـ API (الباك إند بتاعك بيقبل POST على /api/students)
             const response = await fetch('/api/students', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -93,15 +88,15 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             if (response.ok) {
-                alert('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن');
-                window.location.href = 'login.html';
+                alert('تم إنشاء الحساب بنجاح! جاري توجيهك لتسجيل الدخول...');
+                setTimeout(() => window.location.href = 'login.html', 1000);
             } else {
-                const error = await response.json();
-                alert(error.error || 'فشل إنشاء الحساب! ربما اسم المستخدم موجود');
+                const err = await response.json().catch(() => ({}));
+                alert(err.error || 'فشل إنشاء الحساب');
             }
         } catch (err) {
-            console.error('خطأ في الاتصال:', err);
-            alert('فشل الاتصال بالسيرفر! تأكد من الإنترنت');
+            console.error('خطأ في الإرسال:', err);
+            alert('فشل الاتصال بالسيرفر');
         }
     });
 });
