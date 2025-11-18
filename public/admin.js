@@ -1,29 +1,36 @@
 document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
-        try {
-            const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-            const response = await fetch(`/api/${cleanEndpoint}`);
-            if (!response.ok) throw new Error(`خطأ ${response.status}`);
-            const data = await response.json();
-            console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
-            return data || [];
-        } catch (error) {
-            console.error(`Error fetching from ${endpoint}:`, error);
-            showToast('خطأ في جلب البيانات من الخادم!', 'error');
-            return [];
-        }
+    try {
+        let cleanEndpoint = endpoint.split('/api/').pop() || endpoint;
+        cleanEndpoint = cleanEndpoint.replace(/^\/+/, '');
+        const response = await fetch(`/api/${cleanEndpoint}`);
+        if (!response.ok) throw new Error(`خطأ ${response.status}`);
+        const data = await response.json();
+        console.log(`Data loaded from /api/${cleanEndpoint}:`, data.length, 'items');
+        return data || [];
+    } catch (error) {
+        console.error(`Error fetching from ${endpoint}:`, error);
+        showToast('خطأ في جلب البيانات من الخادم!', 'error');
+        return [];
     }
+}
 
     async function saveToServer(endpoint, data, method = 'POST', id = null) {
     try {
-        // إزالة أي /api أو / من البداية
-        let cleanEndpoint = endpoint.replace(/^\/*api\/*/i, '').replace(/^\/+/, '');
-        const url = id ? `/api/${cleanEndpoint}/${id}` : `/api/${cleanEndpoint}`;
+        // الحل السحري والأخير: نشيل كل حاجة قبل آخر /api/
+        let cleanEndpoint = endpoint.split('/api/').pop() || endpoint;
+        cleanEndpoint = cleanEndpoint.replace(/^\/+/, ''); // نشيل أي / من البداية
+
+        const url = id 
+            ? `/api/${cleanEndpoint}/${id}` 
+            : `/api/${cleanEndpoint}`;
+
         const options = {
             method,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         };
+
         const response = await fetch(url, options);
         if (!response.ok) {
             const errorText = await response.text();
