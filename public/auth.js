@@ -5,23 +5,34 @@
 document.addEventListener('DOMContentLoaded', function () {
 
     // دالة جلب البيانات من الخادم بمسار نسبي (يعمل على Vercel)
-    async function getFromServer(endpoint) {
-        try {
-            const url = `/api${endpoint}`; // <-- مسار نسبي (مهم لـ Vercel)
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`خطأ ${response.status}: ${errorText}`);
-            }
-            const data = await response.json();
-            console.log(`تم جلب ${data.length} عنصر من: ${url}`);
-            return data || [];
-        } catch (error) {
-            console.error('خطأ في جلب البيانات:', error);
-            alert('فشل الاتصال بالخادم! تأكد من الإنترنت وحاول مرة أخرى.');
-            return [];
+    // استبدل دالة getFromServer كلها بالنسخة دي (النهائية والمضمونة):
+async function getFromServer(endpoint) {
+    try {
+        // الحل الأمثل: نجرب أولاً بالمسار النسبي الصحيح
+        let url = endpoint.startsWith('/') ? `/api${endpoint}` : `/api/${endpoint}`;
+
+        let response = await fetch(url, { cache: 'no-store' });
+
+        // لو الطلب فشل (يعني المسار غلط)، نجرب بالطريقة التانية
+        if (!response.ok && response.status === 404) {
+            url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+            response = await fetch(url, { cache: 'no-store' });
         }
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`خطأ ${response.status}: ${errorText || 'لا يوجد استجابة'}`);
+        }
+
+        const data = await response.json();
+        console.log(`تم جلب البيانات من: ${url} →`, data.length || data);
+        return data || [];
+    } catch (error) {
+        console.error('خطأ في جلب البيانات:', error);
+        alert('فشل الاتصال بالخادم! تأكد من الإنترنت أو تواصل مع الإدارة.');
+        return [];
     }
+}
 
     // حماية الصفحات المحمية
     const currentPage = window.location.pathname.split('/').pop().toLowerCase();
