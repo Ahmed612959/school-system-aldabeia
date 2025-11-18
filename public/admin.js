@@ -15,26 +15,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function saveToServer(endpoint, data, method = 'POST', id = null) {
-        try {
-            const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
-            const url = id ? `/api/${cleanEndpoint}/${id}` : `/api/${cleanEndpoint}`;
-            const options = {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            };
-            const response = await fetch(url, options);
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`خطأ ${response.status}: ${errorText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error(`Error saving to ${endpoint}:`, error);
-            showToast(`خطأ في حفظ البيانات: ${error.message}`, 'error');
-            throw error;
+    try {
+        // إزالة أي /api أو / من البداية
+        let cleanEndpoint = endpoint.replace(/^\/*api\/*/i, '').replace(/^\/+/, '');
+        const url = id ? `/api/${cleanEndpoint}/${id}` : `/api/${cleanEndpoint}`;
+        const options = {
+            method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        };
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`خطأ ${response.status}: ${errorText}`);
         }
+        return await response.json();
+    } catch (error) {
+        console.error(`Error saving to ${endpoint}:`, error);
+        showToast(`خطأ في حفظ البيانات: ${error.message}`, 'error');
+        throw error;
     }
+}
 
     function renderAdminWelcomeMessage() {
         const welcomeMessage = document.querySelector('.admin-welcome-message');
