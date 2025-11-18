@@ -1,4 +1,6 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function () {
+    const BASE_URL = 'https://schoolx-five.vercel.app';
+
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     if (!loggedInUser) {
         alert('يرجى تسجيل الدخول أولاً!');
@@ -6,26 +8,55 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
 
-    // تحميل البيانات
-    let students = JSON.parse(localStorage.getItem('students')) || [];
-    let admins = JSON.parse(localStorage.getItem('admins')) || [];
+    // دالة جلب البيانات من السيرفر
+    async function getFromServer(endpoint) {
+        try {
+            const cleanEndpoint = endpoint.replace(/^\/+/, '');
+            const response = await fetch(`${BASE_URL}/api/${cleanEndpoint}`);
+            if (!response.ok) throw new Error('فشل جلب البيانات');
+            return await response.json();
+        } catch (err) {
+            console.error(err);
+            showToast('فشل الاتصال بالسيرفر! تحقق من الإنترنت.', 'error');
+            return null;
+        }
+    }
 
-    // تحديد نوع المستخدم وبياناته
+    // دالة حفظ البيانات على السيرفر
+    async function saveToServer(endpoint, data) {
+        try {
+            const response = await fetch(`${BASE_URL}/api/${endpoint}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            if (!response.ok) throw new Error('فشل الحفظ');
+            return await response.json();
+        } catch (err) {
+            console.error(err);
+            showToast('فشل حفظ البيانات! تحقق من الاتصال.', 'error');
+            return null;
+        }
+    }
+
+    // جلب بيانات المستخدم
     let userData = null;
     if (loggedInUser.type === 'admin') {
-        userData = admins.find(admin => admin.username === loggedInUser.username);
-        document.getElementById('admin-badge').style.display = 'inline';
+        const admins = await getFromServer('admins');
+        userData = admins?.find(a => a.username === loggedInUser.username);
+        if (userData) document.getElementById('admin-badge')?.style = 'display:inline-block';
     } else {
-        userData = students.find(student => student.username === loggedInUser.username);
+        const students = await getFromServer('students');
+        userData = students?.find(s => s.username === loggedInUser.username);
     }
 
     if (!userData) {
-        alert('لم يتم العثور على بيانات المستخدم!');
-        window.location.href = 'splash.html';
+        alert('لم يتم العثور على بياناتك! حاول تسجيل الدخول مرة أخرى.');
+        window.location.href = 'login.html';
         return;
     }
 
-    // تحديث بيانات المستخدم إذا لم تكن تحتوي على الحقول الجديدة
+    // تهيئة الحقول الإضافية إذا كانت مفقودة
     userData.profile = userData.profile || {
         email: '',
         phone: '',
@@ -34,85 +65,101 @@ document.addEventListener('DOMContentLoaded', function() {
         bio: ''
     };
 
-    // عرض البيانات
-    document.getElementById('user-name').textContent = userData.fullName || userData.name;
-    document.getElementById('full-name').value = userData.fullName || userData.name;
+    // عرض البيانات في النموذج
+    document.getElementById('user-name').textContent = userData.fullName || userData.name || userData.username;
+    document.getElementById('full-name').value = userData.fullName || userData.name || '';
     document.getElementById('username').value = userData.username;
-    document.getElementById('email').value = userData.profile.email;
-    document.getElementById('phone').value = userData.profile.phone;
-    document.getElementById('birthdate').value = userData.profile.birthdate;
-    document.getElementById('address').value = userData.profile.address;
-    document.getElementById('bio').value = userData.profile.bio;
+    document.getElementById('email').value = userData.profile.email || '';
+    document.getElementById('phone').value = userData.profile.phone || '';
+    document.getElementById('birthdate').value = userData.profile.birthdate || '';
+    document.getElementById('address').value = userData.profile.address || '';
+    document.getElementById('bio').value = userData.profile.bio || '';
 
     // حساب نسبة اكتمال الملف
-    function calculateProgress() {
+    function updateProgress() {
         const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
-        let completed = 0;
-        fields.forEach(field => {
-            if (userData.profile[field].trim()) {
-                completed++;
-            }
-        });
+        const completed = fields.filter(f => userData.profile[f]?.trim()).length;
         const progress = (completed / fields.length) * 100;
-        document.getElementById('profile-progress').value = progress;
-        document.getElementById('progress-percentage').textContent = `${progress.toFixed(0)}%`;
+
+        const progressBar = document.getElementById('profile-progress');
+        const percentageText = document.getElementById('progress-percentage');
+        if (progressBar) progressBar.value = progress;
+        if (percentageText) percentageText.textContent = `${progress.toFixed(0)}%`;
+
         return progress;
     }
+    updateProgress();
 
-    calculateProgress();
-
-    // التعامل مع تحديث الملف
-    document.getElementById('profile-form').addEventListener('submit', function(e) {
+    // حفظ التعديلات
+    document.getElementById('profile-form')?.addEventListener('submit', async function (e) {
         e.preventDefault();
 
-        const oldProfile = { ...userData.profile };
-        userData.profile.email = document.getElementById('email').value.trim();
-        userData.profile.phone = document.getElementById('phone').value.trim();
-        userData.profile.birthdate = document.getElementById('birthdate').value;
-        userData.profile.address = document.getElementById('address').value.trim();
-        userData.profile.bio = document.getElementById('bio').value.trim();
+        const updatedProfile = {
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            birthdate: document.getElementById('birthdate').value,
+            address: document.getElementById('address').value.trim(),
+            bio: document.getElementById('bio').value.trim()
+        };
 
-        // التحقق من الحقول التي تم تحديثها
-        let updatedFields = [];
-        for (let field in userData.profile) {
-            if (userData.profile[field] && !oldProfile[field]) {
-                updatedFields.push(field);
+        // تحديث البيانات محليًا
+        userData.profile = updatedProfile;
+
+        // تحديد الـ endpoint الصحيح
+        const endpoint = loggedInUser.type === 'admin' 
+            ? `admins/${loggedInUser.username}` 
+            : `students/${loggedInUser.username}`;
+
+        const saved = await saveToServer(endpoint, { profile: updatedProfile });
+
+        if (saved) {
+            const progress = updateProgress();
+            showToast('تم حفظ بياناتك بنجاح!', 'success');
+
+            if (progress === 100) {
+                setTimeout(() => {
+                    showToast('مبروك! أكملت ملفك الشخصي 100%!', 'success');
+                }, 1000);
             }
-        }
-
-        // حفظ البيانات
-        if (loggedInUser.type === 'admin') {
-            const index = admins.findIndex(admin => admin.username === loggedInUser.username);
-            admins[index] = userData;
-            localStorage.setItem('admins', JSON.stringify(admins));
-        } else {
-            const index = students.findIndex(student => student.username === loggedInUser.username);
-            students[index] = userData;
-            localStorage.setItem('students', JSON.stringify(students));
-        }
-
-        const progress = calculateProgress();
-        if (updatedFields.length > 0) {
-            alert(`تم تحديث ${updatedFields.length} حقل/حقول بنجاح! نسبة اكتمال ملفك الآن ${progress.toFixed(0)}% 😊`);
-        }
-        if (progress === 100) {
-            alert('مبروك! لقد أكملت ملفك الشخصي بالكامل بنجاح! 🎉');
         }
     });
 
-    // عرض النافبار
-    // عرض النافبار
-// عرض النافبار
-const navBar = document.getElementById('nav-bar');
-const navItems = [
-    { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-    { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
-    { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' }
-];
-if (loggedInUser.type === 'admin') {
-    navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
-}
-navBar.innerHTML = navItems.map(item => `
-    <a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>
-`).join('');
-});
+    // النافبار موحد مع باقي الصفحات
+    const navBar = document.getElementById('nav-bar');
+    const navItems = [
+        { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
+        { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
+        { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
+        { href: 'exams.html', icon: 'fas fa-book', title: 'الاختبارات' },
+        { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
+    ];
+
+    if (loggedInUser.type === 'admin') {
+        navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
+    }
+
+    navBar.innerHTML = navItems.map(item => 
+        `<a href="${item.href}" title="${item.title}"><i class="${item.icon}"></i></a>`
+    ).join('');
+
+    // Toast جميل وموحد
+    function showToast(message, type = 'success') {
+        const bg = type === 'success' ? '#28a745' : '#dc3545';
+        Toastify({
+            text: message,
+            duration: 4000,
+            gravity: "top",
+            position: "right",
+            backgroundColor: bg,
+            style: {
+                fontFamily: '"Tajawal", sans-serif',
+                fontSize: "18px",
+                padding: "20px 30px",
+                borderRadius: "12px",
+                direction: "rtl",
+                textAlign: "right",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.3)"
+            }
+        }).showToast();
+    }
+}); 
