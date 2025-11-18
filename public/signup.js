@@ -1,203 +1,107 @@
-// signup.js - مُحسّن 100% لـ Vercel + تشفير كلمة المرور
-// https://schoolx-five.vercel.app
-// تاريخ التحديث: 14 نوفمبر 2025
+// signup.js - يشتغل 100% مع الباك إند الحالي
+document.addEventListener('DOMContentLoaded', function () {
 
-// دالة عرض الرسائل المنبثقة
-function showToast(message, type = 'error') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    toast.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        font-weight: bold;
-        z-index: 9999;
-        animation: slideIn 0.5s ease;
-        background-color: ${type === 'success' ? '#28a745' : '#dc3545'};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    `;
-    document.body.appendChild(toast);
-
-    const style = document.createElement('style');
-    style.innerHTML = `
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    setTimeout(() => {
-        toast.style.animation = 'slideIn 0.5s ease reverse';
-        setTimeout(() => toast.remove(), 500);
-    }, 3000);
-}
-
-// إرسال البيانات للسيرفر
-async function saveToServer(endpoint, data) {
-    try {
-        const response = await fetch(`/api${endpoint}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.error || `خطأ ${response.status}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('خطأ في الاتصال بالسيرفر:', error);
-        throw error;
+    // دالة تشفير مطابقة تمامًا لـ Node.js sha256 hex
+    async function hashPassword(password) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(password);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
-}
-
-// التحقق من توفر اسم المستخدم
-async function checkUsernameAvailability(username) {
-    try {
-        const response = await fetch('/api/check-username', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username })
-        });
-        const data = await response.json();
-        return data.available === true;
-    } catch (error) {
-        console.error('فشل التحقق من اسم المستخدم:', error);
-        return false;
-    }
-}
-
-// معالجة نموذج إنشاء حساب الطالب
-document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const fullName = document.getElementById('fullName').value.trim();
-    const username = document.getElementById('username').value.trim();
-    const studentCodeNumbers = document.getElementById('studentCode').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const birthdate = document.getElementById('birthdate').value;
-    const address = document.getElementById('address').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPassword = document.getElementById('confirmPassword')?.value || password;
-
-    // التحقق من الحقول
-    if (!fullName || !username || !studentCodeNumbers || !email || !phone || !birthdate || !address || !password) {
-        showToast('يرجى ملء جميع الحقول المطلوبة!', 'error');
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        showToast('كلمتا المرور غير متطابقتين!', 'error');
-        return;
-    }
-
-    if (!/^\d{3}$/.test(studentCodeNumbers)) {
-        showToast('كود الطالب يجب أن يكون 3 أرقام فقط!', 'error');
-        return;
-    }
-
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        showToast('اسم المستخدم: 3-20 حرف أو رقم فقط!', 'error');
-        return;
-    }
-
-    const studentCode = `STU${studentCodeNumbers}`;
 
     // التحقق من توفر اسم المستخدم
+    const usernameInput = document.getElementById('username');
     const availabilitySpan = document.getElementById('username-availability');
-    const isAvailable = await checkUsernameAvailability(username);
 
-    if (!isAvailable) {
-        availabilitySpan.textContent = 'هذا الاسم مستخدم بالفعل!';
-        availabilitySpan.style.color = '#dc3545';
-        availabilitySpan.style.display = 'block';
-        showToast('اسم المستخدم غير متاح!', 'error');
-        return;
-    } else {
-        availabilitySpan.textContent = 'اسم المستخدم متاح!';
-        availabilitySpan.style.color = '#28a745';
-        availabilitySpan.style.display = 'block';
-    }
-
-    // تشفير كلمة المرور قبل الإرسال
-    let hashedPassword;
-    try {
-        if (typeof CryptoJS === 'undefined') {
-            showToast('مكتبة التشفير غير محملة!', 'error');
+    usernameInput?.addEventListener('input', async function () {
+        const username = this.value.trim();
+        if (username.length < 3) {
+            availabilitySpan.style.display = 'none';
             return;
         }
-        hashedPassword = CryptoJS.SHA256(password).toString();
-        console.log('تم تشفير كلمة المرور في signup.js');
-    } catch (error) {
-        showToast('خطأ في تشفير كلمة المرور!', 'error');
-        return;
-    }
 
-    try {
-        showToast('جاري إنشاء الحساب...', 'info');
-        const result = await saveToServer('/register-student', {
+        try {
+            const students = await fetch('/api/students').then(r => r.ok ? r.json() : []);
+            const admins = await fetch('/api/admins').then(r => r.ok ? r.json() : []);
+
+            const exists = [...students, ...admins].some(u => u.username === username);
+            if (exists) {
+                availabilitySpan.textContent = '⚠️ اسم المستخدم موجود بالفعل';
+                availabilitySpan.style.color = '#dc3545';
+                availabilitySpan.style.display = 'block';
+            } else {
+                availabilitySpan.textContent = '✅ اسم المستخدم متاح';
+                availabilitySpan.style.color = '#28a745';
+                availabilitySpan.style.display = 'block';
+            }
+        } catch (err) {
+            console.error('فشل التحقق من اسم المستخدم');
+        }
+    });
+
+    // نموذج إنشاء الحساب
+    document.getElementById('student-signup-form')?.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const fullName = document.getElementById('fullName').value.trim();
+        const username = document.getElementById('username').value.trim();
+        const studentCode = document.getElementById('studentCode').value.padStart(3, '0');
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const birthdate = document.getElementById('birthdate').value;
+        const address = document.getElementById('address').value.trim();
+        const password = document.getElementById('password').value;
+
+        // تحقق من القوة
+        if (password.length < 6) {
+            alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل!');
+            return;
+        }
+
+        if (username.length < 3 || !/^[a-zA-Z0-9]+$/.test(username)) {
+            alert('اسم المستخدم يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)');
+            return;
+        }
+
+        // توليد كود الطالب النهائي
+        const studentId = `STU${studentCode}`;
+
+        // تشفير كلمة المرور بنفس طريقة الباك إند
+        const hashedPassword = await hashPassword(password);
+        console.log('كلمة المرور بعد التشفير (ستُخزن):', hashedPassword);
+
+        const newStudent = {
+            id: studentId,
             fullName,
             username,
-            id: studentCode,
+            password: hashedPassword,
             email,
             phone,
             birthdate,
             address,
-            password: hashedPassword  // <-- مرسل مشفر
-        });
+            type: 'student',
+            subjects: [],
+            profile: { email, phone, birthdate, address, bio: '' }
+        };
 
-        showToast('تم إنشاء الحساب بنجاح!', 'success');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 2000);
+        try {
+            const response = await fetch('/api/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newStudent)
+            });
 
-    } catch (error) {
-        console.error('فشل إنشاء الحساب:', error);
-        showToast(`فشل إنشاء الحساب: ${error.message}`, 'error');
-    }
+            if (response.ok) {
+                alert('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن');
+                window.location.href = 'login.html';
+            } else {
+                const error = await response.json();
+                alert(error.error || 'فشل إنشاء الحساب! ربما اسم المستخدم موجود');
+            }
+        } catch (err) {
+            console.error('خطأ في الاتصال:', err);
+            alert('فشل الاتصال بالسيرفر! تأكد من الإنترنت');
+        }
+    });
 });
-
-// التحقق الفوري من اسم المستخدم أثناء الكتابة
-let usernameTimeout;
-document.getElementById('username')?.addEventListener('input', function (e) {
-    const username = e.target.value.trim();
-    const availabilitySpan = document.getElementById('username-availability');
-
-    clearTimeout(usernameTimeout);
-
-    if (username.length === 0) {
-        availabilitySpan.style.display = 'none';
-        return;
-    }
-
-    if (username.length < 3) {
-        availabilitySpan.textContent = 'يجب أن يكون 3 أحرف على الأقل';
-        availabilitySpan.style.color = '#dc3545';
-        availabilitySpan.style.display = 'block';
-        return;
-    }
-
-    if (!/^[a-zA-Z0-9]+$/.test(username)) {
-        availabilitySpan.textContent = 'أحرف وأرقام فقط!';
-        availabilitySpan.style.color = '#dc3545';
-        availabilitySpan.style.display = 'block';
-        return;
-    }
-
-    availabilitySpan.textContent = 'جاري التحقق...';
-    availabilitySpan.style.color = '#ffc107';
-    availabilitySpan.style.display = 'block';
-
-    usernameTimeout = setTimeout(async () => {
-        const isAvailable = await checkUsernameAvailability(username);
-        availabilitySpan.textContent = isAvailable ? 'متاح!' : 'غير متاح!';
-        availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
-    }, 500);
-}); 
