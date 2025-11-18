@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const student = students.find(s => s.username === username && s.password === password);
                 if (student) {
                     localStorage.setItem('loggedInUser', JSON.stringify({username: student.username, type: 'student', fullName: student.fullName, id: student.id}));
-                    window.location.href = 'home.html';
+                    window.location.href = 'Home.html';
                     return;
                 }
 
