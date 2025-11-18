@@ -1,38 +1,47 @@
-// auth.js - مُحسّن 100% لـ Vercel
+// auth.js - مُحسّن 100% لـ Vercel مع تشفير Node.js مطابق
 // https://schoolx-five.vercel.app
 // تاريخ التحديث: 14 نوفمبر 2025
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    // دالة جلب البيانات من الخادم بمسار نسبي (يعمل على Vercel)
-    // استبدل دالة getFromServer كلها بالنسخة دي (النهائية والمضمونة):
-async function getFromServer(endpoint) {
-    try {
-        // الحل الأمثل: نجرب أولاً بالمسار النسبي الصحيح
-        let url = endpoint.startsWith('/') ? `/api${endpoint}` : `/api/${endpoint}`;
-
-        let response = await fetch(url, { cache: 'no-store' });
-
-        // لو الطلب فشل (يعني المسار غلط)، نجرب بالطريقة التانية
-        if (!response.ok && response.status === 404) {
-            url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-            response = await fetch(url, { cache: 'no-store' });
-        }
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`خطأ ${response.status}: ${errorText || 'لا يوجد استجابة'}`);
-        }
-
-        const data = await response.json();
-        console.log(`تم جلب البيانات من: ${url} →`, data.length || data);
-        return data || [];
-    } catch (error) {
-        console.error('خطأ في جلب البيانات:', error);
-        alert('فشل الاتصال بالخادم! تأكد من الإنترنت أو تواصل مع الإدارة.');
-        return [];
+    // دالة تشفير مطابقة لـ Node.js sha256 hex
+    function hashPassword(password) {
+        // نستخدم Web Crypto API (متوافق مع Node.js sha256)
+        return new Promise((resolve, reject) => {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(password);
+            crypto.subtle.digest('SHA-256', data).then(hashBuffer => {
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                resolve(hashHex);
+            }).catch(reject);
+        });
     }
-}
+
+    // دالة جلب البيانات
+    async function getFromServer(endpoint) {
+        try {
+            let url = endpoint.startsWith('/') ? `/api${endpoint}` : `/api/${endpoint}`;
+            let response = await fetch(url, { cache: 'no-store' });
+
+            if (!response.ok && response.status === 404) {
+                url = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+                response = await fetch(url, { cache: 'no-store' });
+            }
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`خطأ ${response.status}: ${errorText}`);
+            }
+
+            const data = await response.json();
+            console.log(`تم جلب البيانات من: ${url} →`, data.length || data);
+            return data || [];
+        } catch (error) {
+            console.error('خطأ في جلب البيانات:', error);
+            alert('فشل الاتصال بالخادم! تأكد من الإنترنت.');
+            return [];
+        }
+    }
 
     // حماية الصفحات المحمية
     const currentPage = window.location.pathname.split('/').pop().toLowerCase();
@@ -40,7 +49,6 @@ async function getFromServer(endpoint) {
 
     if (protectedPages.includes(currentPage)) {
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-
         if (!loggedInUser) {
             alert('يجب تسجيل الدخول أولاً!');
             window.location.href = 'login.html';
@@ -83,13 +91,14 @@ async function getFromServer(endpoint) {
                 return;
             }
 
-            if (typeof CryptoJS === 'undefined') {
-                alert('مكتبة التشفير غير محملة!');
+            let hashedPassword;
+            try {
+                hashedPassword = await hashPassword(password); // استخدم التشفير الجديد
+                console.log('كلمة المرور مشفرة:', hashedPassword);
+            } catch (error) {
+                alert('خطأ في تشفير كلمة المرور!');
                 return;
             }
-
-            const hashedPassword = CryptoJS.SHA256(password).toString();
-            console.log('كلمة المرور مشفرة:', hashedPassword);
 
             try {
                 const [admins, students] = await Promise.all([
