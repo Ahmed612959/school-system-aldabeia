@@ -1,103 +1,63 @@
-// auth.js - مُحسّن 100% لـ Vercel
-// https://schoolx-five.vercel.app
-// تاريخ التحديث: 14 نوفمبر 2025
-
+// auth.js - النسخة المتطابقة 100% مع signup.js الجديد اللي بعثته
 document.addEventListener('DOMContentLoaded', function () {
 
-    // دالة جلب البيانات من الخادم بمسار نسبي (يعمل على Vercel)
+    // جلب البيانات من المسارات الصحيحة (زي ما بيخزن signup.js)
     async function getFromServer(endpoint) {
+        {
         try {
-            const url = `/api${endpoint}`; // <-- مسار نسبي (مهم لـ Vercel)
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`خطأ ${response.status}: ${errorText}`);
-            }
+            const url = `/api${endpoint}`;
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) throw new Error('فشل جلب البيانات');
             const data = await response.json();
-            console.log(`تم جلب ${data.length} عنصر من: ${url}`);
             return data || [];
         } catch (error) {
             console.error('خطأ في جلب البيانات:', error);
-            alert('فشل الاتصال بالخادم! تأكد من الإنترنت وحاول مرة أخرى.');
             return [];
         }
     }
 
-    // حماية الصفحات المحمية
+    // حماية الصفحات
     const currentPage = window.location.pathname.split('/').pop().toLowerCase();
-    const protectedPages = ['home.html', 'admin.html', 'profile.html'];
-
-    if (protectedPages.includes(currentPage)) {
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-
-        if (!loggedInUser) {
-            alert('يجب تسجيل الدخول أولاً!');
-            window.location.href = 'login.html';
-            return;
-        }
-
-        if (loggedInUser.type === 'student' && currentPage === 'admin.html') {
-            alert('غير مصرح لك بدخول لوحة تحكم الأدمن!');
+    if (['home.html', 'admin.html', 'profile.html'].includes(currentPage)) {
+        const user = JSON.parse(localStorage.getItem('loggedInUser'));
+        if (!user) return window.location.href = 'login.html';
+        if (user.type === 'student' && currentPage === 'admin.html') {
+            alert('غير مصرح لك!');
             window.location.href = 'Home.html';
-            return;
-        }
-
-        const welcomeMessage = document.getElementById('welcome-message');
-        if (welcomeMessage) {
-            (async () => {
-                try {
-                    const users = loggedInUser.type === 'admin'
-                        ? await getFromServer('/admins')
-                        : await getFromServer('/students');
-                    const user = users.find(u => u.username === loggedInUser.username);
-                    welcomeMessage.textContent = `مرحبًا، ${user?.fullName || loggedInUser.username}`;
-                } catch (err) {
-                    console.error('فشل تحميل الاسم:', err);
-                }
-            })();
         }
     }
 
-    // نموذج تسجيل الدخول
+    // تسجيل الدخول - بدون تشفير (لأن signup.js بيخزنها نص صريح)
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const password = document.getElementById('password').value.trim(); // نص صريح
 
-            if (!username || !password) {
-                alert('يرجى إدخال اسم المستخدم وكلمة المرور!');
-                return;
-            }
-
-            if (typeof CryptoJS === 'undefined') {
-                alert('مكتبة التشفير غير محملة!');
-                return;
-            }
-
-            const hashedPassword = CryptoJS.SHA256(password).toString();
-            console.log('كلمة المرور مشفرة:', hashedPassword);
+            if (!username || !password) return alert('أدخل البيانات كاملة!');
 
             try {
+                // جلب الطلاب والأدمن من نفس المسارات اللي بيخزن فيها signup.js
                 const [admins, students] = await Promise.all([
                     getFromServer('/admins'),
                     getFromServer('/students')
                 ]);
 
-                const admin = admins.find(a => a.username === username && a.password === hashedPassword);
+                // البحث بدون تشفير
+                const admin = admins.find(a => a.username === username && a.password === password);
                 if (admin) {
                     localStorage.setItem('loggedInUser', JSON.stringify({
                         username: admin.username,
-                        fullName: admin.fullName,
+                        fullName: admin.fullName || admin.name,
                         type: 'admin'
                     }));
                     window.location.href = 'Home.html';
                     return;
                 }
 
-                const student = students.find(s => s.username === username && s.password === hashedPassword);
+                const student = students.find(s => s.username === username && s.password === password);
                 if (student) {
                     localStorage.setItem('loggedInUser', JSON.stringify({
                         username: student.username,
@@ -110,16 +70,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 alert('اسم المستخدم أو كلمة المرور غير صحيحة!');
-            } catch (error) {
-                console.error('خطأ في تسجيل الدخول:', error);
-                alert('فشل الاتصال بالخادم أثناء تسجيل الدخول!');
+            } catch (err) {
+                alert('فشل الاتصال بالخادم');
             }
         });
     }
 
-    // دالة تسجيل الخروج
+    // تسجيل الخروج
     window.logout = function () {
-        if (confirm('هل تريد تسجيل الخروج؟')) {
+        if (confirm('تسجيل الخروج؟')) {
             localStorage.removeItem('loggedInUser');
             window.location.href = 'login.html';
         }
