@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // التحقق من تسجيل الدخول في الصفحات المحمية
     const currentPage = window.location.pathname.split('/').pop().toLowerCase();
-    const protectedPages = ['home.html', 'admin.html', 'profile.html'];
+    const protectedPages = ['Home.html', 'admin.html', 'profile.html'];
 
     if (protectedPages.includes(currentPage)) {
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
