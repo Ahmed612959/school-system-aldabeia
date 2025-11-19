@@ -72,4 +72,4 @@ window.logout = function() {
         localStorage.removeItem('loggedInUser');
         window.location.href = 'login.html';
     }
-}; 
+};
