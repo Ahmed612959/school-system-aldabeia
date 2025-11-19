@@ -1,102 +1,182 @@
-// signup.js - النسخة الصحيحة 100% اللي هتشتغل مع auth.js الحالي
-document.addEventListener('DOMContentLoaded', function () {
+// دالة لعرض رسائل التنبيه
+function showToast(message, type = 'error') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background-color: ${type === 'success' ? '#28a745' : '#dc3545'};
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
 
-    // استخدم نفس التشفير الموجود في auth.js (CryptoJS)
-    function hashPassword(password) {
-        if (typeof CryptoJS === 'undefined') {
-            alert('مكتبة التشفير غير محملة!');
-            throw new Error('CryptoJS not loaded');
+// إرسال طلب إلى الخادم
+async function saveToServer(endpoint, data) {
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'خطأ في الخادم');
         }
-        return CryptoJS.SHA256(password).toString();
+        return result;
+    } catch (error) {
+        console.error('خطأ في الاتصال بالخادم:', error);
+        throw error;
+    }
+}
+
+// التحقق من توفر اسم المستخدم
+async function checkUsernameAvailability(username) {
+    try {
+        const response = await fetch('/api/check-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
+        const data = await response.json();
+        
+        // تحسين: التحقق من الرد الصحيح
+        console.log('Backend response for username check:', data);
+        return data && typeof data.available === 'boolean' ? data.available : false;
+    } catch (error) {
+        console.error('خطأ في التحقق من اسم المستخدم:', error);
+        return false;
+    }
+}
+
+// معالجة نموذج إنشاء حساب الطالب
+document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const fullName = document.getElementById('fullName').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const studentCodeNumbers = document.getElementById('studentCode').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const birthdate = document.getElementById('birthdate').value;
+    const address = document.getElementById('address').value.trim();
+    const password = document.getElementById('password').value;
+
+    // إعادة تعيين رسائل الخطأ
+    document.getElementById('username-availability').style.display = 'none';
+
+    // التحقق من الحقول
+    if (!fullName || !username || !studentCodeNumbers || !email || !phone || !birthdate || !address || !password) {
+        showToast('يرجى ملء جميع الحقول!', 'error');
+        return;
     }
 
-    // فحص توفر اسم المستخدم (مع .json لأن الباك إند كده)
-    const usernameInput = document.getElementById('username');
+    // التحقق من كود الطالب (3 أرقام)
+    if (!/^\d{3}$/.test(studentCodeNumbers)) {
+        showToast('كود الطالب يجب أن يكون 3 أرقام فقط!', 'error');
+        return;
+    }
+
+    // التحقق من صيغة اسم المستخدم
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        showToast('اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)!', 'error');
+        return;
+    }
+
+    // التحقق من الإيميل
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showToast('البريد الإلكتروني غير صحيح!', 'error');
+        return;
+    }
+
+    // التحقق من توفر اسم المستخدم
+    showToast('جاري التحقق من اسم المستخدم...', 'info');
+    const isUsernameAvailable = await checkUsernameAvailability(username);
     const availabilitySpan = document.getElementById('username-availability');
+    if (!isUsernameAvailable) {
+        availabilitySpan.textContent = 'اسم المستخدم مستخدم من قبل!';
+        availabilitySpan.style.color = '#dc3545';
+        availabilitySpan.style.display = 'block';
+        showToast('اسم المستخدم مستخدم من قبل!', 'error');
+        return;
+    } else {
+        availabilitySpan.textContent = 'اسم المستخدم متاح!';
+        availabilitySpan.style.color = '#28a745';
+        availabilitySpan.style.display = 'block';
+    }
 
-    usernameInput?.addEventListener('input', async function () {
-        const username = this.value.trim();
-        if (username.length < 3) {
-            availabilitySpan.style.display = 'none';
-            return;
-        }
+    // دمج STU مع الأرقام
+    const studentCode = `STU${studentCodeNumbers}`;
 
-        try {
-            const [students, admins] = await Promise.all([
-                fetch('/api/students.json').then(r => r.ok ? r.json() : []),
-                fetch('/api/admins.json').then(r => r.ok ? r.json() : [])
-            ]);
-
-            const exists = [...students, ...admins].some(u => u.username === username);
-            availabilitySpan.textContent = exists ? 'اسم المستخدم موجود بالفعل' : 'اسم المستخدم متاح';
-            availabilitySpan.style.color = exists ? '#dc3545' : '#28a745';
-            availabilitySpan.style.display = 'block';
-        } catch (err) {
-            console.error('فشل فحص اسم المستخدم');
-        }
-    });
-
-    // نموذج إنشاء الحساب
-    document.getElementById('student-signup-form')?.addEventListener('submit', async function (e) {
-        e.preventDefault();
-
-        const fullName = document.getElementById('fullName').value.trim();
-        const username = document.getElementById('username').value.trim();
-        const studentCode = document.getElementById('studentCode').value.padStart(3, '0');
-        const email = document.getElementById('email').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        const birthdate = document.getElementById('birthdate').value;
-        const address = document.getElementById('address').value.trim();
-        const password = document.getElementById('password').value;
-
-        if (password.length < 6) {
-            alert('كلمة المرور يجب أن تكون 6 أحرف على الأقل!');
-            return;
-        }
-
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            alert('اسم المستخدم: أحرف وأرقام فقط، من 3-20 حرف');
-            return;
-        }
-
-        const studentId = `STU${studentCode}`;
-
-        // تشفير بنفس طريقة auth.js
-        const hashedPassword = hashPassword(password);
-        console.log('كلمة المرور المشفرة (سيتم تخزينها):', hashedPassword);
-
-        const newStudent = {
-            id: studentId,
+    try {
+        showToast('جاري إنشاء الحساب...', 'info');
+        const response = await saveToServer('/api/register-student', {
             fullName,
             username,
-            password: hashedPassword,  // نفس الـ hash اللي في auth.js
+            id: studentCode,
             email,
             phone,
             birthdate,
             address,
-            type: 'student',
-            subjects: [],
-            profile: { email, phone, birthdate, address, bio: '' }
-        };
+            password
+        });
 
-        try {
-            // إرسال للـ API (الباك إند بتاعك بيقبل POST على /api/students)
-            const response = await fetch('/api/students', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newStudent)
-            });
+        showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username}`, 'success');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 3000);
 
-            if (response.ok) {
-                alert('تم إنشاء الحساب بنجاح! جاري توجيهك لتسجيل الدخول...');
-                setTimeout(() => window.location.href = 'login.html', 1000);
-            } else {
-                const err = await response.json().catch(() => ({}));
-                alert(err.error || 'فشل إنشاء الحساب');
-            }
-        } catch (err) {
-            console.error('خطأ في الإرسال:', err);
-            alert('فشل الاتصال بالسيرفر');
+    } catch (error) {
+        console.error('خطأ في إنشاء الحساب:', error);
+        // رسائل مخصصة من الـ Backend
+        const msg = error.message;
+        if (msg.includes('Student code')) {
+            showToast('كود الطالب مستخدم من قبل!', 'error');
+        } else if (msg.includes('Username')) {
+            showToast('اسم المستخدم مستخدم من قبل!', 'error');
+        } else if (msg.includes('Email')) {
+            showToast('البريد الإلكتروني مستخدم من قبل!', 'error');
+        } else {
+            showToast(`خطأ في إنشاء الحساب: ${msg}`, 'error');
         }
-    });
+    }
 });
+
+// التحقق من توفر اسم المستخدم أثناء الكتابة (مع تأخير)
+let usernameTimeout;
+document.getElementById('username')?.addEventListener('input', async (e) => {
+    const username = e.target.value.trim();
+    const availabilitySpan = document.getElementById('username-availability');
+
+    clearTimeout(usernameTimeout);
+
+    if (username.length === 0) {
+        availabilitySpan.style.display = 'none';
+        return;
+    }
+
+    if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        availabilitySpan.textContent = 'يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)';
+        availabilitySpan.style.color = '#dc3545';
+        availabilitySpan.style.display = 'block';
+        return;
+    }
+
+    availabilitySpan.textContent = 'جاري التحقق...';
+    availabilitySpan.style.color = '#ffc107';
+    availabilitySpan.style.display = 'block';
+
+    usernameTimeout = setTimeout(async () => {
+        const isAvailable = await checkUsernameAvailability(username);
+        availabilitySpan.textContent = isAvailable ? 'متاح!' : 'غير متاح!';
+        availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
+    }, 500);
+}); 
