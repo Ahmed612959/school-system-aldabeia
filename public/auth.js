@@ -1,42 +1,41 @@
+// auth.js - النسخة النهائية 100% متطابقة مع signup.js اللي بعثته
 document.addEventListener('DOMContentLoaded', function () {
-    // دالة لجلب البيانات من الخادم بمسار نسبي (يعمل على Vercel)
+
+    // دالة جلب البيانات (نفس طريقة signup.js بالظبط)
     async function getFromServer(endpoint) {
         try {
             const cleanEndpoint = endpoint.replace(/^\/+/, '');
-            const url = `/api/${cleanEndpoint}`; // <-- مسار نسبي (مهم لـ Vercel)
-            const response = await fetch(url);
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`خطأ ${response.status}: ${errorText}`);
-            }
+            const url = `/api/${cleanEndpoint}.json`;  // ← .json مهم جدًا زي signup.js
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) throw new Error(`خطأ ${response.status}`);
             const data = await response.json();
-            console.log(`تم جلب البيانات من: ${url}`, data.length, 'عنصر');
+            console.log(`تم جلب ${data.length} عنصر من ${url}`);
             return data || [];
         } catch (error) {
-            console.error(`فشل جلب البيانات من ${endpoint}:`, error);
-            alert('خطأ في الاتصال بالخادم! تأكد من الإنترنت أو حاول مرة أخرى.');
+            console.error('فشل جلب البيانات:', error);
+            alert('فشل الاتصال بالخادم! تأكد من الإنترنت.');
             return [];
         }
     }
 
-    // التحقق من تسجيل الدخول في الصفحات المحمية
+    // حماية الصفحات
     const currentPage = window.location.pathname.split('/').pop().toLowerCase();
-    const protectedPages = ['Home.html', 'admin.html', 'profile.html'];
+    const protectedPages = ['home.html', 'admin.html', 'profile.html'];
 
     if (protectedPages.includes(currentPage)) {
         const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
         if (!loggedInUser) {
-            console.log('لا يوجد مستخدم مسجل الدخول، إعادة توجيه إلى login.html');
+            alert('يجب تسجيل الدخول أولاً!');
             window.location.href = 'login.html';
             return;
         }
-
         if (loggedInUser.type === 'student' && currentPage === 'admin.html') {
-            alert('غير مصرح لك بدخول لوحة تحكم الأدمن!');
+            alert('غير مصرح لك!');
             window.location.href = 'Home.html';
             return;
         }
 
+        // عرض الاسم الكامل
         const welcomeMessage = document.getElementById('welcome-message');
         if (welcomeMessage) {
             (async () => {
@@ -45,68 +44,49 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? await getFromServer('/api/admins')
                         : await getFromServer('/api/students');
                     const user = users.find(u => u.username === loggedInUser.username);
-                    if (user) {
-                        welcomeMessage.textContent = `مرحبًا، ${user.fullName}`;
-                    } else {
-                        console.warn('المستخدم غير موجود في قاعدة البيانات:', loggedInUser);
-                    }
+                    welcomeMessage.textContent = `مرحبًا، ${user?.fullName || loggedInUser.username}`;
                 } catch (err) {
-                    console.error('فشل تحميل اسم المستخدم:', err);
+                    console.error('فشل تحميل الاسم');
                 }
             })();
         }
     }
 
-    // التعامل مع نموذج تسجيل الدخول
+    // تسجيل الدخول
     const loginForm = document.getElementById('login-form');
     if (loginForm) {
         loginForm.addEventListener('submit', async function (e) {
             e.preventDefault();
 
-            const usernameInput = document.getElementById('username');
-            const passwordInput = document.getElementById('password');
-
-            const username = usernameInput.value.trim();
-            const password = passwordInput.value.trim();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
 
             if (!username || !password) {
                 alert('يرجى إدخال اسم المستخدم وكلمة المرور!');
                 return;
             }
 
-            // تحقق من تحميل CryptoJS
+            // نفس التشفير بالظبط زي signup.js
             if (typeof CryptoJS === 'undefined') {
-                alert('مكتبة التشفير غير محملة! تأكد من الاتصال بالإنترنت.');
-                console.error('CryptoJS not loaded');
+                alert('مكتبة التشفير غير محملة!');
                 return;
             }
 
-            let hashedPassword;
-            try {
-                hashedPassword = CryptoJS.SHA256(password).toString();
-                console.log('تم تشفير كلمة المرور بنجاح');
-            } catch (error) {
-                console.error('خطأ في تشفير كلمة المرور:', error);
-                alert('خطأ في تشفير كلمة المرور!');
-                return;
-            }
+            const hashedPassword = CryptoJS.SHA256(password).toString();
+            console.log('كلمة المرور المشفرة:', hashedPassword);
 
             try {
-                console.log('جاري جلب بيانات الأدمن والطلاب...');
                 const [admins, students] = await Promise.all([
                     getFromServer('/api/admins'),
                     getFromServer('/api/students')
                 ]);
 
-                console.log(`تم جلب ${admins.length} أدمن، ${students.length} طالب`);
-
                 const admin = admins.find(a => a.username === username && a.password === hashedPassword);
                 if (admin) {
-                    console.log('تسجيل دخول أدمن ناجح:', admin.username);
                     localStorage.setItem('loggedInUser', JSON.stringify({
                         username: admin.username,
-                        type: 'admin',
-                        fullName: admin.fullName
+                        fullName: admin.fullName,
+                        type: 'admin'
                     }));
                     window.location.href = 'Home.html';
                     return;
@@ -114,32 +94,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const student = students.find(s => s.username === username && s.password === hashedPassword);
                 if (student) {
-                    console.log('تسجيل دخول طالب ناجح:', student.username);
                     localStorage.setItem('loggedInUser', JSON.stringify({
                         username: student.username,
+                        fullName: student.fullName,
                         type: 'student',
-                        fullName: student.fullName
+                        id: student.id
                     }));
                     window.location.href = 'Home.html';
                     return;
                 }
 
-                alert('اسم المستخدم أو كلمة المرور غير صحيحة! حاول مرة أخرى.');
+                alert('اسم المستخدم أو كلمة المرور غير صحيحة!');
             } catch (error) {
                 console.error('فشل تسجيل الدخول:', error);
-                alert('فشل الاتصال بالخادم أثناء تسجيل الدخول!');
+                alert('فشل الاتصال بالخادم!');
             }
         });
-    } else {
-        console.log('نموذج تسجيل الدخول غير موجود في هذه الصفحة');
     }
-});
 
-// دالة تسجيل الخروج (متاحة عالميًا)
-window.logout = function () {
-    if (confirm('هل أنت متأكد أنك تريد تسجيل الخروج؟')) {
-        localStorage.removeItem('loggedInUser');
-        console.log('تم تسجيل الخروج بنجاح');
-        window.location.href = 'login.html';
-    }
-};  
+    // تسجيل الخروج
+    window.logout = function () {
+        if (confirm('هل تريد تسجيل الخروج؟')) {
+            localStorage.removeItem('loggedInUser');
+            window.location.href = 'login.html';
+        }
+    };
+});
