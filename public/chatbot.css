@@ -191,3 +191,14 @@ body {
     .suggestion { font-size: 0.8rem; padding: 8px 12px; }
     .nav-bar a { font-size: 1.4rem; }
 } 
+/* Light Mode */
+body.light-mode {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+}
+body.light-mode .chat-container::before {
+    background: rgba(255, 255, 255, 0.92) !important;
+}
+body.light-mode .message.user { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white; }
+body.light-mode .message.bot { background: rgba(0,0,0,0.08) !important; color: #333; }
+body.light-mode .input-area { background: white; }
+body.light-mode #chat-input { background: #f8f9fa; color: #333; }
