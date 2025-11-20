@@ -1,17 +1,16 @@
-// chatbot.js - بسيط وسريع وشغال على كل الأجهزة
 document.addEventListener('DOMContentLoaded', () => {
     const chatWindow = document.getElementById('chat-window');
     const userInput = document.getElementById('user-input');
     const sendBtn = document.getElementById('send-btn');
 
-    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // غيّرها بمفتاحك
+    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA';
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-    const context = `أنت مساعد ذكي لمعهد رعاية الضبعية، معهد طبي متخصص في التمريض. رد بالعربية، كن ودود ومفيد. لو سأل عن النتايج قوله يدخل صفحة "النتائج".`;
+    const context = `أنت مساعد ذكي ودود لمعهد رعاية الضبعية (معهد طبي للتمريض). رد بالعربية المصرية الخفيفة، كن مرح ومفيد.`;
 
     function addMessage(text, type) {
         const div = document.createElement('div');
-        div.className = `message ${type}`;
+        div.className = type === 'user' ? 'message user-message' : 'message bot-message';
         div.innerHTML = text;
         chatWindow.appendChild(div);
         chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -19,54 +18,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function showTyping() {
         const typing = document.createElement('div');
-        typing.className = 'message bot typing';
+        typing.className = 'message bot-message typing';
         typing.innerHTML = '<span></span><span></span><span></span>';
-        typing.id = 'typing';
+        typing.id = 'typing-indicator';
         chatWindow.appendChild(typing);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
     function removeTyping() {
-        const typing = document.getElementById('typing');
-        if (typing) typing.remove();
+        const el = document.getElementById('typing-indicator');
+        if (el) el.remove();
     }
 
     async function sendMessage() {
-        const question = userInput.value.trim();
-        if (!question) return;
+        const q = userInput.value.trim();
+        if (!q) return;
 
-        addMessage(question, 'user');
+        addMessage(q, 'user');
         userInput.value = '';
         showTyping();
 
         try {
-            const res = await fetch(`${https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}?key=${AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA}`, {
+            const res = await fetch(`${API_URL}?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: context + "\n\nالسؤال: " + question }] }]
+                    contents: [{ role: "user", parts: [{ text: context + "\n\nالسؤال: " + q }] }]
                 })
             });
-
             const data = await res.json();
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "عذراً، مش قادر أرد دلوقتي";
+            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "عذرًا، مش قادر أرد دلوقتي";
 
             removeTyping();
             addMessage(reply.replace(/\*\*/g, '').replace(/\*/g, ''), 'bot');
 
         } catch (err) {
             removeTyping();
-            addMessage("عذراً، في مشكلة في الاتصال. جرب تاني بعد شوية", 'bot');
+            addMessage("في مشكلة في الاتصال.. جرب تاني بعد شوية", 'bot');
         }
     }
 
     sendBtn.addEventListener('click', sendMessage);
-    userInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') sendMessage();
-    });
-
-    // ترحيب أول مرة
-    setTimeout(() => {
-        addMessage("أهلاً بيك! كيف أقدر أساعدك النهاردة؟", 'bot');
-    }, 800);
+    userInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
 }); 
