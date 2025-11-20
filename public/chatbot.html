@@ -9,41 +9,44 @@
 </head>
 <body>
 
-<div class="chat-container">
-    <!-- الهيدر -->
-    <header class="chat-header">
+    <!-- الهيدر زي كل الصفحات -->
+    <header class="main-header">
         <img src="logo.png" alt="شعار المعهد" class="logo">
-        <div>
-            <h1>المساعد الذكي</h1>
-            <span class="status">متصل</span>
-        </div>
+        <h1>المساعد الذكي</h1>
     </header>
 
-    <!-- نافذة الدردشة -->
-    <main class="chat-window" id="chat-window">
-        <div class="welcome">
-            <p>أهلاً وسهلاً بيك</p>
-            <p>اسألني أي سؤال عن المعهد، الدراسة، النتايج، أو أي حاجة!</p>
-        </div>
-    </main>
+    <div class="main-container">
+        <!-- منطقة الشات بوت -->
+        <div id="chat-section">
+            <div class="chat-window" id="chat-window">
+                <div class="welcome-message">
+                    <p>أهلاً وسهلاً بيك في معهد رعاية الضبعية</p>
+                    <p>اسألني أي سؤال عن الدراسة، النتايج، المواعيد، أو أي حاجة!</p>
+                </div>
+            </div>
 
-    <!-- شريط الإدخال -->
-    <div class="chat-input">
-        <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
-        <button id="send-btn">
-            <i class="fas fa-paper-plane"></i>
-        </button>
+            <div class="chat-input">
+                <input type="text" id="user-input" placeholder="اكتب رسالتك هنا..." autocomplete="off">
+                <button id="send-btn" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i> إرسال
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- النافبار السفلي (نفس باقي الموقع) -->
+    <!-- النافبار زي كل الصفحات -->
     <nav class="nav-bar">
         <a href="index.html"><i class="fas fa-home"></i></a>
         <a href="home.html"><i class="fas fa-chart-line"></i></a>
         <a href="profile.html"><i class="fas fa-user"></i></a>
         <a href="chatbot.html" class="active"><i class="fas fa-robot"></i></a>
     </nav>
-</div>
 
-<script src="chatbot.js"></script>
+    <!-- الفوتر زي كل الصفحات -->
+    <footer>
+        <p>Developed by Ahmed Mousa <span class="heart">❤</span></p>
+    </footer>
+
+    <script src="chatbot.js"></script>
 </body>
 </html>
