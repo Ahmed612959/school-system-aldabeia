@@ -1,204 +1,72 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Almarai:wght@700&display=swap');
+// chatbot.js - بسيط وسريع وشغال على كل الأجهزة
+document.addEventListener('DOMContentLoaded', () => {
+    const chatWindow = document.getElementById('chat-window');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
 
-* { margin:0; padding:0; box-sizing:border-box; }
-body { 
-    font-family: 'Cairo', sans-serif; 
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a2526 50%, #2d1b3a 100%);
-    color: #fff;
-    height: 100vh;
-    overflow: hidden;
-}
+    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // غيّرها بمفتاحك
+    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
-.chat-container {
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background: url('https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1920&q=80') center/cover no-repeat;
-    position: relative;
-}
-.chat-container::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(26, 37, 38, 0.92);
-    z-index: 0;
-}
+    const context = `أنت مساعد ذكي لمعهد رعاية الضبعية، معهد طبي متخصص في التمريض. رد بالعربية، كن ودود ومفيد. لو سأل عن النتايج قوله يدخل صفحة "النتائج".`;
 
-/* الهيدر */
-.chat-header {
-    background: linear-gradient(90deg, #1a2526, #2f3b3c);
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 4px solid #d4af37;
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-}
-.header-left { display: flex; align-items: center; gap: 15px; }
-.logo { width: 60px; height: 60px; border: 4px solid #d4af37; border-radius: 50%; padding: 4px; background: white; }
-.chat-header h1 { font-family: 'Almarai', sans-serif; font-size: 1.6rem; color: #d4af37; margin: 0; }
-.status { font-size: 0.9rem; color: #28a745; }
-.status i { animation: pulse 2s infinite; }
+    function addMessage(text, type) {
+        const div = document.createElement('div');
+        div.className = `message ${type}`;
+        div.innerHTML = text;
+        chatWindow.appendChild(div);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 
-.header-right .icon-btn {
-    background: rgba(212,175,55,0.2);
-    color: #d4af37;
-    border: none;
-    width: 44px; height: 44px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-.header-right .icon-btn:hover { background: #d4af37; color: #1a2526; transform: rotate(20deg); }
+    function showTyping() {
+        const typing = document.createElement('div');
+        typing.className = 'message bot typing';
+        typing.innerHTML = '<span></span><span></span><span></span>';
+        typing.id = 'typing';
+        chatWindow.appendChild(typing);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
 
-/* نافذة الدردشة */
-.chat-window {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    z-index: 1;
-    position: relative;
-}
-.welcome {
-    text-align: center;
-    margin-top: 20px;
-}
-.bot-avatar {
-    width: 90px; height: 90px; border-radius: 50%; border: 5px solid #d4af37; margin-bottom: 10px;
-    box-shadow: 0 0 30px rgba(212,175,55,0.6);
-}
-.welcome h2 { color: #d4af37; font-size: 1.5rem; margin: 10px 0; }
-.welcome p { opacity: 0.9; font-size: 1rem; }
+    function removeTyping() {
+        const typing = document.getElementById('typing');
+        if (typing) typing.remove();
+    }
 
-.message {
-    max-width: 78%;
-    padding: 14px 18px;
-    border-radius: 20px;
-    position: relative;
-    animation: fadeInUp 0.5s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.user { align-self: flex-end; background: linear-gradient(135deg, #d4af37, #ffc107); color: #1a2526; border-bottom-right-radius: 4px; }
-.bot { align-self: flex-start; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); color: white; border-bottom-left-radius: 4px; }
+    async function sendMessage() {
+        const question = userInput.value.trim();
+        if (!question) return;
 
-/* الأسئلة المقترحة */
-.suggested-questions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 15px 20px;
-    justify-content: center;
-    background: rgba(26,37,38,0.8);
-    border-top: 1px dashed #d4af37;
-}
-.suggestion {
-    background: rgba(212,175,55,0.2);
-    border: 1px solid #d4af37;
-    color: #d4af37;
-    padding: 10px 16px;
-    border-radius: 30px;
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.3s;
-}
-.suggestion:hover {
-    background: #d4af37;
-    color: #1a2526;
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(212,175,55,0.4);
-}
+        addMessage(question, 'user');
+        userInput.value = '';
+        showTyping();
 
-/* شريط الإدخال */
-.input-area {
-    background: #1a2526;
-    border-top: 3px solid #d4af37;
-    z-index: 10;
-}
-.input-box {
-    display: flex;
-    align-items: center;
-    padding: 12px 16px;
-    gap: 10px;
-}
-#chat-input {
-    flex: 1;
-    background: rgba(255,255,255,0.15);
-    border: none;
-    border-radius: 50px;
-    padding: 16px 20px;
-    color: white;
-    font-size: 1rem;
-    backdrop-filter: blur(10px);
-}
-#chat-input::placeholder { color: #aaa; }
-#chat-input:focus { outline: none; background: rgba(255,255,255,0.25); }
+        try {
+            const res = await fetch(`${API_URL}?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ role: "user", parts: [{ text: context + "\n\nالسؤال: " + question }] }]
+                })
+            });
 
-.icon-btn {
-    background: rgba(212,175,55,0.2);
-    color: #d4af37;
-    border: none;
-    width: 48px; height: 48px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    cursor: pointer;
-}
-.send-btn {
-    background: linear-gradient(45deg, #d4af37, #ffc107);
-    color: #1a2526;
-    font-weight: bold;
-}
-.send-btn:hover { transform: scale(1.1) rotate(10deg); }
+            const data = await res.json();
+            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "عذراً، مش قادر أرد دلوقتي";
 
-/* النافبار */
-.nav-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: linear-gradient(to top, #1a2526, #2f3b3c);
-    padding: 14px 0;
-    display: flex;
-    justify-content: space-around;
-    border-top: 4px solid #d4af37;
-    box-shadow: 0 -10px 30px rgba(0,0,0,0.7);
-    z-index: 1000;
-}
-.nav-bar a {
-    color: #d4af37;
-    font-size: 1.7rem;
-    padding: 12px;
-    border-radius: 50%;
-    transition: all 0.4s;
-}
-.nav-bar a:hover { transform: translateY(-5px); }
-.nav-bar a.active {
-    background: #d4af37;
-    color: #1a2526;
-    box-shadow: 0 0 25px #d4af37;
-    transform: scale(1.2);
-}
+            removeTyping();
+            addMessage(reply.replace(/\*\*/g, '').replace(/\*/g, ''), 'bot');
 
-/* أنيميشن */
-@keyframes fadeInUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+        } catch (err) {
+            removeTyping();
+            addMessage("عذراً، في مشكلة في الاتصال. جرب تاني بعد شوية", 'bot');
+        }
+    }
 
-@media (max-width: 480px) {
-    .chat-header h1 { font-size: 1.3rem; }
-    .suggestion { font-size: 0.8rem; padding: 8px 12px; }
-    .nav-bar a { font-size: 1.4rem; }
-} 
-/* Light Mode */
-body.light-mode {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
-}
-body.light-mode .chat-container::before {
-    background: rgba(255, 255, 255, 0.92) !important;
-}
-body.light-mode .message.user { background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white; }
-body.light-mode .message.bot { background: rgba(0,0,0,0.08) !important; color: #333; }
-body.light-mode .input-area { background: white; }
-body.light-mode #chat-input { background: #f8f9fa; color: #333; }
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') sendMessage();
+    });
+
+    // ترحيب أول مرة
+    setTimeout(() => {
+        addMessage("أهلاً بيك! كيف أقدر أساعدك النهاردة؟", 'bot');
+    }, 800);
+});
