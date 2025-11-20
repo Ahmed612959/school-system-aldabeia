@@ -1,189 +1,40 @@
-// chatbot.js - النسخة الأسطورية 2025 - شغالة 100% مع التصميم الجديد
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('%cالمساعد الذكي تم تشغيله بنجاح!', 'color:#d4af37;font-size:18px;font-weight:bold');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Chatbot JS loaded at', new Date().toLocaleString());
 
-    // العناصر
-    const chatWindow = document.getElementById('chat-window');
+    // جلب العناصر
     const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('send-btn');
-    const voiceBtn = document.getElementById('voice-btn');
-    const themeBtn = document.getElementById('theme-btn');
-    const suggestedQuestions = document.getElementById('suggested-questions');
+    const sendBtn = document.querySelector('.send-btn');
+    const chatWindow = document.getElementById('chat-window');
+    const languageToggle = document.getElementById('language-toggle');
+    console.log('Chat elements:', { chatInput: !!chatInput, sendBtn: !!sendBtn, chatWindow: !!chatWindow, languageToggle: !!languageToggle });
 
-    // إعدادات
-    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // غيّره بمفتاحك الحقيقي
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-
-    let isDarkMode = true;
-    let conversationHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-
-    // سياق المعهد
-    const instituteContext = `
-أنت مساعد ذكي لـ "معهد رعاية الضبعية"، معهد طبي متخصص في التمريض والرعاية الصحية.
-- الرد دائمًا باللغة العربية الفصحى واللهجة المصرية الخفيفة.
-- كن ودودًا، مرحًا، ومفيدًا.
-- لو الطالب سأل عن نتيجته أو درجاته، قول له يدخل على صفحة "النتائج".
-- لو سأل عن مواعيد أو تسجيل، قوله التسجيل مفتوح من يونيو لأغسطس.
-- لو طلب نكتة، رد بنكتة مضحكة وخفيفة.
-`.trim();
-
-    // تحميل المحادثة القديمة
-    function loadConversation() {
-        chatWindow.innerHTML = '';
-        if (conversationHistory.length === 0) {
-            showWelcomeMessage();
-            return;
-        }
-        conversationHistory.forEach(msg => {
-            if (msg.role === 'user') addUserMessage(msg.text);
-            else addBotMessage(msg.text);
-        });
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+    // فحص وجود العناصر
+    if (!chatInput || !sendBtn || !chatWindow) {
+        console.error('Missing required elements:', { chatInput, sendBtn, chatWindow });
+        showToast('خطأ: حقل الإدخال أو زر الإرسال أو نافذة الدردشة غير موجودة!', 'error');
+        return;
     }
 
-    function showWelcomeMessage() {
-        const welcome = `
-            <div class="welcome animate__animated animate__zoomIn">
-                <img src="bot-avatar.png" alt="المساعد" class="bot-avatar" 
-                     onerror="this.src='https://api.dicebear.com/7.x/bottts/svg?seed=DaabiaBot'">
-                <h2>أهلاً وسهلاً بيك في معهد رعاية الضبعية</h2>
-                <p>أنا "ضبعي بوت"، جاهز أساعدك في أي حاجة: دراسة، نتايج، مواعيد، نكت، أو حتى لو بس عايز تهزر</p>
-            </div>
-        `;
-        chatWindow.innerHTML = welcome;
-    }
+    // مفتاح API وتهيئة
+    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // استبدل بمفتاحك
+    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    let currentLanguage = 'ar'; // اللغة الافتراضية: العربية
+    const instituteContext = {
+        name: 'معهد رعاية الضبعية',
+        type: 'طبي',
+        subjects: ['تمريض', 'تشريح', 'صيدلة'],
+        faq: [
+            { question: 'ما هي مواعيد التسجيل؟', answer: 'التسجيل مفتوح من يونيو إلى أغسطس.' },
+            { question: 'كيف أتحقق من نتيجتي؟', answer: 'ادخل إلى صفحة النتائج واستخدم رقم الجلوس.' }
+        ]
+    };
 
-    function addUserMessage(text) {
-        const div = document.createElement('div');
-        div.className = 'message user animate__animated animate__fadeInRight';
-        div.innerHTML = `
-            ${text}
-            <span class="message-time">${new Date().toLocaleTimeString('ar-EG', {hour: 'numeric', minute: '2-digit'})}</span>
-        `;
-        chatWindow.appendChild(div);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        saveToHistory('user', text);
-    }
-
-    function addBotMessage(text) {
-        const div = document.createElement('div');
-        div.className = 'message bot animate__animated animate__fadeInLeft';
-        div.innerHTML = `
-            ${formatResponse(text)}
-            <span class="message-time">${new Date().toLocaleTimeString('ar-EG', {hour: 'numeric', minute: '2-digit'})}</span>
-        `;
-        chatWindow.appendChild(div);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
-        saveToHistory('bot', text);
-    }
-
-    function formatResponse(text) {
-        return text
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.*?)\*/g, '<em>$1</em>')
-            .replace(/\n/g, '<br>');
-    }
-
-    function saveToHistory(role, text) {
-        conversationHistory.push({ role, text, timestamp: new Date().toISOString() });
-        if (conversationHistory.length > 50) conversationHistory.shift();
-        localStorage.setItem('chatHistory', JSON.stringify(conversationHistory));
-    }
-
-    // إرسال الرسالة
-    async function sendMessage(text = chatInput.value.trim()) {
-        if (!text) return;
-
-        addUserMessage(text);
-        chatInput.value = '';
-
-        // مؤشر الكتابة
-        const typingIndicator(true);
-
-        try {
-            const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: instituteContext + "\n\nالسؤال: " + text }] }]
-                })
-            });
-
-            if (!response.ok) throw new Error('فشل الاتصال بـ Gemini');
-
-            const data = await response.json();
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "معلش، مش عارف أرد دلوقتي";
-
-            typingIndicator(false);
-            addBotMessage(reply);
-
-        } catch (err) {
-            typingIndicator(false);
-            addBotMessage("عذراً، في مشكلة في الاتصال بالإنترنت أو السيرفر. جرب تاني بعد شوية");
-            console.error(err);
-        }
-    }
-
-    function typingIndicator(show) {
-        const existing = document.querySelector('.typing');
-        if (existing) existing.remove();
-
-        if (show) {
-            const div = document.createElement('div');
-            div.className = 'message bot typing animate__animated animate__fadeInLeft';
-            div.innerHTML = `
-                <div class="typing-indicator">
-                    <span></span><span></span><span></span>
-                </div>
-            `;
-            chatWindow.appendChild(div);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
-        }
-    }
-
-    // الأحداث
-    sendBtn.addEventListener('click', () => sendMessage());
-    chatInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') sendMessage();
-    });
-
-    // الأسئلة المقترحة
-    suggestedQuestions.addEventListener('click', e => {
-        if (e.target.classList.contains('suggestion')) {
-            const text = e.target.dataset.text;
-            chatInput.value = text;
-            sendMessage(text);
-        }
-    });
-
-    // زر الصوت (جاهز للتفعيل لاحقًا)
-    voiceBtn.addEventListener('click', () => {
-        Toastify({
-            text: "قريبًا جدًا! التحدث بالصوت جاي في التحديث الجاي",
-            duration: 3000,
-            backgroundColor: "linear-gradient(135deg, #d4af37, #ffc107)",
-            gravity: "top"
-        }).showToast();
-    });
-
-    // ثيم داكن/فاتح
-    themeBtn.addEventListener('click', () => {
-        isDarkMode = !isDarkMode;
-        document.body.classList.toggle('light-mode');
-        themeBtn.innerHTML = isDarkMode ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-        localStorage.setItem('chatTheme', isDarkMode ? 'dark' : 'light');
-    });
-
-    // تحميل الثيم المحفوظ
-    if (localStorage.getItem('chatTheme') === 'light') {
-        document.body.classList.add('light-mode');
-        themeBtn.innerHTML = '<i class="fas fa-sun"></i>';
-        isDarkMode = false;
-    }
-
-    // بدء المحادثة
-    loadConversation();
-});            { href: 'index.html', icon: 'fas fa-home', title: currentLanguage === 'ar' ? 'الرئيسية' : 'Home' },
+    // تحديث الناف بار
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+    const navBar = document.getElementById('nav-bar');
+    if (navBar) {
+        const navItems = [
+            { href: 'index.html', icon: 'fas fa-home', title: currentLanguage === 'ar' ? 'الرئيسية' : 'Home' },
             { href: 'Home.html', icon: 'fas fa-chart-line', title: currentLanguage === 'ar' ? 'النتائج' : 'Results' },
             { href: 'profile.html', icon: 'fas fa-user', title: currentLanguage === 'ar' ? 'الملف الشخصي' : 'Profile' },
             { href: 'chatbot.html', icon: 'fas fa-robot', title: currentLanguage === 'ar' ? 'المساعد الذكي' : 'Smart Assistant' }
