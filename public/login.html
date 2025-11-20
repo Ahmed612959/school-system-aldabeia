@@ -36,22 +36,7 @@
 <footer>
         <p>Developed by Ahmed Mousa <span class="heart">❤</span></p>
     </footer>
-
-    <!-- الحل النهائي: CryptoJS محلي + تحميل متسلسل -->
-    <script>
-        // تحميل CryptoJS أولاً
-        const cryptoScript = document.createElement('script');
-        cryptoScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js';
-        cryptoScript.onload = function() {
-            console.log('CryptoJS تم تحميله بنجاح');
-            // بعد ما يتحمل، نحمل auth.js
-            const authScript = document.createElement('script');
-            authScript.src = 'auth.js';
-            authScript.onload = () => console.log('auth.js تم تحميله بنجاح');
-            document.body.appendChild(authScript);
-        };
-        cryptoScript.onerror = () => alert('فشل تحميل مكتبة التشفير!');
-        document.body.appendChild(cryptoScript);
-    </script>
+<script src="auth.js" defer></script>     <!-- في login.html -->
+    
 </body>
 </html>
