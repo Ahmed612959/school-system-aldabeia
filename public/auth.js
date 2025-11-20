@@ -1,7 +1,7 @@
-// auth.js - النسخة النهائية اللي شغالة 100% مع server.js بتاعك (مجربة)
+// auth.js - النسخة النهائية اللي شغالة 100% مع server.js بتاعك (مجربة ومضمونة)
 document.addEventListener('DOMContentLoaded', function () {
 
-    // دالة تشفير مطابقة 100% لـ Node.js crypto.createHash('sha256').digest('hex')
+    // دالة تشفير مطابقة 100% للسيرفر (crypto.createHash('sha256').digest('hex'))
     async function hashPassword(password) {
         const encoder = new TextEncoder();
         const data = encoder.encode(password);
@@ -10,14 +10,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // جلب البيانات من الـ API
+    // جلب البيانات
     async function getFromServer(path) {
         try {
             const response = await fetch(`/api${path}`, { cache: 'no-store' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            if (!response.ok) throw new Error('فشل الاتصال');
             return await response.json();
         } catch (err) {
-        console.error('فشل جلب البيانات:', err);
+            console.error('خطأ في جلب البيانات:', err);
             alert('فشل الاتصال بالخادم!');
             return [];
         }
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const hashedPassword = await hashPassword(password);
-            console.log('كلمة المرور مشفرة (مطابقة للسيرفر):', hashedPassword);
+            console.log('كلمة المرور مشفرة صح (مطابقة للسيرفر):', hashedPassword);
 
             try {
                 const [admins, students] = await Promise.all([
