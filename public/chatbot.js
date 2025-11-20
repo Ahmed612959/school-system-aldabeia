@@ -275,4 +275,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     console.log('Chatbot initialized successfully');
-}); 
+});
