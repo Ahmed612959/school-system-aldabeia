@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // مفتاح API وتهيئة
-    const API_KEY = 'AIzaSyB_BhSZ-xN5oCJlJfVvu_zr7bSl_Wi6VIA'; // استبدل بمفتاحك
+    const API_KEY = 'AIzaSyAzd1a97vHrXC5b6VGoaDRTXiVcWRmfWxA'; // استبدل بمفتاحك
     const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
     let currentLanguage = 'ar'; // اللغة الافتراضية: العربية
     const instituteContext = {
