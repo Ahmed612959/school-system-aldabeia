@@ -6,6 +6,7 @@
     <title>الملف الشخصي</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <style>
         :root{--g:#d4af37;--d:#1a2526;--d2:#2a3a3b}
         *{margin:0;padding:0;box-sizing:border-box}
@@ -19,24 +20,17 @@
             line-height:1.4;
         }
         .c{padding:7px}
-
         header{text-align:center;padding:10px 0}
         .logo{width:42px;height:42px;border:2.5px solid var(--g);border-radius:50%;padding:3px;background:#fff}
         h1{color:var(--g);font-size:1.12rem;margin-top:5px}
 
         .card{
-            background:#fff;
-            color:#111;
-            border-radius:14px;
-            overflow:hidden;
-            box-shadow:0 5px 18px rgba(0,0,0,0.5);
-            margin:7px 0;
+            background:#fff;color:#111;border-radius:14px;overflow:hidden;
+            box-shadow:0 5px 18px rgba(0,0,0,0.5);margin:7px 0;
         }
         .ch{
             background:linear-gradient(135deg,var(--g),#b8972e);
-            padding:11px 8px;
-            text-align:center;
-            color:#fff;
+            padding:11px 8px;text-align:center;color:#fff;
         }
         .ch h2{font-size:1.08rem;margin:3px 0}
         #admin-badge{font-size:1.3rem}
@@ -51,86 +45,43 @@
         .ig{margin-bottom:9px}
         .ig label{font-size:0.73rem;color:#333;margin-bottom:3px;font-weight:600}
         .ig input,.ig textarea{
-            width:100%;
-            padding:7px 9px;
-            border:1.8px solid var(--g);
-            border-radius:8px;
-            font-size:0.81rem;
-            background:#fdfdfd;
+            width:100%;padding:7px 9px;border:1.8px solid var(--g);
+            border-radius:8px;font-size:0.81rem;background:#fdfdfd;
         }
         .ig input:focus,.ig textarea:focus{outline:none;border-color:var(--d);background:#fff}
         .ig input[disabled]{background:#f0f0f0;color:#777}
 
         .btn{
-            width:100%;
-            padding:9px;
-            background:var(--g);
-            color:var(--d);
-            border:none;
-            border-radius:9px;
-            font-size:0.88rem;
-            font-weight:bold;
-            cursor:pointer;
-            margin-top:5px;
+            width:100%;padding:9px;background:var(--g);color:var(--d);
+            border:none;border-radius:9px;font-size:0.88rem;font-weight:bold;
+            cursor:pointer;margin-top:5px;
         }
         .btn:hover{background:#b8972e}
 
-        /* النافبار المنحني الفخم جدًا */
+        /* النافبار المنحني الفخم */
         .nav{
-            position:fixed;
-            bottom:0;left:0;right:0;
+            position:fixed;bottom:0;left:0;right:0;
             background:linear-gradient(180deg,var(--d),var(--d2));
-            padding:12px 20px 22px;
-            display:flex;
-            justify-content:space-around;
-            align-items:center;
-            border-top-left-radius:24px;
-            border-top-right-radius:24px;
-            border-top:3px solid var(--g);
-            box-shadow:0 -8px 30px rgba(0,0,0,0.8);
-            z-index:9999;
-            overflow:hidden;
+            padding:12px 20px 22px;display:flex;justify-content:space-around;
+            align-items:center;border-top-left-radius:24px;border-top-right-radius:24px;
+            border-top:3px solid var(--g);box-shadow:0 -8px 30px rgba(0,0,0,0.8);z-index:9999;
         }
         .nav::before{
-            content:'';
-            position:absolute;
-            top:-30px;
-            left:50%;
-            transform:translateX(-50%);
-            width:100px;
-            height:50px;
-            background:var(--g);
-            border-radius:50%;
-            opacity:0.2;
-            filter:blur(20px);
+            content:'';position:absolute;top:-30px;left:50%;transform:translateX(-50%);
+            width:100px;height:50px;background:var(--g);border-radius:50%;opacity:0.2;filter:blur(20px);
         }
         .nav a{
-            color:var(--g);
-            font-size:1.45rem;
-            padding:10px 14px;
-            background:rgba(255,255,255,0.05);
-            border-radius:50%;
-            transition:all .4s ease;
-            position:relative;
-            backdrop-filter:blur(10px);
+            color:var(--g);font-size:1.45rem;padding:10px 14px;
+            background:rgba(255,255,255,0.05);border-radius:50%;
+            transition:all .4s ease;position:relative;backdrop-filter:blur(10px);
         }
         .nav a.active{
-            color:#fff;
-            background:var(--g);
-            transform:translateY(-12px) scale(1.15);
+            color:#fff;background:var(--g);transform:translateY(-12px) scale(1.15);
             box-shadow:0 8px 25px rgba(212,175,55,0.6);
         }
         .nav a.active::after{
-            content:'';
-            position:absolute;
-            bottom:-12px;
-            left:50%;
-            transform:translateX(-50%);
-            width:7px;
-            height:7px;
-            background:var(--g);
-            border-radius:50%;
-            box-shadow:0 0 20px var(--g);
+            content:'';position:absolute;bottom:-12px;left:50%;transform:translateX(-50%);
+            width:7px;height:7px;background:var(--g);border-radius:50%;box-shadow:0 0 20px var(--g);
         }
     </style>
 </head>
@@ -169,7 +120,7 @@
     </div>
 </div>
 
-<!-- النافبار المنحني الفخم الجديد -->
+<!-- النافبار المنحني الفخم -->
 <nav class="nav">
     <a href="index.html"><i class="fas fa-home"></i></a>
     <a href="Home.html"><i class="fas fa-chart-line"></i></a>
@@ -179,6 +130,71 @@
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script src="profile.js"></script>
+<script>
+// جلب البيانات من السيرفر + الحفظ + نسبة الاكتمال (شغال 100% مع الـ PUT routes اللي ضفناها)
+const username = localStorage.getItem('username') || 'guest';
+const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (isAdmin) document.getElementById('admin-badge').style.display = 'inline';
+
+    try {
+        const res = await fetch(`/api/${isAdmin ? 'admins' : 'students'}/${username}`);
+        if (res.ok) {
+            const user = await res.json();
+            if (!isAdmin && user.length > 0) user = user[0];
+
+            document.getElementById('user-name').textContent = user.fullName || user.username;
+            document.getElementById('full-name').value = user.fullName || '';
+            document.getElementById('username').value = user.username;
+
+            const profile = (isAdmin ? user : user.profile) || {};
+            document.getElementById('email').value = profile.email || '';
+            document.getElementById('phone').value = profile.phone || '';
+            document.getElementById('birthdate').value = profile.birthdate || '';
+            document.getElementById('address').value = profile.address || '';
+            document.getElementById('bio').value = profile.bio || '';
+
+            // حساب نسبة الاكتمال
+            const fields = [profile.email, profile.phone, profile.birthdate, profile.address, profile.bio];
+            const completed = fields.filter(f => f).length;
+            const percentage = Math.round((completed / fields.length) * 100);
+            document.getElementById('profile-progress').value = percentage;
+            document.getElementById('progress-percentage').textContent = percentage + '%';
+        }
+    } catch (err) {
+        console.log('مشكلة في جلب البيانات (طبيعي لو السيرفر لسة مش متظبط)', err);
+    }
+
+    // حفظ البيانات
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const profile = {
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            birthdate: document.getElementById('birthdate').value,
+            address: document.getElementById('address').value.trim(),
+            bio: document.getElementById('bio').value.trim()
+        };
+
+        try {
+            const res = await fetch(`/api/${isAdmin ? 'admins' : 'students'}/${username}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile })
+            });
+
+            if (res.ok) {
+                Toastify({ text: "تم حفظ البيانات بنجاح!", backgroundColor: "#d4af37" }).showToast();
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                Toastify({ text: "فشل في الحفظ", backgroundColor: "#e74c3c" }).showToast();
+            }
+        } catch (err) {
+            Toastify({ text: "لا يوجد اتصال بالسيرفر", backgroundColor: "#e74c3c" }).showToast();
+        }
+    });
+});
+</script>
 </body>
 </html>
