@@ -873,17 +873,55 @@ app.post('/api/register-student', async (req, res) => {
         res.status(500).json({ error: 'Error creating account: ' + error.message });
     }
 });
+// === مهم جدًا: أضف الـ routes دي في server.js قبل app.listen ===
+
+// تحديث ملف الطالب الشخصي
+app.put('/api/students/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        if (!profile) return res.status(400).json({ error: 'البيانات ناقصة' });
+
+        const updated = await Student.findOneAndUpdate(
+            { username: req.params.username },
+            { $set: { profile } },
+            { new: true }
+        );
+
+        if (!updated) return res.status(404).json({ error: 'الطالب غير موجود' });
+
+        res.json({ message: 'تم حفظ الملف الشخصي', student: updated });
+    } catch (error) {
+        console.error('خطأ في تحديث profile الطالب:', error);
+        res.status(500).json({ error: 'فشل الحفظ' });
+    }
+});
+
+// تحديث ملف الأدمن (اختياري لكن خلّيه)
+app.put('/api/admins/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        if (!profile) return res.status(400).json({ error: 'البيانات ناقصة' });
+
+        // لو الأدمن مش عنده profile، نضيفه
+        const update = profile ? { profile } : {};
+
+        const updated = await Admin.findOneAndUpdate(
+            { username: req.params.username },
+            { $set: update },
+            { new: true, upsert: false }
+        );
+
+        if (!updated) return res.status(404).json({ error: 'الأدمن غير موجود' });
+
+        res.json({ message: 'تم حفظ بيانات الأدمن', admin: updated });
+    } catch (error) {
+        console.error('خطأ في تحديث profile الأدمن:', error);
+        res.status(500).json({ error: 'فشل الحفظ' });
+    }
+});
 app.listen(PORT, () => {
     console.log(`الخادم يعمل على http://localhost:${PORT}`);
 });
-
-
-
-
-
-
-
-
 
 
 
