@@ -3,294 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الملف الشخصي | SchoolX</title>
-
-    <!-- Font Awesome + Cairo + Toastify -->
+    <title>الملف الشخصي</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --gold: #d4af37;
-            --gold-dark: #b8972e;
-            --dark: #1a2526;
-            --dark2: #2a3a3b;
-            --light: #f8f9fa;
-            --gray: #e9ecef;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --gold:#d4af37; --dark:#1a2526; --dark2:#2a3a3b; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #0f1419 0%, #1a2526 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding-bottom: 90px;
+            font-family:'Cairo',sans-serif;
+            background:#0f1419;
+            color:#fff;
+            min-height:100vh;
+            padding-bottom:70px;
+            font-size:13px;
         }
+        .container { padding:8px; max-width:100%; }
 
-        /* الهيدر الفخم */
-        .header {
-            background: linear-gradient(180deg, var(--dark) 0%, var(--dark2) 100%);
-            padding: 30px 20px;
-            text-align: center;
-            border-bottom: 5px solid var(--gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-        }
-        .logo {
-            width: 100px;
-            height: 100px;
-            border: 6px solid var(--gold);
-            border-radius: 50%;
-            padding: 8px;
-            background: white;
-            box-shadow: 0 0 40px rgba(212,175,55,0.7);
-            animation: glow 3s infinite alternate;
-        }
-        @keyframes glow {
-            from { box-shadow: 0 0 40px rgba(212,175,55,0.7); }
-            to { box-shadow: 0 0 60px rgba(212,175,55,1); }
-        }
-        .header h1 {
-            margin-top: 15px;
-            font-size: 2.1rem;
-            color: var(--gold);
-            text-shadow: 0 0 20px rgba(212,175,55,0.6);
-        }
+        header { text-align:center; padding:12px 0; }
+        .logo { width:50px; height:50px; border:3px solid var(--gold); border-radius:50%; padding:4px; background:#fff; }
+        header h1 { color:var(--gold); font-size:1.25rem; margin-top:6px; }
 
-        /* الكارت الرئيسي */
-        .profile-card {
-            max-width: 460px;
-            margin: 25px auto;
-            background: white;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            color: var(--dark);
+        .card {
+            background:#fff;
+            color:#1a2526;
+            border-radius:14px;
+            overflow:hidden;
+            box-shadow:0 6px 20px rgba(0,0,0,0.4);
+            margin:8px 0;
         }
-
-        /* الهيدر داخل الكارت */
         .card-header {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            padding: 28px 20px;
-            text-align: center;
-            color: white;
+            background:linear-gradient(135deg,var(--gold),#b8972e);
+            padding:12px;
+            text-align:center;
+            color:#fff;
         }
-        .card-header h2 {
-            font-size: 1.9rem;
-            margin-bottom: 8px;
-        }
-        #admin-badge {
-            font-size: 2.2rem;
-            animation: pulse 2.5s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
+        .card-header h2 { font-size:1.2rem; margin:4px 0; }
+        #admin-badge { font-size:1.4rem; }
 
-        /* التقدم */
         .progress-section {
-            padding: 30px 25px;
-            text-align: center;
-            background: var(--gray);
+            padding:12px;
+            text-align:center;
+            background:#f9f9f9;
         }
-        .progress-section label {
-            font-weight: 900;
-            color: var(--dark);
-            font-size: 1.15rem;
-            margin-bottom: 15px;
-            display: block;
-        }
-        progress {
-            width: 100%;
-            height: 32px;
-            border-radius: 16px;
-            background: #ddd;
-            border: 4px solid var(--gold);
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.2);
-        }
-        progress::-webkit-progress-value {
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-            border-radius: 12px;
-        }
-        progress::-moz-progress-bar {
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-            border-radius: 12px;
-        }
-        #progress-percentage {
-            margin-top: 14px;
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--gold);
-            text-shadow: 0 0 15px rgba(212,175,55,0.5);
-        }
+        .progress-section label { font-size:0.8rem; font-weight:bold; color:#333; margin-bottom:6px; }
+        progress { width:100%; height:8px; border-radius:4px; }
+        progress::-webkit-progress-value { background:var(--gold); border-radius:4px; }
+        #progress-percentage { margin-top:5px; font-size:1.1rem; color:var(--gold); font-weight:bold; }
 
-        /* النموذج */
-        .form-section {
-            padding: 35px 28px;
-        }
-        .input-group {
-            margin-bottom: 24px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 700;
-            color: var(--dark);
-            font-size: 1.05rem;
-        }
+        .form { padding:14px 12px; }
+        .input-group { margin-bottom:12px; }
+        .input-group label { font-size:0.8rem; font-weight:600; color:#333; margin-bottom:4px; }
         .input-group input,
         .input-group textarea {
-            width: 100%;
-            padding: 18px 20px;
-            border: 3px solid var(--gold);
-            border-radius: 18px;
-            font-size: 1.1rem;
-            background: #fdfdfd;
-            transition: all 0.4s ease;
-            font-family: 'Cairo', sans-serif;
+            width:100%;
+            padding:9px 10px;
+            border:2px solid var(--gold);
+            border-radius:8px;
+            font-size:0.85rem;
+            background:#fdfdfd;
         }
         .input-group input:focus,
-        .input-group textarea:focus {
-            outline: none;
-            border-color: var(--dark);
-            box-shadow: 0 0 25px rgba(26,37,38,0.25);
-            transform: translateY(-3px);
-        }
-        .input-group input[disabled] {
-            background: #f0f0f0;
-            color: #666;
-            cursor: not-allowed;
-            opacity: 0.8;
-        }
+        .input-group textarea:focus { outline:none; border-color:var(--dark); background:#fff; }
+        .input-group input[disabled] { background:#eee; color:#777; }
 
         .submit-btn {
-            width: 100%;
-            padding: 20px;
-            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
-            color: var(--dark);
-            border: none;
-            border-radius: 20px;
-            font-size: 1.4rem;
-            font-weight: 900;
-            cursor: pointer;
-            margin-top: 15px;
-            box-shadow: 0 12px 35px rgba(212,175,55,0.5);
-            transition: all 0.5s ease;
+            width:100%;
+            padding:10px;
+            background:var(--gold);
+            color:var(--dark);
+            border:none;
+            border-radius:8px;
+            font-size:0.95rem;
+            font-weight:bold;
+            cursor:pointer;
         }
-        .submit-btn:hover {
-            background: var(--dark);
-            color: var(--gold);
-            transform: translateY(-6px);
-            box-shadow: 0 20px 50px rgba(26,37,38,0.6);
-        }
+        .submit-btn:hover { background:#b8972e; }
 
-        /* النافبار الفخم جدًا */
-        #nav-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: linear-gradient(180deg, var(--dark) 0%, var(--dark2) 100%);
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 4px solid var(--gold);
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
-            z-index: 9999;
+        /* نافبار صغير وثابت 100% */
+        .nav-bar {
+            position:fixed;
+            bottom:0; left:0; right:0;
+            background:linear-gradient(180deg,var(--dark),var(--dark2));
+            padding:8px 0;
+            display:flex;
+            justify-content:space-around;
+            border-top:3px solid var(--gold);
+            box-shadow:0 -5px 15px rgba(0,0,0,0.6);
+            z-index:9999;
         }
-        #nav-bar a {
-            color: var(--gold);
-            font-size: 1.9rem;
-            padding: 12px 16px;
-            border-radius: 50%;
-            transition: all 0.4s ease;
-            position: relative;
+        .nav-bar a {
+            color:var(--gold);
+            font-size:1.35rem;
+            padding:6px;
         }
-        #nav-bar a.active {
-            background: var(--gold);
-            color: var(--dark);
-            transform: scale(1.25);
-            box-shadow: 0 0 30px rgba(212,175,55,0.8);
-        }
-        #nav-bar a.active::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 10px;
-            height: 10px;
-            background: var(--gold);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--gold);
+        .nav-bar a.active {
+            color:#fff;
+            transform:scale(1.2);
         }
     </style>
 </head>
 <body>
 
-    <!-- الهيدر -->
-    <div class="header">
-        <img src="logo.png" alt="شعار المعهد" class="logo">
+<div class="container">
+    <header>
+        <img src="logo.png" alt="Logo" class="logo">
         <h1>الملف الشخصي</h1>
-    </div>
+    </header>
 
-    <!-- الكارت الرئيسي -->
-    <div class="profile-card">
+    <div class="card">
         <div class="card-header">
             <h2 id="user-name">جاري التحميل...</h2>
-            <span id="admin-badge" style="display:none;">Crown</span>
+            <span id="admin-badge" style="display:none;"></span>
         </div>
 
         <div class="progress-section">
-            <label>نسبة اكتمال الملف الشخصي</label>
+            <label>نسبة اكتمال الملف</label>
             <progress id="profile-progress" value="0" max="100"></progress>
             <div id="progress-percentage">0%</div>
         </div>
 
-        <div class="form-section">
+        <div class="form">
             <form id="profile-form">
-                <div class="input-group">
-                    <label>الاسم الكامل</label>
-                    <input type="text" id="full-name" disabled>
-                </div>
-                <div class="input-group">
-                    <label>اسم المستخدم</label>
-                    <input type="text" id="username" disabled>
-                </div>
-                <div class="input-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" id="email" placeholder="example@school.com">
-                </div>
-                <div class="input-group">
-                    <label>رقم الهاتف</label>
-                    <input type="tel" id="phone" placeholder="010xxxxxxxx">
-                </div>
-                <div class="input-group">
-                    <label>تاريخ الميلاد</label>
-                    <input type="date" id="birthdate">
-                </div>
-                <div class="input-group">
-                    <label>العنوان</label>
-                    <input type="text" id="address" placeholder="المدينة - الحي - الشارع">
-                </div>
-                <div class="input-group">
-                    <label>السيرة الذاتية (اختياري)</label>
-                    <textarea id="bio" rows="4" placeholder="حكيلنا عن نفسك بطل..."></textarea>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    حفظ التغييرات
-                </button>
+                <div class="input-group"><label>الاسم الكامل</label><input type="text" id="full-name" disabled></div>
+                <div class="input-group"><label>اسم المستخدم</label><input type="text" id="username" disabled></div>
+                <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="email"></div>
+                <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
+                <div class="input-group"><label>تاريخ الميلاد</label><input type="date" id="birthdate"></div>
+                <div class="input-group"><label>العنوان</label><input type="text" id="address"></div>
+                <div class="input-group"><label>السيرة الذاتية</label><textarea id="bio" rows="3"></textarea></div>
+                <button type="submit" class="submit-btn">حفظ التغييرات</button>
             </form>
         </div>
     </div>
+</div>
 
-    <!-- النافبار -->
-    <nav id="nav-bar"></nav>
+<!-- نافبار ثابت مكتوب يدوي -->
+<nav class="nav-bar">
+    <a href="home.html"><i class="fas fa-home"></i></a>
+    <a href="grades.html"><i class="fas fa-chart-bar"></i></a>
+    <a href="violations.html"><i class="fas fa-exclamation-triangle"></i></a>
+    <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
+    <a href="settings.html"><i class="fas fa-cog"></i></a>
+</nav>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="profile.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<script src="profile.js"></script>
 </body>
 </html>
