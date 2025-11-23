@@ -7,142 +7,175 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --gold:#d4af37; --dark:#1a2526; --dark2:#2a3a3b; }
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body {
+        :root{--g:#d4af37;--d:#1a2526;--d2:#2a3a3b}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{
             font-family:'Cairo',sans-serif;
             background:#0f1419;
             color:#fff;
             min-height:100vh;
-            padding-bottom:70px;
-            font-size:13px;
+            padding-bottom:72px;
+            font-size:12.8px;
+            line-height:1.4;
         }
-        .container { padding:8px; max-width:100%; }
+        .c{padding:7px}
 
-        header { text-align:center; padding:12px 0; }
-        .logo { width:50px; height:50px; border:3px solid var(--gold); border-radius:50%; padding:4px; background:#fff; }
-        header h1 { color:var(--gold); font-size:1.25rem; margin-top:6px; }
+        header{text-align:center;padding:10px 0}
+        .logo{width:42px;height:42px;border:2.5px solid var(--g);border-radius:50%;padding:3px;background:#fff}
+        h1{color:var(--g);font-size:1.12rem;margin-top:5px}
 
-        .card {
+        .card{
             background:#fff;
-            color:#1a2526;
+            color:#111;
             border-radius:14px;
             overflow:hidden;
-            box-shadow:0 6px 20px rgba(0,0,0,0.4);
-            margin:8px 0;
+            box-shadow:0 5px 18px rgba(0,0,0,0.5);
+            margin:7px 0;
         }
-        .card-header {
-            background:linear-gradient(135deg,var(--gold),#b8972e);
-            padding:12px;
+        .ch{
+            background:linear-gradient(135deg,var(--g),#b8972e);
+            padding:11px 8px;
             text-align:center;
             color:#fff;
         }
-        .card-header h2 { font-size:1.2rem; margin:4px 0; }
-        #admin-badge { font-size:1.4rem; }
+        .ch h2{font-size:1.08rem;margin:3px 0}
+        #admin-badge{font-size:1.3rem}
 
-        .progress-section {
-            padding:12px;
-            text-align:center;
-            background:#f9f9f9;
-        }
-        .progress-section label { font-size:0.8rem; font-weight:bold; color:#333; margin-bottom:6px; }
-        progress { width:100%; height:8px; border-radius:4px; }
-        progress::-webkit-progress-value { background:var(--gold); border-radius:4px; }
-        #progress-percentage { margin-top:5px; font-size:1.1rem; color:var(--gold); font-weight:bold; }
+        .p{padding:10px;text-align:center;background:#fafafa}
+        .p label{font-size:0.74rem;font-weight:bold;color:#333;margin-bottom:4px}
+        progress{width:100%;height:6px;border-radius:3px}
+        progress::-webkit-progress-value{background:var(--g);border-radius:3px}
+        #pp{margin-top:4px;font-size:0.98rem;color:var(--g);font-weight:bold}
 
-        .form { padding:14px 12px; }
-        .input-group { margin-bottom:12px; }
-        .input-group label { font-size:0.8rem; font-weight:600; color:#333; margin-bottom:4px; }
-        .input-group input,
-        .input-group textarea {
+        .f{padding:11px 9px}
+        .ig{margin-bottom:9px}
+        .ig label{font-size:0.73rem;color:#333;margin-bottom:3px;font-weight:600}
+        .ig input,.ig textarea{
             width:100%;
-            padding:9px 10px;
-            border:2px solid var(--gold);
+            padding:7px 9px;
+            border:1.8px solid var(--g);
             border-radius:8px;
-            font-size:0.85rem;
+            font-size:0.81rem;
             background:#fdfdfd;
         }
-        .input-group input:focus,
-        .input-group textarea:focus { outline:none; border-color:var(--dark); background:#fff; }
-        .input-group input[disabled] { background:#eee; color:#777; }
+        .ig input:focus,.ig textarea:focus{outline:none;border-color:var(--d);background:#fff}
+        .ig input[disabled]{background:#f0f0f0;color:#777}
 
-        .submit-btn {
+        .btn{
             width:100%;
-            padding:10px;
-            background:var(--gold);
-            color:var(--dark);
+            padding:9px;
+            background:var(--g);
+            color:var(--d);
             border:none;
-            border-radius:8px;
-            font-size:0.95rem;
+            border-radius:9px;
+            font-size:0.88rem;
             font-weight:bold;
             cursor:pointer;
+            margin-top:5px;
         }
-        .submit-btn:hover { background:#b8972e; }
+        .btn:hover{background:#b8972e}
 
-        /* نافبار صغير وثابت 100% */
-        .nav-bar {
+        /* النافبار المنحني الفخم جدًا */
+        .nav{
             position:fixed;
-            bottom:0; left:0; right:0;
-            background:linear-gradient(180deg,var(--dark),var(--dark2));
-            padding:8px 0;
+            bottom:0;left:0;right:0;
+            background:linear-gradient(180deg,var(--d),var(--d2));
+            padding:12px 20px 22px;
             display:flex;
             justify-content:space-around;
-            border-top:3px solid var(--gold);
-            box-shadow:0 -5px 15px rgba(0,0,0,0.6);
+            align-items:center;
+            border-top-left-radius:24px;
+            border-top-right-radius:24px;
+            border-top:3px solid var(--g);
+            box-shadow:0 -8px 30px rgba(0,0,0,0.8);
             z-index:9999;
+            overflow:hidden;
         }
-        .nav-bar a {
-            color:var(--gold);
-            font-size:1.35rem;
-            padding:6px;
+        .nav::before{
+            content:'';
+            position:absolute;
+            top:-30px;
+            left:50%;
+            transform:translateX(-50%);
+            width:100px;
+            height:50px;
+            background:var(--g);
+            border-radius:50%;
+            opacity:0.2;
+            filter:blur(20px);
         }
-        .nav-bar a.active {
+        .nav a{
+            color:var(--g);
+            font-size:1.45rem;
+            padding:10px 14px;
+            background:rgba(255,255,255,0.05);
+            border-radius:50%;
+            transition:all .4s ease;
+            position:relative;
+            backdrop-filter:blur(10px);
+        }
+        .nav a.active{
             color:#fff;
-            transform:scale(1.2);
+            background:var(--g);
+            transform:translateY(-12px) scale(1.15);
+            box-shadow:0 8px 25px rgba(212,175,55,0.6);
+        }
+        .nav a.active::after{
+            content:'';
+            position:absolute;
+            bottom:-12px;
+            left:50%;
+            transform:translateX(-50%);
+            width:7px;
+            height:7px;
+            background:var(--g);
+            border-radius:50%;
+            box-shadow:0 0 20px var(--g);
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="c">
     <header>
         <img src="logo.png" alt="Logo" class="logo">
         <h1>الملف الشخصي</h1>
     </header>
 
     <div class="card">
-        <div class="card-header">
+        <div class="ch">
             <h2 id="user-name">جاري التحميل...</h2>
-            <span id="admin-badge" style="display:none;"></span>
+            <span id="admin-badge" style="display:none;">Crown</span>
         </div>
 
-        <div class="progress-section">
+        <div class="p">
             <label>نسبة اكتمال الملف</label>
             <progress id="profile-progress" value="0" max="100"></progress>
             <div id="progress-percentage">0%</div>
         </div>
 
-        <div class="form">
+        <div class="f">
             <form id="profile-form">
-                <div class="input-group"><label>الاسم الكامل</label><input type="text" id="full-name" disabled></div>
-                <div class="input-group"><label>اسم المستخدم</label><input type="text" id="username" disabled></div>
-                <div class="input-group"><label>البريد الإلكتروني</label><input type="email" id="email"></div>
-                <div class="input-group"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
-                <div class="input-group"><label>تاريخ الميلاد</label><input type="date" id="birthdate"></div>
-                <div class="input-group"><label>العنوان</label><input type="text" id="address"></div>
-                <div class="input-group"><label>السيرة الذاتية</label><textarea id="bio" rows="3"></textarea></div>
-                <button type="submit" class="submit-btn">حفظ التغييرات</button>
+                <div class="ig"><label>الاسم الكامل</label><input type="text" id="full-name" disabled></div>
+                <div class="ig"><label>اسم المستخدم</label><input type="text" id="username" disabled></div>
+                <div class="ig"><label>البريد الإلكتروني</label><input type="email" id="email"></div>
+                <div class="ig"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
+                <div class="ig"><label>تاريخ الميلاد</label><input type="date" id="birthdate"></div>
+                <div class="ig"><label>العنوان</label><input type="text" id="address"></div>
+                <div class="ig"><label>السيرة الذاتية</label><textarea id="bio" rows="2"></textarea></div>
+                <button type="submit" class="btn">حفظ التغييرات</button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- نافبار ثابت مكتوب يدوي -->
-<nav class="nav-bar">
-    <a href="Home.html"><i class="fas fa-home"></i></a>
-    <a href="violations.html"><i class="fas fa-exclamation-triangle"></i></a>
+<!-- النافبار المنحني الفخم الجديد -->
+<nav class="nav">
+    <a href="index.html"><i class="fas fa-home"></i></a>
+    <a href="Home.html"><i class="fas fa-chart-line"></i></a>
     <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
-    <a href="settings.html"><i class="fas fa-cog"></i></a>
+    <a href="exams.html"><i class="fas fa-book"></i></a>
+    <a href="chatbot.html"><i class="fas fa-robot"></i></a>
 </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
