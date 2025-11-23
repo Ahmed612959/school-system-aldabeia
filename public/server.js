@@ -599,64 +599,38 @@ app.post('/api/register-student', async (req, res) => {
 // ====================================================
 
 // تحديث ملف الطالب الشخصي (الأهم على الإطلاق)
-app.put('/api/students/:username', async (req, res) => {
+// ==================== إضافة الـ GET routes المفقودة (الحل النهائي) ====================
+
+// جلب بيانات طالب واحد بالـ username
+app.get('/api/students/:username', async (req, res) => {
     try {
-        const { profile } = req.body;
-        if (!profile || typeof profile !== 'object') {
-            return res.status(400).json({ error: 'بيانات الملف الشخصي مطلوبة' });
-        }
-
-        const updated = await Student.findOneAndUpdate(
-            { username: req.params.username },
-            { $set: { profile } },
-            { new: true, runValidators: true }
-        );
-
-        if (!updated) {
+        const student = await Student.findOne({ username: req.params.username });
+        if (!student) {
             return res.status(404).json({ error: 'الطالب غير موجود' });
         }
-
-        console.log(`تم تحديث ملف الطالب: ${updated.fullName} (${updated.username})`);
-        res.json({ 
-            message: 'تم حفظ بيانات الملف الشخصي بنجاح', 
-            student: updated 
-        });
+        res.json(student);
     } catch (error) {
-        console.error('خطأ في تحديث profile الطالب:', error);
-        res.status(500).json({ error: 'فشل حفظ البيانات' });
+        console.error('خطأ في جلب بيانات الطالب:', error);
+        res.status(500).json({ error: 'فشل في جلب البيانات' });
     }
 });
 
-// تحديث ملف الأدمن (اختياري لكن خليه عشان الكماليات)
-app.put('/api/admins/:username', async (req, res) => {
+// جلب بيانات أدمن واحد بالـ username
+app.get('/api/admins/:username', async (req, res) => {
     try {
-        const { profile } = req.body;
-        if (!profile || typeof profile !== 'object') {
-            return res.status(400).json({ error: 'بيانات الملف الشخصي مطلوبة' });
-        }
-
-        const updated = await Admin.findOneAndUpdate(
-            { username: req.params.username },
-            { $set: { profile } },
-            { new: true }
-        );
-
-        if (!updated) {
+        const admin = await Admin.findOne({ username: req.params.username });
+        if (!admin) {
             return res.status(404).json({ error: 'الأدمن غير موجود' });
         }
-
-        console.log(`تم تحديث ملف الأدمن: ${updated.fullName} (${updated.username})`);
-        res.json({ 
-            message: 'تم حفظ بيانات الأدمن بنجاح', 
-            admin: updated 
-        });
+        res.json(admin);
     } catch (error) {
-        console.error('خطأ في تحديث profile الأدمن:', error);
-        res.status(500).json({ error: 'فشل حفظ البيانات' });
+        console.error('خطأ في جلب بيانات الأدمن:', error);
+        res.status(500).json({ error: 'فشل في جلب البيانات' });
     }
 });
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
