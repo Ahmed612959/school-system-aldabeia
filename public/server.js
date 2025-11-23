@@ -594,7 +594,69 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
+// ====================================================
+// الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
+// ====================================================
+
+// تحديث ملف الطالب الشخصي (الأهم على الإطلاق)
+app.put('/api/students/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        if (!profile || typeof profile !== 'object') {
+            return res.status(400).json({ error: 'بيانات الملف الشخصي مطلوبة' });
+        }
+
+        const updated = await Student.findOneAndUpdate(
+            { username: req.params.username },
+            { $set: { profile } },
+            { new: true, runValidators: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ error: 'الطالب غير موجود' });
+        }
+
+        console.log(`تم تحديث ملف الطالب: ${updated.fullName} (${updated.username})`);
+        res.json({ 
+            message: 'تم حفظ بيانات الملف الشخصي بنجاح', 
+            student: updated 
+        });
+    } catch (error) {
+        console.error('خطأ في تحديث profile الطالب:', error);
+        res.status(500).json({ error: 'فشل حفظ البيانات' });
+    }
+});
+
+// تحديث ملف الأدمن (اختياري لكن خليه عشان الكماليات)
+app.put('/api/admins/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        if (!profile || typeof profile !== 'object') {
+            return res.status(400).json({ error: 'بيانات الملف الشخصي مطلوبة' });
+        }
+
+        const updated = await Admin.findOneAndUpdate(
+            { username: req.params.username },
+            { $set: { profile } },
+            { new: true }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ error: 'الأدمن غير موجود' });
+        }
+
+        console.log(`تم تحديث ملف الأدمن: ${updated.fullName} (${updated.username})`);
+        res.json({ 
+            message: 'تم حفظ بيانات الأدمن بنجاح', 
+            admin: updated 
+        });
+    } catch (error) {
+        console.error('خطأ في تحديث profile الأدمن:', error);
+        res.status(500).json({ error: 'فشل حفظ البيانات' });
+    }
+});
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
