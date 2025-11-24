@@ -615,6 +615,37 @@ app.get('/api/students/:username', async (req, res) => {
     }
 });
 
+// تحديث profile للطالب
+app.put('/api/students/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        const updated = await Student.findOneAndUpdate(
+            { username: req.params.username },
+            { profile },
+            { new: true }
+        );
+        if (!updated) return res.status(404).json({ error: 'الطالب غير موجود' });
+        res.json({ message: 'تم تحديث الملف الشخصي', student: updated });
+    } catch (error) {
+        console.error('خطأ في تحديث profile الطالب:', error);
+        res.status(500).json({ error: 'فشل في التحديث' });
+    }
+});
+
+// تحديث profile للأدمن (اختياري - لو عايز الأدمن يعدل حاجة)
+app.put('/api/admins/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        const updated = await Admin.findOneAndUpdate(
+            { username: req.params.username },
+            { profile: profile || {} },
+            { new: true, upsert: true }
+        );
+        res.json({ message: 'تم تحديث بيانات الأدمن', admin: updated });
+    } catch (error) {
+        res.status(500).json({ error: 'فشل في التحديث' });
+    }
+});
 // جلب بيانات أدمن واحد بالـ username
 app.get('/api/admins/:username', async (req, res) => {
     try {
@@ -628,8 +659,10 @@ app.get('/api/admins/:username', async (req, res) => {
         res.status(500).json({ error: 'فشل في جلب البيانات' });
     }
 });
+
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
