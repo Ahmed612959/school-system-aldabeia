@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script> <!-- مهم جدًا -->
     <style>
         :root{--g:#d4af37;--d:#1a2526;--d2:#2a3a3b}
         *{margin:0;padding:0;box-sizing:border-box}
@@ -58,7 +59,6 @@
         }
         .btn:hover{background:#b8972e}
 
-        /* النافبار المنحني الفخم */
         .nav{
             position:fixed;bottom:0;left:0;right:0;
             background:linear-gradient(180deg,var(--d),var(--d2));
@@ -96,7 +96,7 @@
     <div class="card">
         <div class="ch">
             <h2 id="user-name">جاري التحميل...</h2>
-            <span id="admin-badge" style="display:none;">Crown</span>
+            <span id="admin-badge" style="display:none;"><i class="fas fa-crown"></i></span>
         </div>
 
         <div class="p">
@@ -120,7 +120,6 @@
     </div>
 </div>
 
-<!-- النافبار المنحني الفخم -->
 <nav class="nav">
     <a href="index.html"><i class="fas fa-home"></i></a>
     <a href="Home.html"><i class="fas fa-chart-line"></i></a>
@@ -129,40 +128,32 @@
     <a href="chatbot.html"><i class="fas fa-robot"></i></a>
 </nav>
 
+<script>
 document.addEventListener('DOMContentLoaded', async () => {
     const BASE_URL = 'https://schoolx-five.vercel.app';
     
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    if (!loggedInUser) {
-        alert('يرجى تسجيل الدخول أولاً!');
-        window.location.href = 'login.html';
+    if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
+        Toastify({ text: "يرجى تسجيل الدخول أولاً!", backgroundColor: "#dc3545", duration: 4000 }).showToast();
+        setTimeout(() => window.location.href = 'login.html', 2000);
         return;
     }
 
     const username = loggedInUser.username;
-    const userType = loggedInUser.type; // 'student' أو 'admin'
+    const userType = loggedInUser.type;
 
-    // الحل السحري: نجيب البيانات مباشرة بالـ username (سريع جدًا)
-    async function fetchUser() {
-        try {
-            const res = await fetch(`${BASE_URL}/api/${userType}s/${username}`);
-            if (!res.ok) throw new Error('المستخدم غير موجود');
-            return await res.json();
-        } catch (err) {
-            showToast('فشل جلب البيانات! تحقق من الإنترنت', 'error');
-            setTimeout(() => window.location.href = 'login.html', 2000);
-            return null;
-        }
+    let user = null;
+    try {
+        const res = await fetch(`${BASE_URL}/api/${userType}s/${username}`);
+        if (!res.ok) throw new Error('غير موجود');
+        user = await res.json();
+    } catch (err) {
+        Toastify({ text: "فشل جلب البيانات.. تحقق من الإنترنت", backgroundColor: "#dc3545", duration: 5000 }).showToast();
+        return;
     }
 
-    // جلب البيانات
-    const user = await fetchUser();
-    if (!user) return;
-
-    // تهيئة الـ profile لو فاضي
     user.profile = user.profile || { email: '', phone: '', birthdate: '', address: '', bio: '' };
 
-    // عرض البيانات
     document.getElementById('user-name').textContent = user.fullName || user.username;
     document.getElementById('full-name').value = user.fullName || '';
     document.getElementById('username').value = user.username;
@@ -172,7 +163,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('address').value = user.profile.address || '';
     document.getElementById('bio').value = user.profile.bio || '';
 
-    // نسبة الاكتمال
     const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 5) * 100);
@@ -180,10 +170,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('progress-percentage').textContent = percentage + '%';
 
     if (userType === 'admin') {
-        document.getElementById('admin-badge')?.style = 'display:inline-block';
+        document.getElementById('admin-badge').style.display = 'inline-block';
     }
 
-    // حفظ التغييرات
+    Toastify({
+        text: `أهلاً بعودتك يا ${user.fullName?.split(' ')[0] || username}!`,
+        backgroundColor: "#d4af37",
+        duration: 4000
+    }).showToast();
+
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -203,21 +198,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (res.ok) {
-                showToast('تم حفظ التغييرات بنجاح!', 'success');
-                // تحديث نسبة الاكتمال
                 const newCompleted = fields.filter(f => updatedProfile[f]).length;
                 const newPercentage = Math.round((newCompleted / 5) * 100);
                 document.getElementById('profile-progress').value = newPercentage;
                 document.getElementById('progress-percentage').textContent = newPercentage + '%';
+
+                Toastify({
+                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم حفظ التغييرات بنجاح!",
+                    backgroundColor: "#28a745",
+                    duration: 4000
+                }).showToast();
             } else {
-                throw new Error('فشل الحفظ');
+                throw new Error();
             }
         } catch (err) {
-            showToast('لا يوجد اتصال بالإنترنت', 'error');
+            Toastify({
+                text: "لا يوجد اتصال بالإنترنت - لم يتم الحفظ",
+                backgroundColor: "#dc3545",
+                duration: 5000
+            }).showToast();
         }
     });
 
-    // النافبار (نفس الكود بتاعك)
+    // النافبار الديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fas fa-home' },
         { href: 'Home.html', icon: 'fas fa-chart-line' },
@@ -229,25 +232,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         navItems.push({ href: 'admin.html', icon: 'fas fa-cogs' });
     }
 
-    document.getElementById('nav-bar').innerHTML = navItems.map(item => 
-        `<a href="${item.href}" class="${item.active ? 'active' : ''}">
-            <i class="${item.icon}"></i>
-         </a>`
+    document.querySelector('.nav').innerHTML = navItems.map(item => 
+        `<a href="${item.href}" class="${item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
     ).join('');
-
-    // Toast أنيق
-    function showToast(msg, type = 'success') {
-        Toastify({
-            text: msg,
-            duration: 3000,
-            gravity: "top",
-            position: "center",
-            backgroundColor: type === 'success' ? '#28a745' : '#dc3545',
-            style: { fontFamily: '"Cairo", sans-serif', fontSize: "16px", borderRadius: "12px" }
-        }).showToast();
-    }
-
-    showToast(`أهلاً يا ${user.fullName?.split(' ')[0] || 'بطل'}!`, 'success');
 });
 </script>
 
