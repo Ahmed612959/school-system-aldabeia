@@ -668,7 +668,7 @@ app.post('/api/gemini', async (req, res) => {
 
         const GEMINI_KEY = 'AIzaSyDIz_m6j4KuzMzAL65p3ppdVAxKGc_dFE0'; // حط مفتاحك هنا
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AIzaSyCMjm5Kv4eRqL-8mkH7arYIVqVGwU1LZ_o}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -692,6 +692,7 @@ app.post('/api/gemini', async (req, res) => {
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
