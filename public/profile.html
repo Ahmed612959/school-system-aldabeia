@@ -131,45 +131,65 @@
 
 <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 <script>
-// جلب البيانات من السيرفر + الحفظ + نسبة الاكتمال (شغال 100% مع الـ PUT routes اللي ضفناها)
-const username = localStorage.getItem('username') || 'guest';
-const isAdmin = localStorage.getItem('isAdmin') === 'true';
-
 document.addEventListener('DOMContentLoaded', async () => {
-    if (isAdmin) document.getElementById('admin-badge').style.display = 'inline';
-
-    try {
-        const res = await fetch(`/api/${isAdmin ? 'admins' : 'students'}/${username}`);
-        if (res.ok) {
-            const user = await res.json();
-            if (!isAdmin && user.length > 0) user = user[0];
-
-            document.getElementById('user-name').textContent = user.fullName || user.username;
-            document.getElementById('full-name').value = user.fullName || '';
-            document.getElementById('username').value = user.username;
-
-            const profile = (isAdmin ? user : user.profile) || {};
-            document.getElementById('email').value = profile.email || '';
-            document.getElementById('phone').value = profile.phone || '';
-            document.getElementById('birthdate').value = profile.birthdate || '';
-            document.getElementById('address').value = profile.address || '';
-            document.getElementById('bio').value = profile.bio || '';
-
-            // حساب نسبة الاكتمال
-            const fields = [profile.email, profile.phone, profile.birthdate, profile.address, profile.bio];
-            const completed = fields.filter(f => f).length;
-            const percentage = Math.round((completed / fields.length) * 100);
-            document.getElementById('profile-progress').value = percentage;
-            document.getElementById('progress-percentage').textContent = percentage + '%';
-        }
-    } catch (err) {
-        console.log('مشكلة في جلب البيانات (طبيعي لو السيرفر لسة مش متظبط)', err);
+    const BASE_URL = 'https://schoolx-five.vercel.app';
+    
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    if (!loggedInUser) {
+        alert('يرجى تسجيل الدخول أولاً!');
+        window.location.href = 'login.html';
+        return;
     }
 
-    // حفظ البيانات
+    const username = loggedInUser.username;
+    const userType = loggedInUser.type; // 'student' أو 'admin'
+
+    // الحل السحري: نجيب البيانات مباشرة بالـ username (سريع جدًا)
+    async function fetchUser() {
+        try {
+            const res = await fetch(`${BASE_URL}/api/${userType}s/${username}`);
+            if (!res.ok) throw new Error('المستخدم غير موجود');
+            return await res.json();
+        } catch (err) {
+            showToast('فشل جلب البيانات! تحقق من الإنترنت', 'error');
+            setTimeout(() => window.location.href = 'login.html', 2000);
+            return null;
+        }
+    }
+
+    // جلب البيانات
+    const user = await fetchUser();
+    if (!user) return;
+
+    // تهيئة الـ profile لو فاضي
+    user.profile = user.profile || { email: '', phone: '', birthdate: '', address: '', bio: '' };
+
+    // عرض البيانات
+    document.getElementById('user-name').textContent = user.fullName || user.username;
+    document.getElementById('full-name').value = user.fullName || '';
+    document.getElementById('username').value = user.username;
+    document.getElementById('email').value = user.profile.email || '';
+    document.getElementById('phone').value = user.profile.phone || '';
+    document.getElementById('birthdate').value = user.profile.birthdate || '';
+    document.getElementById('address').value = user.profile.address || '';
+    document.getElementById('bio').value = user.profile.bio || '';
+
+    // نسبة الاكتمال
+    const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
+    const completed = fields.filter(f => user.profile[f]?.trim()).length;
+    const percentage = Math.round((completed / 5) * 100);
+    document.getElementById('profile-progress').value = percentage;
+    document.getElementById('progress-percentage').textContent = percentage + '%';
+
+    if (userType === 'admin') {
+        document.getElementById('admin-badge')?.style = 'display:inline-block';
+    }
+
+    // حفظ التغييرات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const profile = {
+
+        const updatedProfile = {
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
             birthdate: document.getElementById('birthdate').value,
@@ -178,22 +198,58 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            const res = await fetch(`/api/${isAdmin ? 'admins' : 'students'}/${username}`, {
+            const res = await fetch(`${BASE_URL}/api/${userType}s/${username}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profile })
+                body: JSON.stringify({ profile: updatedProfile })
             });
 
             if (res.ok) {
-                Toastify({ text: "تم حفظ البيانات بنجاح!", backgroundColor: "#d4af37" }).showToast();
-                setTimeout(() => location.reload(), 1000);
+                showToast('تم حفظ التغييرات بنجاح!', 'success');
+                // تحديث نسبة الاكتمال
+                const newCompleted = fields.filter(f => updatedProfile[f]).length;
+                const newPercentage = Math.round((newCompleted / 5) * 100);
+                document.getElementById('profile-progress').value = newPercentage;
+                document.getElementById('progress-percentage').textContent = newPercentage + '%';
             } else {
-                Toastify({ text: "فشل في الحفظ", backgroundColor: "#e74c3c" }).showToast();
+                throw new Error('فشل الحفظ');
             }
         } catch (err) {
-            Toastify({ text: "لا يوجد اتصال بالسيرفر", backgroundColor: "#e74c3c" }).showToast();
+            showToast('لا يوجد اتصال بالإنترنت', 'error');
         }
     });
+
+    // النافبار (نفس الكود بتاعك)
+    const navItems = [
+        { href: 'index.html', icon: 'fas fa-home' },
+        { href: 'Home.html', icon: 'fas fa-chart-line' },
+        { href: 'profile.html', icon: 'fas fa-user', active: true },
+        { href: 'exams.html', icon: 'fas fa-book' },
+        { href: 'chatbot.html', icon: 'fas fa-robot' }
+    ];
+    if (userType === 'admin') {
+        navItems.push({ href: 'admin.html', icon: 'fas fa-cogs' });
+    }
+
+    document.getElementById('nav-bar').innerHTML = navItems.map(item => 
+        `<a href="${item.href}" class="${item.active ? 'active' : ''}">
+            <i class="${item.icon}"></i>
+         </a>`
+    ).join('');
+
+    // Toast أنيق
+    function showToast(msg, type = 'success') {
+        Toastify({
+            text: msg,
+            duration: 3000,
+            gravity: "top",
+            position: "center",
+            backgroundColor: type === 'success' ? '#28a745' : '#dc3545',
+            style: { fontFamily: '"Cairo", sans-serif', fontSize: "16px", borderRadius: "12px" }
+        }).showToast();
+    }
+
+    showToast(`أهلاً يا ${user.fullName?.split(' ')[0] || 'بطل'}!`, 'success');
 });
 </script>
 </body>
