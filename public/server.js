@@ -659,10 +659,39 @@ app.get('/api/admins/:username', async (req, res) => {
         res.status(500).json({ error: 'فشل في جلب البيانات' });
     }
 });
+// ================== اضف ده في أي مكان في الملف (قبل الـ module.exports) ==================
+
+// الـ API بتاع Gemini (آمن 100% لأنه في السيرفر مش في الـ HTML)
+app.post('/api/gemini', async (req, res) => {
+    try {
+        const { prompt } = req.body;
+
+        const GEMINI_KEY = 'AIzaSyDIz_m6j4KuzMzAL65p3ppdVAxKGc_dFE0'; // حط مفتاحك هنا
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{ text: `أنت مساعد ذكي لطيف جدًا لمعهد تمريض اسمه "معهد رعاية الضبعية". رد بالعربي المصري الخفيف واللطيف والمضحك شوية: ${prompt}` }]
+                }]
+            })
+        });
+
+        const data = await response.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "يا بنت الإيه… النت فصل وأنا بحبك";
+
+        res.json({ reply });
+
+    } catch (err) {
+        console.error("Gemini Error:", err);
+        res.json({ reply: "يا قمر… السيرفر زعلان مني شوية، جربي تاني بعد دقيقة" });
+    }
+});
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
-
 
 
 
