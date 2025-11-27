@@ -690,8 +690,41 @@ app.post('/api/gemini', async (req, res) => {
     }
 });
 
+// ================== Chatbot API (آمن ومصري أصيل) ==================
+app.post('/api/gemini', async (req, res) => {
+    try {
+        const { prompt, lang = 'ar' } = req.body;
+
+        const GEMINI_KEY = 'AIzaSyAzd1a97vHrXC5b6VGoaDRTXiVcWRmfWxA'; // مفتاحك هنا (آمن لأنه في السيرفر)
+
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                {
+                contents: [{
+                    role: "user",
+                    parts: [{ text: `أنت مساعد ذكي لطيف جدًا لمعهد تمريض اسمه "معهد رعاية الضبعية". 
+رد بالعربي المصري الخفيف والظريف والمضحك شوية، ولو السؤال بالإنجليزي رد بالإنجليزي برضو:
+${prompt}` }]
+                }]
+            })
+        });
+
+        const data = await response.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "يا بنت الجزمة… أنا نايم";
+
+        res.json({ reply: reply.trim() });
+
+    } catch (err) {
+        console.error("Gemini Error:", err);
+        res.json({ reply: "يا معلم النت وقع… طب جرب تاني بعد دقيقة" });
+    }
+}); 
+
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
