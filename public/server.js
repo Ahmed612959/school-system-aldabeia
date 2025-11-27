@@ -659,71 +659,62 @@ app.get('/api/admins/:username', async (req, res) => {
         res.status(500).json({ error: 'فشل في جلب البيانات' });
     }
 });
-// ================== اضف ده في أي مكان في الملف (قبل الـ module.exports) ==================
 
-// الـ API بتاع Gemini (آمن 100% لأنه في السيرفر مش في الـ HTML)
-app.post('/api/gemini', async (req, res) => {
-    try {
-        const { prompt } = req.body;
-
-        const GEMINI_KEY = 'AIzaSyDIz_m6j4KuzMzAL65p3ppdVAxKGc_dFE0'; // حط مفتاحك هنا
-
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AIzaSyCMjm5Kv4eRqL-8mkH7arYIVqVGwU1LZ_o}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [{
-                    role: "user",
-                    parts: [{ text: `أنت مساعد ذكي لطيف جدًا لمعهد تمريض اسمه "معهد رعاية الضبعية". رد بالعربي المصري الخفيف واللطيف والمضحك شوية: ${prompt}` }]
-                }]
-            })
-        });
-
-        const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "يا بنت الإيه… النت فصل وأنا بحبك";
-
-        res.json({ reply });
-
-    } catch (err) {
-        console.error("Gemini Error:", err);
-        res.json({ reply: "يا قمر… السيرفر زعلان مني شوية، جربي تاني بعد دقيقة" });
-    }
-});
-
-// ================== Chatbot API (آمن ومصري أصيل) ==================
+// ================== الـ API النهائي للشات بوت (آمن + مصري + شغال 100%) ==================
 app.post('/api/gemini', async (req, res) => {
     try {
         const { prompt, lang = 'ar' } = req.body;
 
-        const GEMINI_KEY = 'AIzaSyAzd1a97vHrXC5b6VGoaDRTXiVcWRmfWxA'; // مفتاحك هنا (آمن لأنه في السيرفر)
+        // المفتاح الصحيح (غير ده بمفتاحك الشخصي)
+        const GEMINI_KEY = 'AIzaSyDIz_m6j4KuzMzAL65p3ppdVAxKGc_dFE0';
 
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                {
-                contents: [{
-                    role: "user",
-                    parts: [{ text: `أنت مساعد ذكي لطيف جدًا لمعهد تمريض اسمه "معهد رعاية الضبعية". 
-رد بالعربي المصري الخفيف والظريف والمضحك شوية، ولو السؤال بالإنجليزي رد بالإنجليزي برضو:
-${prompt}` }]
-                }]
-            })
-        });
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        role: 'user',
+                        parts: [{
+                            text: `أنت مساعد ذكي لطيف جدًا ومصري أصيل لمعهد تمريض اسمه "معهد رعاية الضبعية".
+رد بالعربي المصري الخفيف والظريف والمضحك شوية، ولو السؤال بالإنجليزي رد بالإنجليزي:
+${prompt}`
+                        }]
+                    }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }
+                    ]
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const err = await response.text();
+            console.error('Gemini API Error:', err);
+            throw new Error('Gemini API failed');
+        }
 
         const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "يا بنت الجزمة… أنا نايم";
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
+                      || "يا بنت الإيه… أنا نايم شوية، جربي تاني";
 
-        res.json({ reply: reply.trim() });
+        res.json({ reply });
 
     } catch (err) {
-        console.error("Gemini Error:", err);
-        res.json({ reply: "يا معلم النت وقع… طب جرب تاني بعد دقيقة" });
+        console.error('Gemini Route Error:', err.message);
+        res.json({ 
+            reply: "يا قمر… النت ضعيف أو السيرفر زعلان، جربي تاني بعد دقيقة" 
+        });
     }
-}); 
+});
+
+
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
