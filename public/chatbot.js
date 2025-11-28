@@ -1,187 +1,143 @@
+// public/js/chatbot.js
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Chatbot JS loaded at', new Date().toLocaleString());
+    console.log('Chatbot JS loaded - مصري أصلي 100%');
 
-    // جلب العناصر
-    const chatInput = document.getElementById('chat-input');
-    const sendBtn = document.querySelector('.send-btn');
-    const chatWindow = document.getElementById('chat-window');
-    const languageToggle = document.getElementById('language-toggle');
-    const clearBtn = document.querySelector('.clear-btn');
+    // العناصر الأساسية
+    const chatWindow     = document.getElementById('chat-window');
+    const chatInput      = document.getElementById('chat-input');
+    const sendBtn        = document.getElementById('send-btn');
+    const voiceBtn       = document.getElementById('voice-btn');
+    const clearBtn       = document.getElementById('clearChat');
+    const modeToggle     = document.getElementById('modeToggle');
+    const suggestions    = document.querySelectorAll('.suggestions div');
 
-    // فحص وجود العناصر الأساسية
-    if (!chatInput || !sendBtn || !chatWindow) {
-        console.error('Missing required elements:', { chatInput, sendBtn, chatWindow });
-        return;
-    }
+    // الأصوات
+    const sendSound    = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_233a3e35a3.mp3?filename=message-133874.mp3");
+    const receiveSound = new Audio("https://cdn.pixabay.com/download/audio/2021/12/22/audio_c16a4c19f1.mp3?filename=bell-58749.mp3");
 
-    // إعدادات المعهد (باقية زي ما هي)
-    let currentLanguage = 'ar';
-    const instituteContext = {
-        name: 'معهد رعاية الضبعية',
-        type: 'طبي',
-        subjects: ['تمريض', 'تشريح', 'صيدلة'],
-        faq: [
-            { question: 'ما هي مواعيد التسجيل؟', answer: 'التسجيل مفتوح من يونيو إلى أغسطس.' },
-            { question: 'كيف أتحقق من نتيجتي؟', answer: 'ادخل إلى صفحة النتائج واستخدم رقم الجلوس.' }
-        ]
-    };
+    // Dark Mode
+    modeToggle.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        modeToggle.classList.toggle('fa-moon');
+        modeToggle.classList.toggle('fa-sun');
+    });
 
-    // تحديث الناف بار (باقي زي ما هو)
-    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
-    const navBar = document.getElementById('nav-bar');
-    if (navBar) {
-        function renderNav() {
-            const navItems = [
-                { href: 'index.html', icon: 'fas fa-home', title: currentLanguage === 'ar' ? 'الرئيسية' : 'Home' },
-                { href: 'Home.html', icon: 'fas fa-chart-line', title: currentLanguage === 'ar' ? 'النتائج' : 'Results' },
-                { href: 'profile.html', icon: 'fas fa-user', title: currentLanguage === 'ar' ? 'الملف الشخصي' : 'Profile' },
-                { href: 'chatbot.html', icon: 'fas fa-robot', title: currentLanguage === 'ar' ? 'المساعد الذكي' : 'Smart Assistant' }
-            ];
-            if (loggedInUser && loggedInUser.type === 'admin') {
-                navItems.push({ href: 'admin.html', icon: 'fas fa-cogs', title: currentLanguage === 'ar' ? 'لوحة التحكم' : 'Admin Panel' });
-            }
-            navBar.innerHTML = navItems.map(item => `
-                <a href="${item.href}" class="${item.href.includes('chatbot') ? 'active' : ''}">
-                    <i class="${item.icon}" title="${item.title}"></i>
-                </a>
-            `).join('');
+    // مسح الدردشة
+    clearBtn.addEventListener('click', () => {
+        if (confirm('هتمسح الدردشة كلها؟')) {
+            chatWindow.innerHTML = `
+                <div class="welcome">
+                    <h2>مرحباً بكِ</h2>
+                    <p>أنا مساعدك الذكي — جاهز لمساعدتك في الأسئلة، الواجبات، الجداول والنتائج.</p>
+                    <small>الخصوصية مضمونة بالكامل</small>
+                </div>`;
         }
-        renderNav();
-    }
+    });
 
-    // تبديل اللغة
-    if (languageToggle) {
-        languageToggle.addEventListener('click', () => {
-            currentLanguage = currentLanguage === 'ar' ? 'en' : 'ar';
-            languageToggle.textContent = currentLanguage === 'ar' ? 'EN' : 'AR';
-            updateUILanguage();
-            showToast(currentLanguage === 'ar' ? 'تم تغيير اللغة إلى العربية' : 'Language switched to English', 'success');
-        });
-    }
-
-    // تحديث واجهة المستخدم حسب اللغة
-    function updateUILanguage() {
-        chatInput.placeholder = currentLanguage === 'ar' ? 'اكتب سؤالك هنا...' : 'Type your question here...';
-        if (clearBtn) clearBtn.textContent = currentLanguage === 'ar' ? 'مسح' : 'Clear';
-        sendBtn.textContent = currentLanguage === 'ar' ? 'إرسال' : 'Send';
-        document.querySelector('.chatbot-section h3')?.replaceWith(
-            document.createElement('h3').appendChild(document.createTextNode(currentLanguage === 'ar' ? 'اسألني أي سؤال!' : 'Ask me anything!')).parentElement
-        );
-        if (navBar) renderNav();
-    }
-
-    // تنسيق الوقت
-    function formatTime() {
-        const now = new Date();
-        const hours = now.getHours() % 12 || 12;
-        const minutes = now.getMinutes().toString().padStart(2, '0');
-        const period = now.getHours() >= 12 ? (currentLanguage === 'ar' ? 'م' : 'PM') : (currentLanguage === 'ar' ? 'ص' : 'AM');
-        return `${hours}:${minutes} ${period}`;
-    }
-
-    // إضافة رسائل
+    // إضافة رسالة
     function addMessage(text, type) {
-        const div = document.createElement('div');
-        div.className = `chat-message ${type}-message`;
-        div.innerHTML = `${text.replace(/\n/g, '<br>')}<span class="message-time">${formatTime()}</span>`;
-        chatWindow.appendChild(div);
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `msg ${type}`;
+        msgDiv.innerHTML = `
+            <div class="av"><img src="${type === 'user' ? 'Karton.jpeg' : 'logo.png'}" alt=""></div>
+            <div class="b">
+                ${text.replace(/\n/g, '<br>')}
+                <div class="time">${new Date().toLocaleTimeString('ar-EG', {hour: 'numeric', minute: '2-digit'})}</div>
+            </div>
+        `;
+        chatWindow.appendChild(msgDiv);
         chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        if (type === 'user') sendSound.play();
+        else receiveSound.play();
     }
 
+    // حالة الكتابة
     function showTyping() {
         const typing = document.createElement('div');
-        typing.className = 'chat-message bot-message loading';
-        typing.id = 'typing-indicator';
-        typing.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+        typing.className = 'msg bot';
+        typing.id = 'typing';
+        typing.innerHTML = `<div class="b"><div class="typing"><span></span><span></span><span></span></div></div>`;
         chatWindow.appendChild(typing);
         chatWindow.scrollTop = chatWindow.scrollHeight;
     }
 
     function removeTyping() {
-        const typing = document.getElementById('typing-indicator');
-        if (typing) typing.remove();
+        document.getElementById('typing')?.remove();
     }
 
-    // دالة الإرسال (النسخة الآمنة والمصرية الأصلية)
+    // إرسال الرسالة للسيرفر (آمن 100% - المفتاح في الـ Backend)
     async function sendMessage() {
         const message = chatInput.value.trim();
-        if (!message) {
-            showToast(currentLanguage === 'ar' ? 'اكتب حاجة الأول يا قمر!' : 'Type something first!', 'error');
-            return;
-        }
+        if (!message) return;
 
         addMessage(message, 'user');
         chatInput.value = '';
         showTyping();
 
         try {
-            // إرسال الرسالة للسيرفر (المفتاح مخفي تمامًا)
-            const res = await fetch('https://schoolx-five.vercel.app/api/gemini', {
+            const res = await fetch('/api/gemini', {  // مهم: بدون الدومين لأننا على نفس السيرفر
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: message, lang: currentLanguage })
+                body: JSON.stringify({ prompt: message })
             });
 
             removeTyping();
 
-            if (!res.ok) throw new Error();
+            if (!res.ok) throw new Error('Network error');
 
             const data = await res.json();
-            const reply = data.reply || (currentLanguage === 'ar' ? 'معلش، النت ضعيف شوية… جربي تاني' : 'Sorry, connection issue. Try again.');
+            const reply = data.reply || 'يا قمر… في حاجة غلط، جربي تاني';
 
             addMessage(reply, 'bot');
-            showToast(currentLanguage === 'ar' ? 'رديت عليكي يا وحش!' : 'Replied!', 'success');
 
         } catch (err) {
+            console.error('Gemini Error:', err);
             removeTyping();
-            addMessage(currentLanguage === 'ar' ? 'النت وقع يا معلم… جرب تاني' : 'No internet connection… Try again', 'bot');
-            showToast('فشل الاتصال', 'error');
+            addMessage('النت وقع يا وحش… جربي تاني بعد شوية', 'bot');
         }
     }
 
-    // الأحداث
+    // الأحداث الأساسية
     sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+    chatInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') sendMessage();
+    });
 
-    if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
-            if (confirm(currentLanguage === 'ar' ? 'هتمسح الدردشة كلها؟' : 'Clear all messages?')) {
-                chatWindow.innerHTML = '';
-                showToast(currentLanguage === 'ar' ? 'تم المسح!' : 'Chat cleared!', 'success');
-            }
+    // الاقتراحات السريعة
+    suggestions.forEach(s => {
+        s.addEventListener('click', () => {
+            chatInput.value = s.textContent;
+            sendMessage();
         });
+    });
+
+    // التعرف على الصوت (اختياري وشغال في كل المتصفحات الحديثة)
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ar-EG';
+        recognition.interimResults = false;
+
+        voiceBtn.addEventListener('click', () => {
+            recognition.start();
+            voiceBtn.style.background = 'red';
+        });
+
+        recognition.onresult = (e) => {
+            chatInput.value = e.results[0][0].transcript;
+            sendMessage();
+        };
+
+        recognition.onend = () => {
+            voiceBtn.style.background = '';
+        };
     }
 
-    // Toastify (باقي زي ما هو)
-    function showToast(message, type = 'success') {
-        let backgroundColor = '#333';
-        if (type === 'success') backgroundColor = 'linear-gradient(135deg, #28a745, #218838)';
-        if (type === 'error') backgroundColor = 'linear-gradient(135deg, #dc3545, #c82333)';
-
-        Toastify({
-            text: message,
-            duration: 4000,
-            gravity: 'top',
-            position: 'center',
-            backgroundColor: backgroundColor,
-            stopOnFocus: true,
-            style: {
-                fontSize: '18px',
-                fontFamily: '"Cairo", sans-serif',
-                padding: '20px 30px',
-                borderRadius: '12px',
-                direction: currentLanguage === 'ar' ? 'rtl' : 'ltr',
-                textAlign: currentLanguage === 'ar' ? 'right' : 'left',
-            }
-        }).showToast();
-    }
-
-    // رسالة ترحيب
+    // رسالة الترحيب التلقائية
     setTimeout(() => {
-        addMessage(currentLanguage === 'ar'
-            ? 'أهلاً يا أجمل طالبة في المعهد! ازيك النهاردة؟ عايزة أساعدك في إيه؟'
-            : 'Hey there! How can I help you today?', 'bot');
-    }, 800);
+        addMessage('أهلاً يا أجمل طالبة في معهد رعاية الضبعية! ازيك النهاردة؟ عايزة أساعدك في إيه يا قمر؟', 'bot');
+    }, 1000);
 
-    console.log('Chatbot initialized successfully - مصري أصلي 100%');
-}); 
+    console.log('Chatbot initialized successfully - SchoolX is now unstoppable!');
+});
