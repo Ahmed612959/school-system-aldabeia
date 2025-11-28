@@ -669,7 +669,7 @@ app.post('/api/gemini', async (req, res) => {
         const GEMINI_KEY = 'AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA';
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -714,6 +714,7 @@ ${prompt}`
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
