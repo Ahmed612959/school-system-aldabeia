@@ -84,6 +84,23 @@ function generatePassword(fullName) {
     return `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}1234@`;
 }
 
+// === نموذج مسابقة الأسبوع ===
+const weeklyQuizSchema = new mongoose.Schema({
+    weekNumber: { type: Number, required: true },  // رقم الأسبوع في السنة
+    question: { type: String, required: true },
+    options: [{ type: String, required: true }],   // 4 إجابات
+    correctIndex: { type: Number, required: true }, // رقم الإجابة الصح (0-3)
+    winners: [{                                    // أول 5 يجاوبوا صح
+        studentId: String,
+        username: String,
+        fullName: String,
+        answeredAt: { type: Date, default: Date.now }
+    }],
+    isActive: { type: Boolean, default: true }
+});
+
+const WeeklyQuiz = mongoose.model('WeeklyQuiz', weeklyQuizSchema);
+
 // === كل الـ API Routes ===
 app.get('/api/admins', async (req, res) => {
     try {
@@ -94,6 +111,7 @@ app.get('/api/admins', async (req, res) => {
         res.status(500).json({ error: 'خطأ في جلب الأدمنز' });
     }
 });
+
 
 app.post('/api/admins', async (req, res) => {
     try {
@@ -798,6 +816,7 @@ app.post('/api/weekly-quiz/answer', async (req, res) => {
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
