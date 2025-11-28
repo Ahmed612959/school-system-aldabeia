@@ -663,57 +663,49 @@ app.get('/api/admins/:username', async (req, res) => {
 // ================== الـ API النهائي للشات بوت (آمن + مصري + شغال 100%) ==================
 app.post('/api/gemini', async (req, res) => {
     try {
-        const { prompt, lang = 'ar' } = req.body;
+        const { prompt } = req.body;
+        if (!prompt) return res.json({ reply: "اكتب حاجة الأول يا قمر" });
 
-        // المفتاح الصحيح (غير ده بمفتاحك الشخصي)
-        const GEMINI_KEY = 'AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA';
+        const GEMINI_KEY = process.env.GEMINI_KEY || 'AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA';
 
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA}`,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     contents: [{
-                        role: 'user',
-                        parts: [{
-                            text: `أنت مساعد ذكي لطيف جدًا ومصري أصيل لمعهد تمريض اسمه "معهد رعاية الضبعية".
-رد بالعربي المصري الخفيف والظريف والمضحك شوية، ولو السؤال بالإنجليزي رد بالإنجليزي:
-${prompt}`
-                        }]
+                        role: "user",
+                        parts: [{ text: `رد بالعربي المصري الخفيف والظريف جدًا:
+                        
+${prompt}` }]
                     }],
                     safetySettings: [
-                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" }
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
                     ]
                 })
             }
         );
 
-        if (!response.ok) {
-            const err = await response.text();
-            console.error('Gemini API Error:', err);
-            throw new Error('Gemini API failed');
-        }
+        if (!response.ok) throw new Error('Gemini down');
 
         const data = await response.json();
         const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
-                      || "يا بنت الإيه… أنا نايم شوية، جربي تاني";
+                      || "معلش يا وحش… أنا لسة بفكر";
 
         res.json({ reply });
 
     } catch (err) {
-        console.error('Gemini Route Error:', err.message);
-        res.json({ 
-            reply: "يا قمر… النت ضعيف أو السيرفر زعلان، جربي تاني بعد دقيقة" 
-        });
+        console.error('Gemini Error:', err.message);
+        res.json({ reply: "يا قمر… النت ضعيف أوي، جربي تاني بعد شوية" });
     }
 });
 
 
-
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
