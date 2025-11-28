@@ -710,10 +710,95 @@ ${prompt}`
         res.json({ reply: "يا قمر… النت وقع أو السيرفر نايم، جربي تاني بعد شوية" });
     }
 });
+// جلب المسابقة الحالية
+app.get('/api/weekly-quiz', async (req, res) => {
+    try {
+        const now = new Date();
+        const weekNumber = require('date-fns/getWeek')(now); // npm install date-fns
+
+        let quiz = await WeeklyQuiz.findOne({ weekNumber, isActive: true });
+        
+        if (!quiz) {
+            // لو مفيش مسابقة للأسبوع ده، نعمل واحدة تلقائي
+            const sampleQuestions = [
+                { q: "ما هو أكبر عضو في جسم الإنسان؟", opts: ["القلب", "الكبد", "الجلد", "الدماغ"], correct: 2 },
+                { q: "كم عدد عظام الجمجمة عند الإنسان البالغ؟", opts: ["22", "18", "30", "8"], correct: 0 },
+                { q: "ما اسم الغدة التي تتحكم في السكر في الدم؟", opts: ["الغدة الدرقية", "البنكرياس", "الكظرية", "النخامية"], correct: 1 },
+            ];
+            const randomQ = sampleQuestions[Math.floor(Math.random() * sampleQuestions.length)];
+            
+            quiz = new WeeklyQuiz({
+                weekNumber,
+                question: randomQ.q,
+                options: randomQ.opts,
+                correctIndex: randomQ.correct,
+                winners: []
+            });
+            await quiz.save();
+        }
+
+        // نرجع البيانات بدون ما نكشف الإجابة الصح
+        res.json({
+            weekNumber: quiz.weekNumber,
+            question: quiz.question,
+            options: quiz.options,
+            totalWinners: quiz.winners.length,
+            winners: quiz.winners.slice(0, 5).map(w => ({ fullName: w.fullName, rank: quiz.winners.indexOf(w) + 1 }))
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "فشل في جلب المسابقة" });
+    }
+});
+
+// إرسال إجابة المسابقة
+app.post('/api/weekly-quiz/answer', async (req, res) => {
+    try {
+        const { username, answerIndex } = req.body;
+        if (answerIndex == null || username == null) return res.status(400).json({ error: "بيانات ناقصة" });
+
+        const student = await Student.findOne({ username });
+        if (!student) return res.status(404).json({ error: "الطالبة مش موجودة" });
+
+        const now = new Date();
+        const weekNumber = require('date-fns/getWeek')(now);
+        const quiz = await WeeklyQuiz.findOne({ weekNumber, isActive: true });
+        if (!quiz) return res.status(400).json({ error: "مفيش مسابقة دلوقتي" });
+
+        // لو هي فازت قبل كده
+        if (quiz.winners.some(w => w.studentId === student.id)) {
+            return res.json({ result: "already_won" });
+        }
+
+        const isCorrect = parseInt(answerIndex) === quiz.correctIndex;
+
+        if (isCorrect && quiz.winners.length < 5) {
+            quiz.winners.push({
+                studentId: student.id,
+                username: student.username,
+                fullName: student.fullName
+            });
+            await quiz.save();
+
+            // نزودها 50 نقطة (لو عايز تضيف حقل points في Student بعدين)
+            res.json({ 
+                result: "winner", 
+                rank: quiz.winners.length,
+                message: `برافووو يا ${student.fullName.split(" ")[0]}! إنتي رقم ${quiz.winners.length} في المسابقة 🎉`
+            });
+        } else {
+            res.json({ result: "wrong", message: "إجابة غلط… جربي تاني الأسبوع الجاي!" });
+        }
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "حصل خطأ" });
+    }
+});
 
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
