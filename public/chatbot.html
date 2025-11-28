@@ -110,8 +110,8 @@
 </div>
 
 <script>
-    // الحل السحري: نستخدم API Key من السيرفر (آمن 100%)
-    const GEMINI_API = 'https://schoolx-five.vercel.app/api/gemini';
+    // الحل السحري: نستخدم Relative Path عشان يشتغل على أي دومين
+    const GEMINI_API = '/api/gemini';
 
     const chat = document.getElementById("chat");
     const input = document.getElementById("txt");
@@ -151,8 +151,8 @@
             </div>`;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
-        if(type === "user") sendSound.play();
-        else receiveSound.play();
+        if(type === "user") sendSound.play().catch(()=>{}); 
+        else receiveSound.play().catch(()=>{});
     }
 
     function typing() {
@@ -181,29 +181,39 @@
 
             document.getElementById("typing")?.remove();
 
-            if (!res.ok) throw new Error();
+            if (!res.ok) {
+                const err = await res.text();
+                console.error("API Error:", res.status, err);
+                throw new Error();
+            }
 
             const data = await res.json();
-            const reply = data.reply || "معلش، حصلت مشكلة بسيطة.. جربي تاني";
+            const reply = data.reply || "معلش يا قمر… في حاجة غلط، جربي تاني";
             add(reply, "bot");
 
         } catch (err) {
+            console.error("Fetch Error:", err);
             document.getElementById("typing")?.remove();
-            add("النت ضعيف شوية يا قمر.. جربي تاني بعد شوية", "bot");
+            add("النت وقع يا وحش… جربي تاني بعد شوية", "bot");
         }
     }
 
     send.onclick = sendMsg;
-    input.addEventListener("keypress", e => e.key === "Enter" && sendMsg());
+    input.addEventListener("keypress", e => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMsg();
+        }
+    });
 
     document.querySelectorAll(".suggestions div").forEach(s => {
         s.onclick = () => {
-            input.value = s.innerText;
+            input.value = s.innerText.trim();
             sendMsg();
         };
     });
 
-    // الصوت (يعمل على الكمبيوتر ومعظم الموبايلات)
+    // الصوت (شغال على 99% من الموبايلات والكمبيوترات)
     if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const rec = new SpeechRecognition();
@@ -212,21 +222,30 @@
 
         voice.onclick = () => {
             rec.start();
-            voice.style.background = "red";
+            voice.innerHTML = '<i class="fa-solid fa-stop"></i>';
+            voice.style.background = "#e74c3c";
         };
 
         rec.onresult = (e) => {
             input.value = e.results[0][0].transcript;
-            voice.style.background = "";
             sendMsg();
         };
 
-        rec.onerror = () => voice.style.background = "";
-        rec.onend = () => voice.style.background = "";
+        rec.onend = () => {
+            voice.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+            voice.style.background = "";
+        };
+
+        rec.onerror = () => {
+            voice.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+            voice.style.background = "";
+        };
     }
 
-    // رسالة ترحيب فورية
-    setTimeout(() => add("أهلاً يا أجمل طالبة في المعهد! ازيك النهاردة؟ عايزة أساعدك في إيه؟", "bot"), 1200);
-</script>
+    // رسالة الترحيب الفورية
+    setTimeout(() => {
+        add("أهلاً يا أجمل طالبة في معهد رعاية الضبعية! ازيك النهاردة يا روحي؟ عايزة أساعدك في إيه يا قمر؟", "bot");
+    }, 1000);
+        </script>
 </body>
 </html>
