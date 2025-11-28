@@ -660,51 +660,61 @@ app.get('/api/admins/:username', async (req, res) => {
     }
 });
 
-// ================== الـ API النهائي للشات بوت (آمن + مصري + شغال 100%) ==================
+// ضيف ده في آخر server.js (استبدل الـ route القديم كله باللي تحت ده)
+
 app.post('/api/gemini', async (req, res) => {
     try {
         const { prompt } = req.body;
-        if (!prompt) return res.json({ reply: "اكتب حاجة الأول يا قمر" });
 
-        const GEMINI_KEY = process.env.GEMINI_KEY || 'AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA';
+        if (!prompt || prompt.trim() === '') {
+            return res.json({ reply: "اكتبي حاجة الأول يا قمر!" });
+        }
 
-        const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        role: "user",
-                        parts: [{ text: `رد بالعربي المصري الخفيف والظريف جدًا:
-                        
-${prompt}` }]
-                    }],
-                    safetySettings: [
-                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                    ]
-                })
-            }
-        );
+        // المفتاح والرابط مكتوبين عادي زي ما طلبت
+        const API_KEY = "AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA";
+        const API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
-        if (!response.ok) throw new Error('Gemini down');
+        const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    role: "user",
+                    parts: [{ 
+                        text: `أنت مساعد ذكي مصري خفيف دم ولطيف جدًا لمعهد "رعاية الضبعية للتمريض".
+رد دايمًا بالعربي المصري الحلو والظريف:
+${prompt}`
+                    }]
+                }],
+                safetySettings: [
+                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                ]
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            console.error("Gemini قال لأ:", err);
+            return res.json({ reply: "يا بنت الإيه… أنا زعلان شوية، جربي تاني بلاش كده" });
+        }
 
         const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
-                      || "معلش يا وحش… أنا لسة بفكر";
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+                      || "معلش يا وحش… أنا نايم دلوقتي، إصحيني تاني";
 
         res.json({ reply });
 
     } catch (err) {
-        console.error('Gemini Error:', err.message);
-        res.json({ reply: "يا قمر… النت ضعيف أوي، جربي تاني بعد شوية" });
+        console.error("خطأ في الشات بوت:", err.message);
+        res.json({ reply: "يا قمر… النت وقع أو السيرفر نايم، جربي تاني بعد شوية" });
     }
 });
 
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
