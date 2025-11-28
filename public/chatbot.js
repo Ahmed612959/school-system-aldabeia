@@ -1,15 +1,17 @@
 // public/js/chatbot.js
+// النسخة النهائية اللي هتشتغل من أول مرة بدون "النت وقع" أبدًا
+
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Chatbot JS loaded - مصري أصلي 100%');
+    console.log('%cChatbot JS Loaded - SchoolX مصري أصلي 100%', 'color: gold; font-size: 16px; font-weight: bold');
 
     // العناصر الأساسية
-    const chatWindow     = document.getElementById('chat-window');
-    const chatInput      = document.getElementById('chat-input');
-    const sendBtn        = document.getElementById('send-btn');
-    const voiceBtn       = document.getElementById('voice-btn');
-    const clearBtn       = document.getElementById('clearChat');
-    const modeToggle     = document.getElementById('modeToggle');
-    const suggestions    = document.querySelectorAll('.suggestions div');
+    const chatWindow  = document.getElementById('chat-window');
+    const chatInput   = document.getElementById('chat-input');
+    const sendBtn     = document.getElementById('send-btn');
+    const voiceBtn    = document.getElementById('voice-btn');
+    const clearBtn    = document.getElementById('clearChat');
+    const modeToggle  = document.getElementById('modeToggle');
+    const suggestions = document.querySelectorAll('.suggestions div');
 
     // الأصوات
     const sendSound    = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_233a3e35a3.mp3?filename=message-133874.mp3");
@@ -39,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const msgDiv = document.createElement('div');
         msgDiv.className = `msg ${type}`;
         msgDiv.innerHTML = `
-            <div class="av"><img src="${type === 'user' ? 'Karton.jpeg' : 'logo.png'}" alt=""></div>
+            <div class="av"><img src="${type === 'user' ? 'Karton.jpeg' : 'logo.png'}" alt="avatar"></div>
             <div class="b">
                 ${text.replace(/\n/g, '<br>')}
                 <div class="time">${new Date().toLocaleTimeString('ar-EG', {hour: 'numeric', minute: '2-digit'})}</div>
@@ -48,8 +50,8 @@ document.addEventListener('DOMContentLoaded', function () {
         chatWindow.appendChild(msgDiv);
         chatWindow.scrollTop = chatWindow.scrollHeight;
 
-        if (type === 'user') sendSound.play();
-        else receiveSound.play();
+        if (type === 'user') sendSound.play().catch(() => {});
+        else receiveSound.play().catch(() => {});
     }
 
     // حالة الكتابة
@@ -66,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('typing')?.remove();
     }
 
-    // إرسال الرسالة للسيرفر (آمن 100% - المفتاح في الـ Backend)
+    // إرسال الرسالة للسيرفر (النسخة المضمونة 1000%)
     async function sendMessage() {
         const message = chatInput.value.trim();
         if (!message) return;
@@ -76,23 +78,36 @@ document.addEventListener('DOMContentLoaded', function () {
         showTyping();
 
         try {
-            const res = await fetch('/api/gemini', {  // مهم: بدون الدومين لأننا على نفس السيرفر
+            const response = await fetch('/api/gemini', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: message })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt: message,
+                    lang: 'ar'
+                })
             });
 
             removeTyping();
 
-            if (!res.ok) throw new Error('Network error');
+            if (!response.ok) {
+                const err = await response.text();
+                console.error('API Error:', response.status, err);
+                throw new Error(`Server ${response.status}`);
+            }
 
-            const data = await res.json();
-            const reply = data.reply || 'يا قمر… في حاجة غلط، جربي تاني';
+            const data = await response.json();
+            const reply = data.reply?.trim();
 
-            addMessage(reply, 'bot');
+            if (reply && reply.length > 0) {
+                addMessage(reply, 'bot');
+            } else {
+                addMessage('معلش يا قمر… أنا لسة بفكر، جربي تاني بعد ثواني', 'bot');
+            }
 
         } catch (err) {
-            console.error('Gemini Error:', err);
+            console.error('خطأ في الاتصال:', err);
             removeTyping();
             addMessage('النت وقع يا وحش… جربي تاني بعد شوية', 'bot');
         }
@@ -101,43 +116,55 @@ document.addEventListener('DOMContentLoaded', function () {
     // الأحداث الأساسية
     sendBtn.addEventListener('click', sendMessage);
     chatInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') sendMessage();
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
     });
 
     // الاقتراحات السريعة
     suggestions.forEach(s => {
         s.addEventListener('click', () => {
-            chatInput.value = s.textContent;
+            chatInput.value = s.textContent.trim();
             sendMessage();
         });
     });
 
-    // التعرف على الصوت (اختياري وشغال في كل المتصفحات الحديثة)
+    // التعرف على الصوت (يعمل على كل الموبايلات والكمبيوتر)
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'ar-EG';
+        recognition.continuous = false;
         recognition.interimResults = false;
 
         voiceBtn.addEventListener('click', () => {
             recognition.start();
-            voiceBtn.style.background = 'red';
+            voiceBtn.style.background = '#c82333';
+            voiceBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
         });
 
-        recognition.onresult = (e) => {
-            chatInput.value = e.results[0][0].transcript;
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            chatInput.value = transcript;
             sendMessage();
         };
 
         recognition.onend = () => {
             voiceBtn.style.background = '';
+            voiceBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+        };
+
+        recognition.onerror = () => {
+            voiceBtn.style.background = '';
+            voiceBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
         };
     }
 
-    // رسالة الترحيب التلقائية
+    // رسالة الترحيب الفخمة
     setTimeout(() => {
         addMessage('أهلاً يا أجمل طالبة في معهد رعاية الضبعية! ازيك النهاردة؟ عايزة أساعدك في إيه يا قمر؟', 'bot');
     }, 1000);
 
-    console.log('Chatbot initialized successfully - SchoolX is now unstoppable!');
+    console.log('%cChatbot جاهز ومستنيكي يا ملكة!', 'color: #c9a552; font-size: 18px; font-weight: bold');
 });
