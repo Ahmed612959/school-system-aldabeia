@@ -666,7 +666,7 @@ app.post('/api/gemini', async (req, res) => {
         const { prompt, lang = 'ar' } = req.body;
 
         // المفتاح الصحيح (غير ده بمفتاحك الشخصي)
-        const GEMINI_KEY = 'AIzaSyDIz_m6j4KuzMzAL65p3ppdVAxKGc_dFE0';
+        const GEMINI_KEY = 'AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA';
 
         const response = await fetch(
             `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
@@ -714,6 +714,7 @@ ${prompt}`
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
