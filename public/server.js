@@ -671,7 +671,7 @@ app.post('/api/gemini', async (req, res) => {
         }
 
         // المفتاح والرابط مكتوبين عادي زي ما طلبت
-        const API_KEY = "AIzaSyBVWfILH4mg_3ckJ3m1UEWt9NvFmBqqkzA";
+        const API_KEY = "AIzaSyDXUJ82Fc8Jw-lgo2aetgzWvJ1c6VryVtk";
         const API_URL = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent";
 
         const response = await fetch(`${API_URL}?key=${API_KEY}`, {
@@ -714,6 +714,7 @@ ${prompt}`
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
