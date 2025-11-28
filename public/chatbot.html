@@ -10,233 +10,59 @@
 
     <style>
         :root {
-            --gold:#c9a552;
-            --gold-dark:#b48b33;
-            --white:#ffffff;
-            --black:#0d0d0d;
-            --soft:#f6f6f6;
-            --gray:#ececec;
-            --text:#333;
-
-            --bg: var(--soft);
-            --text-color: #333;
-            --bubble-user: var(--gold);
-            --bubble-bot: #fff;
-            --nav-bg: #fff;
+            --gold:#c9a552;--gold-dark:#b48b33;--white:#ffffff;--black:#0d0d0d;--soft:#f6f6f6;--gray:#ececec;--text:#333;
+            --bg: var(--soft);--text-color: #333;--bubble-user: var(--gold);--bubble-bot: #fff;--nav-bg: #fff;
             --header-bg: linear-gradient(135deg,var(--gold-dark),var(--gold));
         }
-
         body.dark {
-            --bg:#0d0d0d;
-            --text-color:#f7f7f7;
-            --bubble-user:#b48b33;
-            --bubble-bot:#1a1a1a;
-            --nav-bg:#1c1c1c;
+            --bg:#0d0d0d;--text-color:#f7f7f7;--bubble-user:#b48b33;--bubble-bot:#1a1a1a;--nav-bg:#1c1c1c;
             --header-bg:linear-gradient(135deg,#000,var(--gold-dark));
         }
-
         *{margin:0;padding:0;box-sizing:border-box;}
-        body {
-            height:100vh;
-            background:var(--bg);
-            font-family:"Cairo",sans-serif;
-            color:var(--text-color);
-            transition:.3s;
-        }
-        .app{
-            height:100vh;
-            max-width:650px;
-            margin:auto;
-            display:flex;
-            flex-direction:column;
-            background:var(--bg);
-            box-shadow:0 0 20px rgba(0,0,0,.2);
-        }
-
-        header{
-            background:var(--header-bg);
-            padding:18px 10px;
-            text-align:center;
-            color:white;
-            border-bottom-left-radius:25px;
-            border-bottom-right-radius:25px;
-            box-shadow:0 4px 18px rgba(0,0,0,.25);
-            position:relative;
-        }
-
-        #modeToggle{
-            position:absolute;
-            left:20px; top:20px;
-            font-size:1.5rem;
-            color:white;
-            cursor:pointer;
-            transition:.3s;
-        }
-
-        header .logo{
-            width:80px;height:80px;border-radius:50%;
-            border:4px solid #fff;
-            object-fit:cover;
-            box-shadow:0 0 12px #fff;
-        }
-
+        body{height:100vh;background:var(--bg);font-family:"Cairo",sans-serif;color:var(--text-color);transition:.3s;}
+        .app{height:100vh;max-width:650px;margin:auto;display:flex;flex-direction:column;background:var(--bg);box-shadow:0 0 20px rgba(0,0,0,.2);}
+        header{background:var(--header-bg);padding:18px 10px;text-align:center;color:white;border-bottom-left-radius:25px;border-bottom-right-radius:25px;box-shadow:0 4px 18px rgba(0,0,0,.25);position:relative;}
+        #modeToggle{position:absolute;left:20px;top:20px;font-size:1.5rem;color:white;cursor:pointer;transition:.3s;}
+        header .logo{width:80px;height:80px;border-radius:50%;border:4px solid #fff;object-fit:cover;box-shadow:0 0 12px #fff;}
         header h1{margin-top:8px;font-size:1.45rem;}
         header p{opacity:.95;margin-top:5px;font-size:.9rem;}
         .online{margin-top:6px;font-size:.9rem;}
         .online i{color:#8affb2;}
+        #clearChat{position:absolute;right:20px;top:20px;color:white;font-size:1.3rem;cursor:pointer;opacity:.9;}
 
-        .chat{
-            flex:1;
-            overflow-y:auto;
-            padding:15px 12px 130px;
-            scroll-behavior:smooth;
-        }
-
-        .welcome{
-            background:var(--bubble-bot);
-            padding:22px;
-            border-radius:20px;
-            margin:20px auto;
-            text-align:center;
-            max-width:330px;
-            border:1px solid rgba(201,165,82,0.2);
-        }
+        .chat{flex:1;overflow-y:auto;padding:15px 12px 130px;scroll-behavior:smooth;}
+        .welcome{background:var(--bubble-bot);padding:22px;border-radius:20px;margin:20px auto;text-align:center;max-width:330px;border:1px solid rgba(201,165,82,0.2);}
         .welcome h2{color:var(--gold-dark);}
         .welcome p{margin-top:10px;line-height:1.7;}
         .welcome small{color:var(--gold);margin-top:10px;display:block;}
 
-        .msg{
-            display:flex;
-            margin-bottom:12px;
-            gap:10px;
-            max-width:80%;
-            animation:fade .4s;
-        }
+        .msg{display:flex;margin-bottom:12px;gap:10px;max-width:80%;animation:fade .4s;}
         @keyframes fade{from{opacity:0;transform:translateY(10px)}}
-
         .msg.user{flex-direction:row-reverse;margin-left:auto;}
         .msg.bot{margin-right:auto;}
-
-        .av{
-            width:45px;height:45px;border-radius:50%;
-            overflow:hidden;border:3px solid var(--gold);
-            flex-shrink:0;
-        }
+        .av{width:45px;height:45px;border-radius:50%;overflow:hidden;border:3px solid var(--gold);flex-shrink:0;}
         .av img{width:100%;height:100%;object-fit:cover;}
-
-        .b{
-            background:var(--bubble-bot);
-            padding:12px 16px;
-            border-radius:18px;
-            line-height:1.6;
-            color:var(--text-color);
-            border:1px solid rgba(255,255,255,0.1);
-            max-width:100%;
-            word-wrap:break-word;
-        }
-        .msg.user .b{
-            background:var(--bubble-user);
-            color:white;
-            border-bottom-right-radius:6px;
-        }
-        .msg.bot .b{
-            background:var(--bubble-bot);
-            border-bottom-left-radius:6px;
-        }
-
+        .b{background:var(--bubble-bot);padding:12px 16px;border-radius:18px;line-height:1.6;color:var(--text-color);border:1px solid rgba(255,255,255,0.1);max-width:100%;word-wrap:break-word;}
+        .msg.user .b{background:var(--bubble-user);color:white;border-bottom-right-radius:6px;}
+        .msg.bot .b{background:var(--bubble-bot);border-bottom-left-radius:6px;}
         .time{font-size:.75rem;margin-top:6px;opacity:.7;text-align:left;}
 
-        .input-bar{
-            position:fixed;
-            bottom:90px;
-            left:50%;
-            transform:translateX(-50%);
-            width:100%;max-width:650px;
-            padding:12px;
-            display:flex;gap:10px;
-            background:var(--nav-bg);
-            border-top:1px solid rgba(0,0,0,0.1);
-            z-index:10;
-        }
-
-        #txt{
-            flex:1;height:52px;border-radius:26px;
-            border:2px solid var(--gold-dark);
-            padding:0 18px;font-size:1rem;
-            background:var(--bg);
-            color:var(--text-color);
-        }
+        .input-bar{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:100%;max-width:650px;padding:12px;display:flex;gap:10px;background:var(--nav-bg);border-top:1px solid rgba(0,0,0,0.1);z-index:10;}
+        #txt{flex:1;height:52px;border-radius:26px;border:2px solid var(--gold-dark);padding:0 18px;font-size:1rem;background:var(--bg);color:var(--text-color);}
         #txt:focus{outline:none;border-color:var(--gold);}
-
-        .btn{
-            width:52px;height:52px;border-radius:50%;
-            border:none;color:white;font-size:1.3rem;cursor:pointer;
-            display:flex;align-items:center;justify-content:center;
-        }
+        .btn{width:52px;height:52px;border-radius:50%;border:none;color:white;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
         #voice{background:var(--gold-dark);}
         #send{background:var(--gold);box-shadow:0 4px 15px rgba(201,165,82,0.4);}
 
-        .suggestions{
-            display:flex;
-            gap:10px;
-            overflow-x:auto;
-            padding:8px 12px;
-            background:var(--nav-bg);
-            border-bottom:1px solid rgba(0,0,0,0.05);
-        }
-        .suggestions div{
-            background:var(--bubble-bot);
-            padding:9px 16px;
-            border-radius:20px;
-            white-space:nowrap;
-            border:1px solid rgba(201,165,82,0.2);
-            cursor:pointer;
-            font-size:0.95rem;
-            transition:0.3s;
-        }
+        .suggestions{display:flex;gap:10px;overflow-x:auto;padding:8px 12px;background:var(--nav-bg);border-bottom:1px solid rgba(0,0,0,0.05);}
+        .suggestions div{background:var(--bubble-bot);padding:9px 16px;border-radius:20px;white-space:nowrap;border:1px solid rgba(201,165,82,0.2);cursor:pointer;font-size:0.95rem;transition:0.3s;}
         .suggestions div:hover{background:var(--gold);color:white;}
 
-        #clearChat{
-            position:absolute;
-            right:20px;top:20px;
-            color:white;font-size:1.3rem;
-            cursor:pointer;
-            opacity:.9;
-        }
+        nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:650px;height:80px;background:var(--nav-bg);display:flex;justify-content:space-around;align-items:center;border-top:1px solid rgba(0,0,0,0.1);box-shadow:0 -4px 15px rgba(0,0,0,0.1);}
+        nav a{color:var(--gold-dark);font-size:1.6rem;padding:10px;border-radius:14px;transition:.3s;}
+        nav a.active{background:var(--gold-dark);color:white;transform:scale(1.15);}
 
-        nav{
-            position:fixed;
-            bottom:0;left:50%;
-            transform:translateX(-50%);
-            width:100%;max-width:650px;
-            height:80px;
-            background:var(--nav-bg);
-            display:flex;
-            justify-content:space-around;
-            align-items:center;
-            border-top:1px solid rgba(0,0,0,0.1);
-            box-shadow:0 -4px 15px rgba(0,0,0,0.1);
-        }
-        nav a{
-            color:var(--gold-dark);
-            font-size:1.6rem;
-            padding:10px;
-            border-radius:14px;
-            transition:.3s;
-        }
-        nav a.active{
-            background:var(--gold-dark);
-            color:white;
-            transform:scale(1.15);
-        }
-
-        .typing span{
-            display:inline-block;
-            width:8px;height:8px;
-            margin:0 3px;border-radius:50%;
-            background:var(--gold);
-            animation:jump 1.4s infinite;
-        }
+        .typing span{display:inline-block;width:8px;height:8px;margin:0 3px;border-radius:50%;background:var(--gold);animation:jump 1.4s infinite;}
         .typing span:nth-child(2){animation-delay:.2s}
         .typing span:nth-child(3){animation-delay:.4s}
         @keyframes jump{50%{transform:translateY(-10px)}}
@@ -245,23 +71,20 @@
 <body>
 
 <div class="app">
-
     <header>
         <i id="modeToggle" class="fa-solid fa-moon"></i>
         <i id="clearChat" class="fa-solid fa-trash"></i>
-
         <img src="logo.png" alt="شعار المعهد" class="logo">
-
         <h1>المساعد الذكي</h1>
         <p>معهد رعاية الضبعية – التمريض</p>
         <div class="online"><i class="fa-solid fa-circle"></i> متصل الآن</div>
     </header>
 
-    <main id="chat-window" class="chat">
+    <main id="chat" class="chat">
         <div class="welcome">
-            <h2>مرحباً بكِ</h2>
-            <p>أنا مساعدك الذكي — جاهز لمساعدتك في الأسئلة، الواجبات، الجداول والنتائج.</p>
-            <small>الخصوصية مضمونة بالكامل</small>
+            <h2>مرحباً بكِ يا قمر</h2>
+            <p>أنا مساعدك الذكي — جاهزة أساعدك في الدراسة، الواجبات، النتايج، أو حتى لو بس عايزة تفضفضي</p>
+            <small>كل حاجة بينا في السر</small>
         </div>
     </main>
 
@@ -269,26 +92,141 @@
         <div>ما نتيجة الترم؟</div>
         <div>جدول الامتحانات</div>
         <div>ازاي أشوف درجاتي؟</div>
-        <div>كيف أتواصل مع الإدارة؟</div>
+        <div>ممكن أكلم الإدارة؟</div>
     </div>
 
     <div class="input-bar">
-        <button id="voice-btn" class="btn"><i class="fa-solid fa-microphone"></i></button>
-        <input id="chat-input" type="text" placeholder="اكتبي سؤالك هنا..." autocomplete="off">
-        <button id="send-btn" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
+        <button id="voice" class="btn"><i class="fa-solid fa-microphone"></i></button>
+        <input id="txt" type="text" placeholder="اكتبي سؤالك هنا..." autocomplete="off">
+        <button id="send" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
 
-    <nav id="nav-bar">
+    <nav>
         <a href="index.html"><i class="fa-solid fa-house"></i></a>
         <a href="Home.html"><i class="fa-solid fa-graduation-cap"></i></a>
         <a href="profile.html"><i class="fa-solid fa-user"></i></a>
         <a href="chatbot.html" class="active"><i class="fa-solid fa-comments"></i></a>
     </nav>
-
 </div>
 
-<!-- كل المنطق دلوقتي في ملف خارجي -->
-<script src="chatbot.js"></script>
+<script>
+    // الحل السحري: نستخدم API Key من السيرفر (آمن 100%)
+    const GEMINI_API = 'https://schoolx-five.vercel.app/api/gemini';
 
+    const chat = document.getElementById("chat");
+    const input = document.getElementById("txt");
+    const send = document.getElementById("send");
+    const voice = document.getElementById("voice");
+    const clearBtn = document.getElementById("clearChat");
+    const modeToggle = document.getElementById("modeToggle");
+
+    // أصوات حلوة
+    const sendSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2353.mp3");
+    const receiveSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3");
+
+    modeToggle.onclick = () => {
+        document.body.classList.toggle("dark");
+        modeToggle.classList.toggle("fa-sun");
+        modeToggle.classList.toggle("fa-moon");
+    };
+
+    clearBtn.onclick = () => {
+        if(confirm("هتمسحي المحادثة كلها؟")) {
+            chat.innerHTML = `<div class="welcome">
+                <h2>مرحباً بكِ يا قمر</h2>
+                <p>أنا مساعدك الذكي — جاهزة أساعدك في الدراسة، الواجبات، النتايج، أو حتى لو بس عايزة تفضفضي</p>
+                <small>كل حاجة بينا في السر</small>
+            </div>`;
+        }
+    };
+
+    function add(text, type) {
+        const div = document.createElement("div");
+        div.className = `msg ${type}`;
+        div.innerHTML = `
+            <div class="av"><img src="${type==="user" ? "Karton.jpeg" : "logo.png"}" alt=""></div>
+            <div class="b">
+                ${text.replace(/\n/g, "<br>")}
+                <div class="time">${new Date().toLocaleTimeString("ar-EG", {hour: "numeric", minute: "2-digit"})}</div>
+            </div>`;
+        chat.appendChild(div);
+        chat.scrollTop = chat.scrollHeight;
+        if(type === "user") sendSound.play();
+        else receiveSound.play();
+    }
+
+    function typing() {
+        const t = document.createElement("div");
+        t.className = "msg bot";
+        t.id = "typing";
+        t.innerHTML = `<div class="b"><div class="typing"><span></span><span></span><span></span></div></div>`;
+        chat.appendChild(t);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    async function sendMsg() {
+        const q = input.value.trim();
+        if (!q) return;
+
+        add(q, "user");
+        input.value = "";
+        typing();
+
+        try {
+            const res = await fetch(GEMINI_API, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt: q })
+            });
+
+            document.getElementById("typing")?.remove();
+
+            if (!res.ok) throw new Error();
+
+            const data = await res.json();
+            const reply = data.reply || "معلش، حصلت مشكلة بسيطة.. جربي تاني";
+            add(reply, "bot");
+
+        } catch (err) {
+            document.getElementById("typing")?.remove();
+            add("النت ضعيف شوية يا قمر.. جربي تاني بعد شوية", "bot");
+        }
+    }
+
+    send.onclick = sendMsg;
+    input.addEventListener("keypress", e => e.key === "Enter" && sendMsg());
+
+    document.querySelectorAll(".suggestions div").forEach(s => {
+        s.onclick = () => {
+            input.value = s.innerText;
+            sendMsg();
+        };
+    });
+
+    // الصوت (يعمل على الكمبيوتر ومعظم الموبايلات)
+    if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const rec = new SpeechRecognition();
+        rec.lang = "ar-EG";
+        rec.continuous = false;
+
+        voice.onclick = () => {
+            rec.start();
+            voice.style.background = "red";
+        };
+
+        rec.onresult = (e) => {
+            input.value = e.results[0][0].transcript;
+            voice.style.background = "";
+            sendMsg();
+        };
+
+        rec.onerror = () => voice.style.background = "";
+        rec.onend = () => voice.style.background = "";
+    }
+
+    // رسالة ترحيب فورية
+    setTimeout(() => add("أهلاً يا أجمل طالبة في المعهد! ازيك النهاردة؟ عايزة أساعدك في إيه؟", "bot"), 1200);
+</script>
 </body>
 </html>
