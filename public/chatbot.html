@@ -156,7 +156,6 @@
             display:flex;gap:10px;
             background:var(--nav-bg);
             border-top:1px solid rgba(0,0,0,0.1);
-           aeli
             z-index:10;
         }
 
@@ -258,7 +257,7 @@
         <div class="online"><i class="fa-solid fa-circle"></i> متصل الآن</div>
     </header>
 
-    <main id="chat" class="chat">
+    <main id="chat-window" class="chat">
         <div class="welcome">
             <h2>مرحباً بكِ</h2>
             <p>أنا مساعدك الذكي — جاهز لمساعدتك في الأسئلة، الواجبات، الجداول والنتائج.</p>
@@ -274,12 +273,12 @@
     </div>
 
     <div class="input-bar">
-        <button id="voice" class="btn"><i class="fa-solid fa-microphone"></i></button>
-        <input id="txt" type="text" placeholder="اكتبي سؤالك هنا..." autocomplete="off">
-        <button id="send" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
+        <button id="voice-btn" class="btn"><i class="fa-solid fa-microphone"></i></button>
+        <input id="chat-input" type="text" placeholder="اكتبي سؤالك هنا..." autocomplete="off">
+        <button id="send-btn" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
 
-    <nav>
+    <nav id="nav-bar">
         <a href="index.html"><i class="fa-solid fa-house"></i></a>
         <a href="Home.html"><i class="fa-solid fa-graduation-cap"></i></a>
         <a href="profile.html"><i class="fa-solid fa-user"></i></a>
@@ -288,118 +287,8 @@
 
 </div>
 
-<script>
-    // الـ API الجديد مظبوط 100%
-    const API_KEY = 'AIzaSyDIz_m6j4KuzMzAL65p3ppdVAxKGc_dFE0';
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
-
-    const modeToggle = document.getElementById("modeToggle");
-    const clearBtn = document.getElementById("clearChat");
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("txt");
-    const send = document.getElementById("send");
-    const voice = document.getElementById("voice");
-
-    // الأصوات
-    const sendSound = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_233a3e35a3.mp3?filename=message-133874.mp3");
-    const receiveSound = new Audio("https://cdn.pixabay.com/download/audio/2021/12/22/audio_c16a4c19f1.mp3?filename=bell-58749.mp3");
-
-    // وضع الليل / النهار
-    modeToggle.onclick = () => {
-        document.body.classList.toggle("dark");
-        modeToggle.classList.toggle("fa-sun");
-        modeToggle.classList.toggle("fa-moon");
-    };
-
-    // مسح المحادثة
-    clearBtn.onclick = () => {
-        if(confirm("هل تريد مسح المحادثة بالكامل؟")) {
-            chat.innerHTML = '<div class="welcome"><h2>مرحباً بكِ</h2><p>أنا مساعدك الذكي — جاهز لمساعدتك في الأسئلة، الواجبات، الجداول والنتائج.</p><small>الخصوصية مضمونة بالكامل</small></div>';
-        }
-    };
-
-    // إضافة رسالة
-    function add(text, type) {
-        const box = document.createElement("div");
-        box.className = `msg ${type}`;
-        box.innerHTML = `
-            <div class="av"><img src="${type==="user" ? "Karton.jpeg" : "logo.png"}" alt=""></div>
-            <div class="b">
-                ${text.replace(/\n/g, "<br>")}
-                <div class="time">${new Date().toLocaleTimeString("ar-EG", {hour: "numeric", minute: "2-digit"})}</div>
-            </div>`;
-        chat.appendChild(box);
-        chat.scrollTop = chat.scrollHeight;
-        if(type === "user") sendSound.play();
-        else receiveSound.play();
-    }
-
-    // حالة الكتابة
-    function typing() {
-        const t = document.createElement("div");
-        t.className = "msg bot";
-        t.id = "typing";
-        t.innerHTML = `<div class="b"><div class="typing"><span></span><span></span><span></span></div></div>`;
-        chat.appendChild(t);
-        chat.scrollTop = chat.scrollHeight;
-    }
-
-    // إرسال الرسالة
-    async function sendMsg() {
-        const q = input.value.trim();
-        if (!q) return;
-
-        add(q, "user");
-        input.value = "";
-        typing();
-
-        try {
-            const res = await fetch(`${https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent}?key=${AIzaSyBUxxIXYXhSw1NRfOGwnE2MXquNqNsNVe8}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contents: [{ role: "user", parts: [{ text: `أنت مساعد لطيف ومحترف لمعهد تمريض. رد بالعربي المصري الخفيف واللطيف: ${q}` }] }]
-                })
-            });
-
-            const data = await res.json();
-            document.getElementById("typing")?.remove();
-
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "معلش، في مشكلة بسيطة… جربي تاني";
-            add(reply, "bot");
-
-        } catch (err) {
-            document.getElementById("typing")?.remove();
-            add("الإنترنت ضعيف شوية… جربي تاني بعد شوية", "bot");
-        }
-    }
-
-    // الأحداث
-    send.onclick = sendMsg;
-    input.addEventListener("keypress", e => e.key === "Enter" && sendMsg());
-
-    // الاقتراحات السريعة
-    document.querySelectorAll(".suggestions div").forEach(s => {
-        s.onclick = () => {
-            input.value = s.innerText;
-            sendMsg();
-        };
-    });
-
-    // التعرف على الصوت (اختياري)
-    if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
-        const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        rec.lang = "ar-EG";
-        voice.onclick = () => rec.start();
-        rec.onresult = e => {
-            input.value = e.results[0][0].transcript;
-            sendMsg();
-        };
-    }
-
-    // رسالة ترحيب تلقائية
-    setTimeout(() => add("أهلاً وسهلاً يا أجمل طالبة! ازيك النهاردة؟ عايزة أساعدك في إيه؟", "bot"), 1000);
-</script>
+<!-- كل المنطق دلوقتي في ملف خارجي -->
+<script src="chatbot.js"></script>
 
 </body>
 </html>
