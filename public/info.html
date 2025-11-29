@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>عن المطور | معهد رعاية الضبعية</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --gold: #c9a552;
+            --gold-dark: #b48b33;
+            --soft: #faf8f5;
+            --text: #333;
+            --bg: var(--soft);
+            --nav-bg: #fff;
+        }
+        body.dark{--bg:#0d0d0d;--text:#f0f0f0;--nav-bg:#1c1c1c;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:'Cairo',sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            line-height:1.7;
+            min-height:100vh;
+            padding-bottom:90px;
+            font-size:15px;
+        }
+        .container{
+            max-width:650px;
+            margin:0 auto;
+            background:var(--bg);
+            min-height:100vh;
+        }
+        header{
+            background:linear-gradient(135deg,var(--gold-dark),var(--gold));
+            color:#fff;
+            text-align:center;
+            padding:35px 20px 25px;
+            border-bottom-left-radius:30px;
+            border-bottom-right-radius:30px;
+        }
+        .avatar{
+            width:110px;
+            height:110px;
+            border-radius:50%;
+            overflow:hidden;
+            border:5px solid #fff;
+            margin:0 auto 15px;
+            box-shadow:0 8px 25px rgba(0,0,0,.25);
+        }
+        .avatar img{width:100%;height:100%;object-fit:cover;}
+        header h1{font-size:1.7rem;margin:8px 0;}
+        header p{font-size:1rem;opacity:0.95;}
+
+        .content{
+            padding:25px 20px;
+            text-align:center;
+        }
+        .section{margin:40px 0;}
+        .section h2{
+            color:var(--gold-dark);
+            font-size:1.4rem;
+            margin-bottom:18px;
+        }
+        .text{
+            font-size:1rem;
+            max-width:90%;
+            margin:0 auto;
+            opacity:0.88;
+        }
+        .skills{
+            display:flex;
+            flex-wrap:wrap;
+            justify-content:center;
+            gap:10px;
+            margin:20px 0;
+        }
+        .skill{
+            background:var(--gold);
+            color:#fff;
+            padding:8px 18px;
+            border-radius:30px;
+            font-size:0.9rem;
+            font-weight:600;
+        }
+
+        .contact{margin:45px 0;}
+        .whatsapp-btn{
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            background:#25D366;
+            color:#fff;
+            padding:14px 28px;
+            border-radius:50px;
+            font-size:1.05rem;
+            font-weight:600;
+            text-decoration:none;
+            box-shadow:0 8px 25px rgba(37,211,102,.3);
+            transition:transform .3s,box-shadow .3s;
+        }
+        .whatsapp-btn:hover{
+            transform:translateY(-3px);
+            box-shadow:0 12px 35px rgba(37,211,102,.45);
+        }
+        .qr{
+            width:150px;
+            height:150px;
+            margin:25px auto;
+            border:5px solid #fff;
+            border-radius:15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,.15);
+        }
+
+        nav{
+            position:fixed;
+            bottom:0;
+            left:50%;
+            transform:translateX(-50%);
+            width:100%;
+            max-width:650px;
+            height:80px;
+            background:var(--nav-bg);
+            display:flex;
+            justify-content:space-around;
+            align-items:center;
+            border-top:1px solid rgba(0,0,0,.08);
+            box-shadow:0 -5px 20px rgba(0,0,0,.1);
+        }
+        nav a{
+            color:var(--gold-dark);
+            font-size:1.6rem;
+            padding:12px;
+            border-radius:15px;
+            transition:.3s;
+        }
+        nav a:hover{
+            background:var(--gold-dark);
+            color:#fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <div class="avatar">
+            <img src="developer.jpg" alt="أحمد موسى">
+        </div>
+        <h1>أحمد موسى</h1>
+        <p>مطور نظام SchoolX</p>
+    </header>
+
+    <div class="content">
+
+        <div class="section">
+            <h2>من أنا؟</h2>
+            <p class="text">
+                أنا أحمد موسى، مطور ويب مصري، قمت ببرمجة وتصميم نظام SchoolX بالكامل من الصفر بهدف تقديم تجربة تعليمية حديثة وسهلة لجميع طلاب وطالبات معهد رعاية الضبعية للتمريض.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>لماذا أنشأت هذا النظام؟</h2>
+            <p class="text">
+                لأنني أؤمن أن الطالب يستحق أدوات رقمية بسيطة وسريعة تمكّنه من متابعة دراسته، نتائجه، حضوره، والتواصل مع الإدارة دون تعقيد.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2>مجالات خبرتي</h2>
+            <div class="skills">
+                <div class="skill">تطوير الواجهات</div>
+                <div class="skill">قواعد البيانات</div>
+                <div class="skill">الذكاء الاصطناعي</div>
+                <div class="skill">تجربة المستخدم</div>
+                <div class="skill">نشر التطبيقات</div>
+                <div class="skill">أمن المعلومات</div>
+            </div>
+        </div>
+
+        <div class="section contact">
+            <h2>تواصل معي</h2>
+            <p style="margin-bottom:20px;">
+                أي اقتراح أو استفسار أو فكرة جديدة… سأكون سعيدًا جدًا بسماعها منكم
+            </p>
+            <a href="https://wa.me/qr/LLFTULMCQBNPB1" class="whatsapp-btn" target="_blank">
+                <i class="fab fa-whatsapp"></i>
+                تواصل عبر الواتساب
+            </a>
+
+            <div>
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/qr/LLFTULMCQBNPB1" alt="واتساب أحمد موسى" class="qr">
+            </div>
+        </div>
+
+    </div>
+
+    <nav>
+        <a href="index.html"><i class="fa-solid fa-house"></i></a>
+        <a href="Home.html"><i class="fa-solid fa-graduation-cap"></i></a>
+        <a href="profile.html"><i class="fa-solid fa-user"></i></a>
+        <a href="chatbot.html"><i class="fa-solid fa-comments"></i></a>
+    </nav>
+
+</div>
+
+</body>
+</html>
