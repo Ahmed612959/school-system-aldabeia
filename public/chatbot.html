@@ -112,7 +112,7 @@
 
 <script>
     // الحل السحري: نستخدم Relative Path عشان يشتغل على أي دومين
-    const GEMINI_API = '/api/gemini';
+    const DEEPSEEK_API = '/api/gemini';
 
     const chat = document.getElementById("chat");
     const input = document.getElementById("txt");
@@ -134,9 +134,9 @@
     clearBtn.onclick = () => {
         if(confirm("هتمسحي المحادثة كلها؟")) {
             chat.innerHTML = `<div class="welcome">
-                <h2>مرحباً بكِ يا قمر</h2>
-                <p>أنا مساعدك الذكي — جاهزة أساعدك في الدراسة، الواجبات، النتايج، أو حتى لو بس عايزة تفضفضي</p>
-                <small>كل حاجة بينا في السر</small>
+                <h2>أهلاً يا قمر، أنا نور</h2>
+<p>أنا هنا عشانك في أي وقت، دراسة، نتايج، فضفضة، أو حتى لو بس عايزة تضحكي شوية</p>
+<small>كل حاجة بينا في السر يا روحي</small>
             </div>`;
         }
     };
