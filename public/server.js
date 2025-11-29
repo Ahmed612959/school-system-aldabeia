@@ -680,6 +680,7 @@ app.get('/api/admins/:username', async (req, res) => {
 
 // ضيف ده في آخر server.js (استبدل الـ route القديم كله باللي تحت ده)
 
+// استبدل الـ route بتاع gemini كله بالكود ده
 app.post('/api/gemini', async (req, res) => {
     try {
         const { prompt } = req.body;
@@ -688,46 +689,52 @@ app.post('/api/gemini', async (req, res) => {
             return res.json({ reply: "اكتبي حاجة الأول يا قمر!" });
         }
 
-        // المفتاح والرابط مكتوبين عادي زي ما طلبت
-        const API_KEY = "AIzaSyDXUJ82Fc8Jw-lgo2aetgzWvJ1c6VryVtk";
-        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+        const API_KEY = process.env.DEEPSEEK_API_KEY;
+        if (!API_KEY) {
+            console.error("مفيش DEEPSEEK_API_KEY في الـ Environment");
+            return res.json({ reply: "المساعد نايم دلوقتي، كلمي الإدارة!" });
+        }
 
-        const response = await fetch(`${API_URL}?key=${API_KEY}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${API_KEY}`,
+                "Content-Type": "application/json"
+            },
             body: JSON.stringify({
-                contents: [{
+                model: "deepseek-chat",        // ده الموديل المجاني والقوي
+                messages: [{
                     role: "user",
-                    parts: [{ 
-                        text: `أنت مساعد ذكي مصري خفيف دم ولطيف جدًا لمعهد "رعاية الضبعية للتمريض".
-رد دايمًا بالعربي المصري الحلو والظريف:
-${prompt}`
-                    }]
+                    content: `أنت مساعدة ذكية مصرية خفيفة الدم ولطيفة جدًا اسمها "نور" في معهد رعاية الضبعية للتمريض.
+                    ردي دايمًا بالعربي المصري الحلو والظريف والقريب من قلب الطالبات.
+                    خليكي زي أخت كبيرة بتدلع البنات وبتساعدهم في كل حاجة.
+                    
+                    السؤال: ${prompt}`
                 }],
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                ]
+                max_tokens: 800,
+                temperature: 0.7,
+                stream: false
             })
         });
 
         if (!response.ok) {
             const err = await response.text();
-            console.error("Gemini قال لأ:", err);
-            return res.json({ reply: "يا بنت الإيه… أنا زعلان شوية، جربي تاني بلاش كده" });
+            console.error("DeepSeek Error:", err);
+            return res.json({ reply: "يا بنت الإيه… أنا زهقانة شوية، جربي تاني بعد شوية" });
         }
 
         const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
-                      || "معلش يا وحش… أنا نايم دلوقتي، إصحيني تاني";
+        const reply = data.choices?.[0]?.message?.content?.trim()
+                      || "معلش يا روحي… الكلام اتلخبط، قوليلي تاني";
 
         res.json({ reply });
 
     } catch (err) {
         console.error("خطأ في الشات بوت:", err.message);
-        res.json({ reply: "يا قمر… النت وقع أو السيرفر نايم، جربي تاني بعد شوية" });
+        res.json({ reply: "يا قمر… النت وقع أو السيرفر نايم، جربي تاني بعد دقيقة" });
     }
 });
+
 // جلب المسابقة الحالية
 app.get('/api/weekly-quiz', async (req, res) => {
     try {
@@ -816,6 +823,7 @@ app.post('/api/weekly-quiz/answer', async (req, res) => {
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
