@@ -60,13 +60,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (!navBar) return;
 
         const links = [
-            { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
-            { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
-            { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
-            { href: 'exams.html', icon: 'fas fa-book', title: 'الاختبارات' },
-            { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' },
-            { href: 'developer.html', icon: 'fas fa-microchip', title: 'عن المطور' }
-        ];
+    { href: 'index.html',      icon: 'fa-solid fa-house',           title: 'الرئيسية' },
+    { href: 'Home.html',       icon: 'fa-solid fa-chart-simple',    title: 'النتائج' },     // بديل ممتاز وموجود
+    { href: 'profile.html',    icon: 'fa-solid fa-user',            title: 'الملف الشخصي' },
+    { href: 'exams.html',      icon: 'fa-solid fa-book-open',       title: 'الاختبارات' },  // أحلى من fa-book
+    { href: 'chatbot.html',    icon: 'fa-solid fa-robot',           title: 'المساعد الذكي' },
+    { href: 'developer.html',  icon: 'fa-solid fa-microchip',       title: 'عن المطور' }
+];
 
         if (loggedInUser?.type === 'admin') {
             links.push({ href: 'admin.html', icon: 'fas fa-cogs', title: 'لوحة التحكم' });
