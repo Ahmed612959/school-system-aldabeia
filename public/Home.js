@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
             { href: 'exams.html', icon: 'fas fa-book', title: 'الاختبارات' },
             { href: 'chatbot.html', icon: 'fas fa-robot', title: 'المساعد الذكي' }
+            { href: 'developer.html', icon: 'fas fa-microchip', title: 'عن المطور' }
         ];
 
         if (loggedInUser?.type === 'admin') {
