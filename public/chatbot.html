@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>المساعد الذكي | معهد رعاية الضبعية</title>
+    <title>نور - المساعد الذكي | معهد رعاية الضبعية</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
@@ -31,72 +31,77 @@
         #clearChat{position:absolute;right:20px;top:20px;color:white;font-size:1.3rem;cursor:pointer;opacity:.9;}
 
         .chat{flex:1;overflow-y:auto;padding:15px 12px 130px;scroll-behavior:smooth;}
-        .welcome{background:var(--bubble-bot);padding:22px;border-radius:20px;margin:20px auto;text-align:center;max-width:330px;border:1px solid rgba(201,165,82,0.2);}
-        .welcome h2{color:var(--gold-dark);}
-        .welcome p{margin-top:10px;line-height:1.7;}
-        .welcome small{color:var(--gold);margin-top:10px;display:block;}
+        .welcome{background:var(--bubble-bot);padding:22px;border-radius:20px;margin:20px auto;text-align:center;max-width:350px;border:1px solid rgba(201,165,82,0.2);box-shadow:0 4px 15px rgba(0,0,0,.1);}
+        .welcome h2{color:var(--gold-dark);font-size:1.4rem;}
+        .welcome p{margin-top:12px;line-height:1.8;font-size:1rem;}
+        .welcome small{color:var(--gold);margin-top:12px;display:block;font-size:0.85rem;}
 
-        .msg{display:flex;margin-bottom:12px;gap:10px;max-width:80%;animation:fade .4s;}
-        @keyframes fade{from{opacity:0;transform:translateY(10px)}}
+        .msg{display:flex;margin-bottom:14px;gap:12px;max-width:82%;animation:fade .45s;}
+        @keyframes fade{from{opacity:0;transform:translateY(12px)}}
         .msg.user{flex-direction:row-reverse;margin-left:auto;}
         .msg.bot{margin-right:auto;}
-        .av{width:45px;height:45px;border-radius:50%;overflow:hidden;border:3px solid var(--gold);flex-shrink:0;}
+        .av{width:46px;height:46px;border-radius:50%;overflow:hidden;border:3px solid var(--gold);flex-shrink:0;}
         .av img{width:100%;height:100%;object-fit:cover;}
-        .b{background:var(--bubble-bot);padding:12px 16px;border-radius:18px;line-height:1.6;color:var(--text-color);border:1px solid rgba(255,255,255,0.1);max-width:100%;word-wrap:break-word;}
+        .b{background:var(--bubble-bot);padding:13px 17px;border-radius:20px;line-height:1.7;color:var(--text-color);border:1px solid rgba(255,255,255,0.08);box-shadow:0 2px 8px rgba(0,0,0,.08);}
         .msg.user .b{background:var(--bubble-user);color:white;border-bottom-right-radius:6px;}
         .msg.bot .b{background:var(--bubble-bot);border-bottom-left-radius:6px;}
-        .time{font-size:.75rem;margin-top:6px;opacity:.7;text-align:left;}
+        .time{font-size:.75rem;margin-top:7px;opacity:.7;text-align:left;}
 
         .input-bar{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);width:100%;max-width:650px;padding:12px;display:flex;gap:10px;background:var(--nav-bg);border-top:1px solid rgba(0,0,0,0.1);z-index:10;}
-        #txt{flex:1;height:52px;border-radius:26px;border:2px solid var(--gold-dark);padding:0 18px;font-size:1rem;background:var(--bg);color:var(--text-color);}
+        #txt{flex:1;height:54px;border-radius:27px;border:2.5px solid var(--gold-dark);padding:0 20px;font-size:1.05rem;background:var(--bg);color:var(--text-color);}
         #txt:focus{outline:none;border-color:var(--gold);}
-        .btn{width:52px;height:52px;border-radius:50%;border:none;color:white;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+        .btn{width:54px;height:54px;border-radius:50%;border:none;color:white;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
         #voice{background:var(--gold-dark);}
-        #send{background:var(--gold);box-shadow:0 4px 15px rgba(201,165,82,0.4);}
+        #send{background:var(--gold);box-shadow:0 5px 18px rgba(201,165,82,0.45);}
 
-        .suggestions{display:flex;gap:10px;overflow-x:auto;padding:8px 12px;background:var(--nav-bg);border-bottom:1px solid rgba(0,0,0,0.05);}
-        .suggestions div{background:var(--bubble-bot);padding:9px 16px;border-radius:20px;white-space:nowrap;border:1px solid rgba(201,165,82,0.2);cursor:pointer;font-size:0.95rem;transition:0.3s;}
-        .suggestions div:hover{background:var(--gold);color:white;}
+        .suggestions{display:flex;gap:11px;overflow-x:auto;padding:10px 14px;background:var(--nav-bg);border-bottom:1px solid rgba(0,0,0,0.05);}
+        .suggestions div{background:var(--bubble-bot);padding:10px 18px;border-radius:22px;white-space:nowrap;border:1px solid rgba(201,165,82,0.25);cursor:pointer;font-size:0.96rem;transition:.3s;}
+        .suggestions div:hover{background:var(--gold);color:white;transform:scale(1.05);}
 
-        nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:650px;height:80px;background:var(--nav-bg);display:flex;justify-content:space-around;align-items:center;border-top:1px solid rgba(0,0,0,0.1);box-shadow:0 -4px 15px rgba(0,0,0,0.1);}
-        nav a{color:var(--gold-dark);font-size:1.6rem;padding:10px;border-radius:14px;transition:.3s;}
-        nav a.active{background:var(--gold-dark);color:white;transform:scale(1.15);}
+        nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:650px;height:80px;background:var(--nav-bg);display:flex;justify-content:space-around;align-items:center;border-top:1px solid rgba(0,0,0,0.1);box-shadow:0 -4px 15px rgba(0,0,0,0.12);}
+        nav a{color:var(--gold-dark);font-size:1.7rem;padding:12px;border-radius:16px;transition:.3s;}
+        nav a.active{background:var(--gold-dark);color:white;transform:scale(1.18);}
 
-        .typing span{display:inline-block;width:8px;height:8px;margin:0 3px;border-radius:50%;background:var(--gold);animation:jump 1.4s infinite;}
+        .typing span{display:inline-block;width:9px;height:9px;margin:0 4px;border-radius:50%;background:var(--gold);animation:jump 1.4s infinite;}
         .typing span:nth-child(2){animation-delay:.2s}
         .typing span:nth-child(3){animation-delay:.4s}
-        @keyframes jump{50%{transform:translateY(-10px)}}
+        @keyframes jump{50%{transform:translateY(-12px)}}
     </style>
 </head>
 <body>
 
 <div class="app">
     <header>
-    <i id="modeToggle" class="fa-solid fa-moon"></i>
-    <i id="clearChat" class="fa-solid fa-trash"></i>
-    <img src="logo.png" alt="شعار المعهد" class="logo">
-    <h1>نور – مساعدتك الشخصية</h1>
-    <p>معهد رعاية الضبعية – التمريض</p>
-    <div class="online"><i class="fa-solid fa-circle"></i> متصلة دلوقتي</div>
-</header>
+        <i id="modeToggle" class="fa-solid fa-moon"></i>
+        <i id="clearChat" class="fa-solid fa-trash-can"></i>
+        <img src="logo.png" alt="شعار معهد رعاية الضبعية" class="logo">
+        <h1>نور – مساعدك الذكي</h1>
+        <p>معهد رعاية الضبعية للتمريض</p>
+        <div class="online"><i class="fa-solid fa-circle"></i> متصل دلوقتي</div>
+    </header>
 
-<main id="chat" class="chat">
-    <div class="welcome">
-        <h2>أهلاً يا قمر، أنا نور</h2>
-        <p>أي حاجة عايزاها… دراسة، نتايج، واجبات، أو حتى لو بس عايزة تفضفضي وتضحكي شوية، أنا هنا ليكِ يا روحي</p>
-        <small>كل حاجة بينا في السر يا حبيبتي</small>
-    </div>
-</main>
+    <main id="chat" class="chat">
+        <div class="welcome">
+            <h2>أهلاً وسهلاً يا بطل التمريض!</h2>
+            <p>أنا نور، مساعدكم الذكي 24/7 في معهد رعاية الضبعية<br>
+            دراسة – نتايج – امتحانات – واجبات – نصايح تمريض – أو حتى لو عايز تفضفض وضحكنا سوا<br>
+            أنا هنا ليكم كلكم يا أبطال ويا أميرات التمريض</p>
+            <small>كل حاجة بينا في السر المكتوم يا وحش</small>
+        </div>
+    </main>
+
     <div class="suggestions">
-        <div>ما نتيجة الترم؟</div>
-        <div>جدول الامتحانات</div>
+        <div>إيه نتيجة الترم؟</div>
+        <div>جدول الامتحانات امتى؟</div>
         <div>ازاي أشوف درجاتي؟</div>
-        <div>ممكن أكلم الإدارة؟</div>
+        <div>عايز أكلم الإدارة</div>
+        <div>شرح لي الـ IV بسرعة</div>
+        <div>إيه أهم نقاط الباثوفسيولوجي؟</div>
     </div>
 
     <div class="input-bar">
         <button id="voice" class="btn"><i class="fa-solid fa-microphone"></i></button>
-        <input id="txt" type="text" placeholder="اكتبي سؤالك هنا..." autocomplete="off">
+        <input id="txt" type="text" placeholder="اكتب سؤالك هنا أو كلمني صوت..." autocomplete="off">
         <button id="send" class="btn"><i class="fa-solid fa-paper-plane"></i></button>
     </div>
 
@@ -105,13 +110,12 @@
         <a href="Home.html"><i class="fa-solid fa-graduation-cap"></i></a>
         <a href="profile.html"><i class="fa-solid fa-user"></i></a>
         <a href="chatbot.html" class="active"><i class="fa-solid fa-comments"></i></a>
-        <a href="weekly-quiz.html"><i class="fa-solid fa-user"></i></a>
+        <a href="weekly-quiz.html"><i class="fa-solid fa-trophy"></i></a>
     </nav>
 </div>
 
 <script>
-    // الحل السحري: نستخدم Relative Path عشان يشتغل على أي دومين
-    const DEEPSEEK_API = '/api/gemini';
+    const DEEPSEEK_API = '/api/nour';   // الطريق الصحيح بعد التعديل في server.js
 
     const chat = document.getElementById("chat");
     const input = document.getElementById("txt");
@@ -120,7 +124,6 @@
     const clearBtn = document.getElementById("clearChat");
     const modeToggle = document.getElementById("modeToggle");
 
-    // أصوات حلوة
     const sendSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2353.mp3");
     const receiveSound = new Audio("https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3");
 
@@ -131,11 +134,13 @@
     };
 
     clearBtn.onclick = () => {
-        if(confirm("هتمسحي المحادثة كلها؟")) {
+        if(confirm("هتمسح المحادثة كلها؟")) {
             chat.innerHTML = `<div class="welcome">
-                <h2>أهلاً يا قمر، أنا نور</h2>
-<p>أنا هنا عشانك في أي وقت، دراسة، نتايج، فضفضة، أو حتى لو بس عايزة تضحكي شوية</p>
-<small>كل حاجة بينا في السر يا روحي</small>
+                <h2>أهلاً وسهلاً يا بطل التمريض!</h2>
+                <p>أنا نور، مساعدكم الذكي 24/7 في معهد رعاية الضبعية<br>
+                دراسة – نتايج – امتحانات – واجبات – نصايح تمريض – أو حتى لو عايز تفضفض وضحكنا سوا<br>
+                أنا هنا ليكم كلكم يا أبطال ويا أميرات التمريض</p>
+                <small>كل حاجة بينا في السر المكتوم يا وحش</small>
             </div>`;
         }
     };
@@ -144,14 +149,14 @@
         const div = document.createElement("div");
         div.className = `msg ${type}`;
         div.innerHTML = `
-            <div class="av"><img src="${type==="user" ? "Karton.jpeg" : "logo.png"}" alt=""></div>
+            <div class="av"><img src="${type==="user" ? "Karton.jpeg" : "logo.png"}" alt="صورة"></div>
             <div class="b">
                 ${text.replace(/\n/g, "<br>")}
                 <div class="time">${new Date().toLocaleTimeString("ar-EG", {hour: "numeric", minute: "2-digit"})}</div>
             </div>`;
         chat.appendChild(div);
         chat.scrollTop = chat.scrollHeight;
-        if(type === "user") sendSound.play().catch(()=>{}); 
+        if(type === "user") sendSound.play().catch(()=>{});
         else receiveSound.play().catch(()=>{});
     }
 
@@ -159,7 +164,7 @@
         const t = document.createElement("div");
         t.className = "msg bot";
         t.id = "typing";
-        t.innerHTML = `<div class="b"><div class="typing"><span></span><span></span><span></span></div></div>`;
+        t.innerHTML = `<div class="b"><div class="typing"><span></span><span></span><span></span> نور بتكتب...</div></div>`;
         chat.appendChild(t);
         chat.scrollTop = chat.scrollHeight;
     }
@@ -181,20 +186,15 @@
 
             document.getElementById("typing")?.remove();
 
-            if (!res.ok) {
-                const err = await res.text();
-                console.error("API Error:", res.status, err);
-                throw new Error();
-            }
+            if (!res.ok) throw new Error("Network error");
 
             const data = await res.json();
-            const reply = data.reply || "معلش يا قمر… في حاجة غلط، جربي تاني";
+            const reply = data.reply || "ثانية واحدة… أنا لسه بفكر يا وحش!";
             add(reply, "bot");
 
         } catch (err) {
-            console.error("Fetch Error:", err);
             document.getElementById("typing")?.remove();
-            add("النت وقع يا وحش… جربي تاني بعد شوية", "bot");
+            add("النت وقع يا بطل… جرب تاني بعد شوية!", "bot");
         }
     }
 
@@ -213,7 +213,7 @@
         };
     });
 
-    // الصوت (شغال على 99% من الموبايلات والكمبيوترات)
+    // الميكروفون (صوت مصري)
     if ("SpeechRecognition" in window || "webkitSpeechRecognition" in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const rec = new SpeechRecognition();
@@ -242,10 +242,11 @@
         };
     }
 
-    // رسالة الترحيب الفورية
+    // رسالة ترحيب فورية أول ما الصفحة تفتح
     setTimeout(() => {
-        add("أهلاً يا أجمل طالبة في معهد رعاية الضبعية! ازيك النهاردة يا روحي؟ عايزة أساعدك في إيه يا قمر؟", "bot");
-    }, 1000);
-        </script>
+        add("أهلاً يا أسطورة التمريض! ازيك النهاردة يا بطل؟  
+        عايز نشرح حاجة في الباثو ولا الكير بلان ولا حتى نرغي شوية ونضحك؟ أنا جاهز 24 ساعة!", "bot");
+    }, 1200);
+</script>
 </body>
 </html>
