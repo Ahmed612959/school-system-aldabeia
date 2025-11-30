@@ -679,53 +679,37 @@ app.get('/api/admins/:username', async (req, res) => {
 });
 
 // ════════════════════════════════════════════════════
-// نور دلوقتي شغالة بـ Gemini 1.5 Flash (آمن 100% وسريع جدًا)
+// نور 3.0 – شغالة بـ Gemini 1.5 Flash (مضمونة 100%)
 // ════════════════════════════════════════════════════
-
 app.post('/api/nour', async (req, res) => {
     try {
         const { prompt } = req.body;
 
-        if (!prompt || prompt.trim() === '') {
+        if (!prompt || prompt.toString().trim() === '') {
             return res.json({ reply: "اكتب حاجة الأول يا وحش!" });
         }
 
-        // المفتاح من الـ Environment (مش ظاهر لأي حد)
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
 
         if (!GEMINI_API_KEY) {
-            console.error("مفتاح Gemini مفقود!");
-            return res.json({ reply: "نور نايمة شوية… كلمني بعد دقيقتين" });
+            console.error("GEMINI_API_KEY مش موجود في الـ Environment");
+            return res.json({ reply: "نور نايمة دلوقتي يا بطل… كلمني بعد شوية" });
         }
 
         const response = await fetch(
-            "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
+            `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
             {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     contents: [{
                         role: "user",
-                        parts: [{
-                            text: `أنت نور، مساعد ذكي مصري خفيف الدم وصريح ومرح جدًا وبتحب التمريض أوي.
-                            بترد دايمًا بالعامية المصرية الحلوة وبتستخدم كلمات زي: يا وحش، يا بطل، يا أسطورة، يا دكتور، يا قمر، يا عسل، يا أمير التمريض.
-                            لو حد سألك عن الدرجات قوله يروح قسم "النتايج".
-                            السؤال هو: ${prompt}`
-                        }]
+                        parts: [{ text: `أنت نور، مساعد ذكي مصري خفيف الدم ومرح جدًا وبتحب التمريض أوي.
+بترد دايمًا بالعامية المصرية الحلوة وبتقول يا وحش، يا بطل، يا أسطورة، يا دكتور.
+لو سألوك عن الدرجات قولهم يروحوا قسم "النتايج".
+السؤال: ${prompt}` }]
                     }],
-                    generationConfig: {
-                        temperature: 0.9,
-                        topP: 0.95,
-                        maxOutputTokens: 1000
-                    },
-                    safetySettings: [
-                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-                    ]
+                    generationConfig: { temperature: 0.9, maxOutputTokens: 1000 }
                 })
             }
         );
@@ -733,20 +717,17 @@ app.post('/api/nour', async (req, res) => {
         if (!response.ok) {
             const err = await response.text();
             console.error("Gemini Error:", err);
-            return res.json({ reply: "ثانية… أنا زهقانة شوية، جرب تاني" });
+            return res.json({ reply: "ثانية يا بطل… في حاجة حصلت، جرب تاني" });
         }
 
         const data = await response.json();
         const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
-                      || "معلش يا وحش… الكلام اتلخبط، قولي تاني";
+                      || "معلش يا وحش… الكلام اتلخبط، قول تاني";
 
-        // تنظيف النجوم والرموز اللي بتحطها جيميناي أحيانًا
-        const cleanReply = reply.replace(/^\*\*|\*\*$/g, "").trim();
-
-        res.json({ reply: cleanReply });
+        res.json({ reply: reply.replace(/^\*\*|\*\*$/g, "").trim() });
 
     } catch (err) {
-        console.error("خطأ في نور:", err);
+        console.error("خطأ في /api/nour:", err.message);
         res.json({ reply: "النت وقع يا أسطورة… جرب تاني بعد شوية" });
     }
 });
