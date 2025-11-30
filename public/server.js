@@ -679,7 +679,7 @@ app.get('/api/admins/:username', async (req, res) => {
 });
 
 // ════════════════════════════════════════════════════
-// نور الغالية بتشتغل بـ DeepSeek (النسخة النهائية والأخيرة)
+// نور دلوقتي شغالة بـ Gemini 1.5 Flash (آمن 100% وسريع جدًا)
 // ════════════════════════════════════════════════════
 
 app.post('/api/nour', async (req, res) => {
@@ -687,54 +687,67 @@ app.post('/api/nour', async (req, res) => {
         const { prompt } = req.body;
 
         if (!prompt || prompt.trim() === '') {
-            return res.json({ reply: "اكتبي حاجة الأول يا روحي!" });
+            return res.json({ reply: "اكتب حاجة الأول يا وحش!" });
         }
 
-        // جلب المفتاح من Environment Variables (أكثر أمانًا)
-        const API_KEY = process.env.DEEPSEEK_API_KEY;
+        // المفتاح من الـ Environment (مش ظاهر لأي حد)
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-        if (!API_KEY) {
-            console.error("مفتاح DeepSeek مفقود! أضيفي DEEPSEEK_API_KEY في الـ Environment");
-            return res.json({ reply: "نور نايمة دلوقتي يا قمر… كلميني بعد شوية" });
+        if (!GEMINI_API_KEY) {
+            console.error("مفتاح Gemini مفقود!");
+            return res.json({ reply: "نور نايمة شوية… كلمني بعد دقيقتين" });
         }
 
-        const response = await fetch("https://api.deepseek.com/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${API_KEY}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [
-                    {
-                        role: "system",
-                        content: "أنتِ نور، بنت مصرية لطيفة وخفيفة دم وبتحبي طالبات معهد الضبعية جدًا. ردي دايمًا بالعامية المصرية الحلوة، استخدمي كلمات زي: يا قمر، يا روحي، يا عسل، يا أجمل بنت في الضبعية، يا حبيبتي. خليكي دايمًا مرحة ومباشرة ولو سألوكي عن الدرجات قوليلها تروح قسم 'النتايج'."
-                    },
-                    {
+        const response = await fetch(
+            "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    contents: [{
                         role: "user",
-                        content: prompt
-                    }
-                ],
-                temperature: 0.85,
-                max_tokens: 1000
-            })
-        });
+                        parts: [{
+                            text: `أنت نور، مساعد ذكي مصري خفيف الدم وصريح ومرح جدًا وبتحب التمريض أوي.
+                            بترد دايمًا بالعامية المصرية الحلوة وبتستخدم كلمات زي: يا وحش، يا بطل، يا أسطورة، يا دكتور، يا قمر، يا عسل، يا أمير التمريض.
+                            لو حد سألك عن الدرجات قوله يروح قسم "النتايج".
+                            السؤال هو: ${prompt}`
+                        }]
+                    }],
+                    generationConfig: {
+                        temperature: 0.9,
+                        topP: 0.95,
+                        maxOutputTokens: 1000
+                    },
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+                    ]
+                })
+            }
+        );
 
         if (!response.ok) {
             const err = await response.text();
-            console.error("DeepSeek API Error:", err);
-            return res.json({ reply: "معلش يا قمر… في حاجة حصلت، جربي تاني بعد شوية" });
+            console.error("Gemini Error:", err);
+            return res.json({ reply: "ثانية… أنا زهقانة شوية، جرب تاني" });
         }
 
         const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content?.trim() || "مش عارفة أرد يا روحي… اسأليني تاني";
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
+                      || "معلش يا وحش… الكلام اتلخبط، قولي تاني";
 
-        res.json({ reply });
+        // تنظيف النجوم والرموز اللي بتحطها جيميناي أحيانًا
+        const cleanReply = reply.replace(/^\*\*|\*\*$/g, "").trim();
+
+        res.json({ reply: cleanReply });
 
     } catch (err) {
-        console.error("خطأ في الشات بوت:", err);
-        res.json({ reply: "النت وقع يا وحش… جربي تاني بعد دقيقة" });
+        console.error("خطأ في نور:", err);
+        res.json({ reply: "النت وقع يا أسطورة… جرب تاني بعد شوية" });
     }
 });
 
