@@ -678,60 +678,63 @@ app.get('/api/admins/:username', async (req, res) => {
     }
 });
 
-// ضيف ده في آخر server.js (استبدل الـ route القديم كله باللي تحت ده)
+// ════════════════════════════════════════════════════
+// نور الغالية بتشتغل بـ DeepSeek (النسخة النهائية والأخيرة)
+// ════════════════════════════════════════════════════
 
-// استبدل الـ route بتاع gemini كله بالكود ده
-app.post('/api/gemini', async (req, res) => {
+app.post('/api/nour', async (req, res) => {
     try {
         const { prompt } = req.body;
 
         if (!prompt || prompt.trim() === '') {
-            return res.json({ reply: "اكتبي حاجة الأول يا قمر!" });
+            return res.json({ reply: "اكتبي حاجة الأول يا روحي!" });
         }
 
+        // جلب المفتاح من Environment Variables (أكثر أمانًا)
         const API_KEY = process.env.DEEPSEEK_API_KEY;
+
         if (!API_KEY) {
-            console.error("مفيش DEEPSEEK_API_KEY في الـ Environment");
-            return res.json({ reply: "المساعد نايم دلوقتي، كلمي الإدارة!" });
+            console.error("مفتاح DeepSeek مفقود! أضيفي DEEPSEEK_API_KEY في الـ Environment");
+            return res.json({ reply: "نور نايمة دلوقتي يا قمر… كلميني بعد شوية" });
         }
 
-        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+        const response = await fetch("https://api.deepseek.com/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${API_KEY}`,
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                model: "deepseek-chat",        // ده الموديل المجاني والقوي
-                messages: [{
-                    role: "user",
-                    content: `أنت مساعدة ذكية مصرية خفيفة الدم ولطيفة جدًا اسمها "نور" في معهد رعاية الضبعية للتمريض.
-                    ردي دايمًا بالعربي المصري الحلو والظريف والقريب من قلب الطالبات.
-                    خليكي زي أخت كبيرة بتدلع البنات وبتساعدهم في كل حاجة.
-                    
-                    السؤال: ${prompt}`
-                }],
-                max_tokens: 800,
-                temperature: 0.7,
-                stream: false
+                model: "deepseek-chat",
+                messages: [
+                    {
+                        role: "system",
+                        content: "أنتِ نور، بنت مصرية لطيفة وخفيفة دم وبتحبي طالبات معهد الضبعية جدًا. ردي دايمًا بالعامية المصرية الحلوة، استخدمي كلمات زي: يا قمر، يا روحي، يا عسل، يا أجمل بنت في الضبعية، يا حبيبتي. خليكي دايمًا مرحة ومباشرة ولو سألوكي عن الدرجات قوليلها تروح قسم 'النتايج'."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 0.85,
+                max_tokens: 1000
             })
         });
 
         if (!response.ok) {
             const err = await response.text();
-            console.error("DeepSeek Error:", err);
-            return res.json({ reply: "يا بنت الإيه… أنا زهقانة شوية، جربي تاني بعد شوية" });
+            console.error("DeepSeek API Error:", err);
+            return res.json({ reply: "معلش يا قمر… في حاجة حصلت، جربي تاني بعد شوية" });
         }
 
         const data = await response.json();
-        const reply = data.choices?.[0]?.message?.content?.trim()
-                      || "معلش يا روحي… الكلام اتلخبط، قوليلي تاني";
+        const reply = data.choices?.[0]?.message?.content?.trim() || "مش عارفة أرد يا روحي… اسأليني تاني";
 
         res.json({ reply });
 
     } catch (err) {
-        console.error("خطأ في الشات بوت:", err.message);
-        res.json({ reply: "يا قمر… النت وقع أو السيرفر نايم، جربي تاني بعد دقيقة" });
+        console.error("خطأ في الشات بوت:", err);
+        res.json({ reply: "النت وقع يا وحش… جربي تاني بعد دقيقة" });
     }
 });
 
