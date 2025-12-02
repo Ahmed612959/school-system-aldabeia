@@ -127,12 +127,8 @@
     <a href="exams.html"><i class="fas fa-book"></i></a>
 
 </nav>
-
-
-    <script>
+<script>
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = ''; // شغال تمام كده
-
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
@@ -149,33 +145,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     let user = null;
     try {
         const response = await fetch(`/api/\( {userType}s/ \){username}`);
-        
         console.log("الرابط:", response.url);
         console.log("الحالة:", response.status);
 
         if (!response.ok) {
             if (response.status === 404) {
-                Toastify({ text: "المستخدم غير موجود!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
+                Toastify({ text: "المستخدم غير موجود في قاعدة البيانات!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
             } else {
-                Toastify({ text: `خطأ ${response.status} من السيرفر`, backgroundColor: "#dc3545", duration: 6000 }).showToast();
+                Toastify({ text: `خطأ في السيرفر: ${response.status}`, backgroundColor: "#dc3545", duration: 6000 }).showToast();
             }
             return;
         }
 
         user = await response.json();
-        console.log("البيانات وصلت بنجاح:", user);
+        console.log("تم جلب البيانات بنجاح:", user);
 
     } catch (err) {
         console.error("فشل الاتصال:", err);
-        Toastify({ 
-            text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر", 
-            backgroundColor: "#dc3545", 
-            duration: 7000 
-        }).showToast();
+        Toastify({ text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر", backgroundColor: "#dc3545", duration: 7000 }).showToast();
         return;
     }
 
-    // تعبئة البيانات
     user.profile = user.profile || { email: '', phone: '', birthdate: '', address: '', bio: '' };
 
     document.getElementById('user-name').textContent = user.fullName || user.username;
@@ -187,7 +177,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('address').value = user.profile.address || '';
     document.getElementById('bio').value = user.profile.bio || '';
 
-    // حساب نسبة الاكتمال
     const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 5) * 100);
@@ -204,7 +193,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         duration: 4000
     }).showToast();
 
-    // حفظ التعديلات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -242,7 +230,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // الناف بار ديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-simple' },
@@ -259,7 +246,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `<a href="\( {item.href}" class=" \){item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
     ).join('');
 });
-</script>
+        </script>
 
 </body>
 </html>
