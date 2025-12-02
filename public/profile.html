@@ -128,13 +128,13 @@
 
 </nav>
 
-<script>
+
+    <script>
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = ''; // شغال كده تمام
+    const BASE_URL = ''; // شغال تمام كده
 
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     
-    // لو مفيش تسجيل دخول
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
         Toastify({ text: "يرجى تسجيل الدخول أولاً!", backgroundColor: "#dc3545", duration: 4000 }).showToast();
         setTimeout(() => window.location.href = 'login.html', 2000);
@@ -144,42 +144,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     const username = loggedInUser.username;
     const userType = loggedInUser.type;
 
-    console.log("بتحاول تجيب بيانات:", userType, username); // نشوف اللي بيحصل
+    console.log("جاري جلب بيانات:", userType, username);
 
     let user = null;
     try {
         const response = await fetch(`/api/\( {userType}s/ \){username}`);
         
-        // نطبع الرد عشان نعرف إيه اللي راجع
-        console.log("Status:", response.status);
-        console.log("URL:", response.url);
+        console.log("الرابط:", response.url);
+        console.log("الحالة:", response.status);
 
-        if (response.status === 404) {
-            Toastify({ text: "المستخدم غير موجود! تأكد من اسم المستخدم", backgroundColor: "#dc3545", duration: 6000 }).showToast();
-            return;
-        }
-        if (response.status === 500) {
-            Toastify({ text: "خطأ في السيرفر (500)", backgroundColor: "#dc3545", duration: 6000 }).showToast();
-            return;
-        }
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            if (response.status === 404) {
+                Toastify({ text: "المستخدم غير موجود!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
+            } else {
+                Toastify({ text: `خطأ ${response.status} من السيرفر`, backgroundColor: "#dc3545", duration: 6000 }).showToast();
+            }
+            return;
         }
 
         user = await response.json();
-        console.log("البيانات وصلت:", user);
+        console.log("البيانات وصلت بنجاح:", user);
 
     } catch (err) {
-        console.error("خطأ في الـ fetch:", err);
+        console.error("فشل الاتصال:", err);
         Toastify({ 
-            text: "فشل الاتصال بالسيرفر.. تأكد من الإنترنت أو اسم المستخدم", 
+            text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر", 
             backgroundColor: "#dc3545", 
             duration: 7000 
         }).showToast();
         return;
     }
 
-    // لو وصلنا هنا يبقى كل حاجة تمام
+    // تعبئة البيانات
     user.profile = user.profile || { email: '', phone: '', birthdate: '', address: '', bio: '' };
 
     document.getElementById('user-name').textContent = user.fullName || user.username;
@@ -191,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('address').value = user.profile.address || '';
     document.getElementById('bio').value = user.profile.bio || '';
 
-    // حساب النسبة
+    // حساب نسبة الاكتمال
     const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 5) * 100);
@@ -208,9 +204,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         duration: 4000
     }).showToast();
 
-    // باقي كود الحفظ زي ما هو...
+    // حفظ التعديلات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
+
         const updatedProfile = {
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
@@ -233,16 +230,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('progress-percentage').textContent = newPercentage + '%';
 
                 Toastify({
-                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح",
+                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح!",
                     backgroundColor: "#28a745",
                     duration: 4000
                 }).showToast();
-            }
-        } else {
+            } else {
                 Toastify({ text: "فشل في الحفظ", backgroundColor: "#dc3545" }).showToast();
             }
-        } catch {
-            Toastify({ text: "لا يوجد إنترنت", backgroundColor: "#dc3545" }).showToast();
+        } catch (err) {
+            Toastify({ text: "لا يوجد اتصال بالإنترنت", backgroundColor: "#dc3545" }).showToast();
         }
     });
 
@@ -251,9 +247,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-simple' },
         { href: 'profile.html', icon: 'fa-solid fa-user', active: true },
-        { href: 'exams.html', icon: 'fa-solid fa-book-open' }
-        
+        { href: 'exams.html', icon: 'fa-solid fa-book-open' },
+        { href: 'chatbot.html', icon: 'fa-solid fa-robot' }
     ];
+
     if (userType === 'admin') {
         navItems.push({ href: 'admin.html', icon: 'fa-solid fa-cogs' });
     }
@@ -262,7 +259,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `<a href="\( {item.href}" class=" \){item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
     ).join('');
 });
-        </script>
+</script>
 
 </body>
 </html>
