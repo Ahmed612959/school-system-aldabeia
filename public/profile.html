@@ -130,9 +130,11 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = ''; // فارغ بس كده!
-    
+    const BASE_URL = ''; // شغال كده تمام
+
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    
+    // لو مفيش تسجيل دخول
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
         Toastify({ text: "يرجى تسجيل الدخول أولاً!", backgroundColor: "#dc3545", duration: 4000 }).showToast();
         setTimeout(() => window.location.href = 'login.html', 2000);
@@ -142,16 +144,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     const username = loggedInUser.username;
     const userType = loggedInUser.type;
 
+    console.log("بتحاول تجيب بيانات:", userType, username); // نشوف اللي بيحصل
+
     let user = null;
     try {
-        const res = await fetch(`${BASE_URL}/api/${userType}s/${username}`);
-        if (!res.ok) throw new Error('غير موجود');
-        user = await res.json();
+        const response = await fetch(`/api/\( {userType}s/ \){username}`);
+        
+        // نطبع الرد عشان نعرف إيه اللي راجع
+        console.log("Status:", response.status);
+        console.log("URL:", response.url);
+
+        if (response.status === 404) {
+            Toastify({ text: "المستخدم غير موجود! تأكد من اسم المستخدم", backgroundColor: "#dc3545", duration: 6000 }).showToast();
+            return;
+        }
+        if (response.status === 500) {
+            Toastify({ text: "خطأ في السيرفر (500)", backgroundColor: "#dc3545", duration: 6000 }).showToast();
+            return;
+        }
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        user = await response.json();
+        console.log("البيانات وصلت:", user);
+
     } catch (err) {
-        Toastify({ text: "فشل جلب البيانات.. تحقق من الإنترنت", backgroundColor: "#dc3545", duration: 5000 }).showToast();
+        console.error("خطأ في الـ fetch:", err);
+        Toastify({ 
+            text: "فشل الاتصال بالسيرفر.. تأكد من الإنترنت أو اسم المستخدم", 
+            backgroundColor: "#dc3545", 
+            duration: 7000 
+        }).showToast();
         return;
     }
 
+    // لو وصلنا هنا يبقى كل حاجة تمام
     user.profile = user.profile || { email: '', phone: '', birthdate: '', address: '', bio: '' };
 
     document.getElementById('user-name').textContent = user.fullName || user.username;
@@ -163,6 +191,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('address').value = user.profile.address || '';
     document.getElementById('bio').value = user.profile.bio || '';
 
+    // حساب النسبة
     const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 5) * 100);
@@ -174,14 +203,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     Toastify({
-        text: `أهلاً بعودتك يا ${user.fullName?.split(' ')[0] || username}!`,
+        text: `أهلاً يا ${user.fullName?.split(' ')[0] || username} !`,
         backgroundColor: "#d4af37",
         duration: 4000
     }).showToast();
 
+    // باقي كود الحفظ زي ما هو...
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const updatedProfile = {
             email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
@@ -191,7 +220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            const res = await fetch(`${BASE_URL}/api/${userType}s/${username}`, {
+            const res = await fetch(`/api/\( {userType}s/ \){username}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profile: updatedProfile })
@@ -204,39 +233,36 @@ document.addEventListener('DOMContentLoaded', async () => {
                 document.getElementById('progress-percentage').textContent = newPercentage + '%';
 
                 Toastify({
-                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم حفظ التغييرات بنجاح!",
+                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح",
                     backgroundColor: "#28a745",
                     duration: 4000
                 }).showToast();
-            } else {
-                throw new Error();
             }
-        } catch (err) {
-            Toastify({
-                text: "لا يوجد اتصال بالإنترنت - لم يتم الحفظ",
-                backgroundColor: "#dc3545",
-                duration: 5000
-            }).showToast();
+        } else {
+                Toastify({ text: "فشل في الحفظ", backgroundColor: "#dc3545" }).showToast();
+            }
+        } catch {
+            Toastify({ text: "لا يوجد إنترنت", backgroundColor: "#dc3545" }).showToast();
         }
     });
 
-    // النافبار الديناميكي
+    // الناف بار ديناميكي
     const navItems = [
-        { href: 'index.html', icon: 'fas fa-home' },
-        { href: 'Home.html', icon: 'fas fa-chart-line' },
-        { href: 'profile.html', icon: 'fas fa-user', active: true },
-        { href: 'exams.html', icon: 'fas fa-book' },
-        { href: 'chatbot.html', icon: 'fas fa-robot' }
+        { href: 'index.html', icon: 'fa-solid fa-house' },
+        { href: 'Home.html', icon: 'fa-solid fa-chart-simple' },
+        { href: 'profile.html', icon: 'fa-solid fa-user', active: true },
+        { href: 'exams.html', icon: 'fa-solid fa-book-open' }
+        
     ];
     if (userType === 'admin') {
-        navItems.push({ href: 'admin.html', icon: 'fas fa-cogs' });
+        navItems.push({ href: 'admin.html', icon: 'fa-solid fa-cogs' });
     }
 
     document.querySelector('.nav').innerHTML = navItems.map(item => 
-        `<a href="${item.href}" class="${item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
+        `<a href="\( {item.href}" class=" \){item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
     ).join('');
 });
-</script>
+        </script>
 
 </body>
 </html>
