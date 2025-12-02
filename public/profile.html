@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script> <!-- مهم جدًا -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
         :root{--g:#d4af37;--d:#1a2526;--d2:#2a3a3b}
         *{margin:0;padding:0;box-sizing:border-box}
@@ -96,7 +96,7 @@
     <div class="card">
         <div class="ch">
             <h2 id="user-name">جاري التحميل...</h2>
-            <span id="admin-badge" style="display:none;"><i class="fas fa-crown"></i></span>
+            <span id="admin-badge" style="display:none;">تاج</span>
         </div>
 
         <div class="p">
@@ -120,13 +120,8 @@
     </div>
 </div>
 
-<nav class="nav">
-    <a href="index.html"><i class="fas fa-home"></i></a>
-    <a href="Home.html"><i class="fas fa-chart-line"></i></a>
-    <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
-    <a href="exams.html"><i class="fas fa-book"></i></a>
+<nav class="nav"></nav>
 
-</nav>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
@@ -140,17 +135,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     const username = loggedInUser.username;
     const userType = loggedInUser.type;
 
-    console.log("جاري جلب بيانات:", userType, username);
-
     let user = null;
     try {
         const response = await fetch(`/api/\( {userType}s/ \){username}`);
-        console.log("الرابط:", response.url);
-        console.log("الحالة:", response.status);
-
+        
         if (!response.ok) {
             if (response.status === 404) {
-                Toastify({ text: "المستخدم غير موجود في قاعدة البيانات!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
+                Toastify({ text: "المستخدم غير موجود!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
             } else {
                 Toastify({ text: `خطأ في السيرفر: ${response.status}`, backgroundColor: "#dc3545", duration: 6000 }).showToast();
             }
@@ -158,10 +149,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         user = await response.json();
-        console.log("تم جلب البيانات بنجاح:", user);
 
     } catch (err) {
-        console.error("فشل الاتصال:", err);
         Toastify({ text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر", backgroundColor: "#dc3545", duration: 7000 }).showToast();
         return;
     }
@@ -188,11 +177,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     Toastify({
-        text: `أهلاً يا ${user.fullName?.split(' ')[0] || username} !`,
+        text: `أهلاً يا ${user.fullName?.split(' ')[0] || username}!`,
         backgroundColor: "#d4af37",
         duration: 4000
     }).showToast();
 
+    // حفظ التعديلات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -212,8 +202,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (res.ok) {
-                const newCompleted = fields.filter(f => updatedProfile[f]).length;
-                const newPercentage = Math.round((newCompleted / 5) * 100);
+                const newPercentage = Math.round((fields.filter(f => updatedProfile[f]).length / 5) * 100);
                 document.getElementById('profile-progress').value = newPercentage;
                 document.getElementById('progress-percentage').textContent = newPercentage + '%';
 
@@ -230,6 +219,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // الناف بار ديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-simple' },
@@ -246,7 +236,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         `<a href="\( {item.href}" class=" \){item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
     ).join('');
 });
-        </script>
+</script>
 
 </body>
 </html>
