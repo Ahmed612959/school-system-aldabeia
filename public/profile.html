@@ -125,12 +125,12 @@
     <a href="Home.html"><i class="fas fa-chart-line"></i></a>
     <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
     <a href="exams.html"><i class="fas fa-book"></i></a>
-    <a href="chatbot.html"><i class="fas fa-robot"></i></a>
+
 </nav>
 
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-    const BASE_URL = 'https://schoolx-five.vercel.app';
+    const BASE_URL = ''; // فارغ بس كده!
     
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
