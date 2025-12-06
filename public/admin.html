@@ -11,8 +11,71 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7676282531413677"
      crossorigin="anonymous"></script>
+    <style>
+    /* الهامبرجر منيو + القايمة الجانبية - تصميم فخم جدًا */
+    .hamburger{
+        position:fixed;top:18px;left:18px;z-index:9999;
+        background:#d4af37;color:#000;padding:12px 16px;border-radius:50%;
+        font-size:1.6rem;cursor:pointer;box-shadow:0 6px 20px rgba(212,175,55,0.6);
+        border:none;transition:all 0.4s;font-weight:900;
+    }
+    .hamburger:hover{background:#ffc107;transform:rotate(90deg) scale(1.1);}
+
+    .sidebar{
+        position:fixed;top:0;right:-340px;width:340px;height:100%;background:#1a2526;
+        box-shadow:-15px 0 40px rgba(0,0,0,0.8);transition:right 0.5s ease;z-index:9998;
+        padding:25px;overflow-y:auto;border-left:6px solid #d4af37;
+    }
+    .sidebar.active{right:0;}
+
+    .sidebar-header{
+        text-align:center;padding:25px 0;border-bottom:3px solid #d4af37;margin-bottom:25px;
+    }
+    .sidebar-header h2{color:#d4af37;font-size:1.8rem;font-weight:900;}
+
+    .sidebar-menu a{
+        display:block;padding:20px 25px;color:#fff;font-size:1.4rem;
+        border-bottom:1px solid #333333;transition:0.3s;border-radius:12px;
+        margin:10px 15px;background:rgba(255,255,255,0.05);
+    }
+    .sidebar-menu a:hover{
+        background:#d4af37;color:#000;font-weight:900;transform:translateX(-10px);
+    }
+    .sidebar-menu a i{margin-left:15px;}
+
+    .overlay{
+        position:fixed;inset:0;background:rgba(0,0,0,0.8);opacity:0;
+        visibility:hidden;transition:0.4s;z-index:9997;
+    }
+    .overlay.active{opacity:1;visibility:visible;}
+
+    @media (max-width:480px){
+        .sidebar{width:300px;right:-300px;}
+        .hamburger{top:12px;left:12px;font-size:1.4rem;padding:10px;}
+    }
+</style>
 </head>
 <body>
+    <!-- الهامبرجر منيو -->
+<button class="hamburger" id="hamburgerBtn">☰</button>
+
+<!-- القايمة الجانبية -->
+<div class="sidebar" id="adminSidebar">
+    <div class="sidebar-header">
+        <h2>قائمة الأدمن</h2>
+    </div>
+    <div class="sidebar-menu">
+        <a href="admin.html"><i class="fas fa-tachometer-alt"></i> لوحة التحكم الرئيسية</a>
+        <a href="certificate.html"><i class="fas fa-certificate"></i> إصدار شهادة تقدير</a>
+        <a href="exams.html"><i class="fas fa-file-alt"></i> إدارة الامتحانات</a>
+        <a href="notifications.html"><i class="fas fa-bell"></i> إرسال إشعارات</a>
+        <a href="Home.html"><i class="fas fa-home"></i> الصفحة الرئيسية</a>
+        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+    </div>
+</div>
+
+<!-- الخلفية الداكنة -->
+<div class="overlay" id="overlay"></div>
     <header class="main-header">
         <img src="logo.png" alt="شعار معهد رعاية الضبعية" class="logo">
         <h1>لوحة تحكم الأدمن</h1>
@@ -304,6 +367,28 @@
     <script src="admin.js"></script>
     <script src="auth.js"></script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947cc960f9459a73',t:'MTc0ODU5Mjk1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+// الهامبرجر منيو - فتح وإغلاق
+document.getElementById('hamburgerBtn').addEventListener('click', function() {
+    document.getElementById('adminSidebar').classList.toggle('active');
+    document.getElementById('overlay').classList.toggle('active');
+});
+
+document.getElementById('overlay').addEventListener('click', function() {
+    document.getElementById('adminSidebar').classList.remove('active');
+    document.getElementById('overlay').classList.remove('active');
+});
+
+// إغلاق القايمة لما نضغط على لينك (خصوصًا على الموبايل)
+document.querySelectorAll('.sidebar-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+            document.getElementById('adminSidebar').classList.remove('active');
+            document.getElementById('overlay').classList.remove('active');
+        }
+    });
+});
+</script>
 </body>
 </html>
