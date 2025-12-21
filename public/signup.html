@@ -47,9 +47,9 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="parentId">رقم بطاقة ولي الأمر</label>
-                    <input type="text" id="parentId" name="parentId" placeholder="14 رقم" maxlength="14" inputmode="numeric" required>
-                </div>
+    <label for="parentId">رقم بطاقة ولي الأمر</label>
+    <input type="text" id="parentId" name="parentId" inputmode="numeric" maxlength="14" placeholder="14 رقم بدون مسافات" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+</div>
 
                 <button type="submit" class="submit-btn">إنشاء الحساب</button>
 
