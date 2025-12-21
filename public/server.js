@@ -553,21 +553,22 @@ app.post('/api/register-student', async (req, res) => {
     try {
         const { fullName, username, id, phone, parentName, parentId, password } = req.body;
 
+        // التحقق من الحقول الجديدة فقط
         if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         // التحقق من رقم الجلوس (1-7 أرقام)
         if (!/^\d{1,7}$/.test(id)) {
-            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام' });
+            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط' });
         }
 
-        // التحقق من رقم بطاقة ولي الأمر (14 رقم)
+        // التحقق من رقم بطاقة ولي الأمر (14 رقم بالظبط)
         if (!/^\d{14}$/.test(parentId)) {
-            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم' });
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
 
-        // التحقق من اسم المستخدم
+        // التحقق من صيغة اسم المستخدم
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
             return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
@@ -597,7 +598,7 @@ app.post('/api/register-student', async (req, res) => {
         // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        // إنشاء الطالب
+        // إنشاء الطالب (profile يحتوي على الحقول الجديدة فقط)
         const student = new Student({
             fullName,
             id,
@@ -605,7 +606,11 @@ app.post('/api/register-student', async (req, res) => {
             password: hashedPassword,
             originalPassword: password,
             subjects: [],
-            profile: { phone, parentName, parentId }
+            profile: {
+                phone,
+                parentName,
+                parentId
+            }
         });
 
         await student.save();
@@ -618,7 +623,6 @@ app.post('/api/register-student', async (req, res) => {
         res.status(500).json({ error: 'خطأ في إنشاء الحساب: ' + error.message });
     }
 });
-
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
 // ====================================================
