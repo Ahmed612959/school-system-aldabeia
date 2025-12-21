@@ -806,69 +806,76 @@ app.get('/api/exams/:code/results', async (req, res) => {
 // نقطة نهاية إنشاء حساب طالب
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, id, email, phone, birthdate, address, password } = req.body;
+        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
 
-        if (!fullName || !username || !id || !email || !phone || !birthdate || !address || !password) {
-            return res.status(400).json({ error: 'All fields are required' });
+        // التحقق من الحقول الجديدة فقط
+        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        // التحقق من صيغة كود الطالب (STU + 3 أرقام)
-        if (!/^STU\d{3}$/.test(id)) {
-            return res.status(400).json({ error: 'Student code must be in the format STU followed by 3 digits' });
+        // التحقق من رقم الجلوس (1-7 أرقام)
+        if (!/^\d{1,7}$/.test(id)) {
+            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط' });
+        }
+
+        // التحقق من رقم بطاقة ولي الأمر (14 رقم بالظبط)
+        if (!/^\d{14}$/.test(parentId)) {
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
 
         // التحقق من صيغة اسم المستخدم
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            return res.status(400).json({ error: 'Username must be 3-20 characters (letters and numbers only)' });
+            return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        const existingAdmins = await Admin.find();
-        const existingStudents = await Student.find();
-        const allUsers = [...existingAdmins, ...existingStudents];
+        // التحقق من التكرار
+        const [existingId, existingUsername, existingParentId] = await Promise.all([
+            Student.findOne({ id }).lean(),
+            Promise.all([
+                Admin.findOne({ username }).lean(),
+                Student.findOne({ username }).lean()
+            ]),
+            Student.findOne({ 'profile.parentId': parentId }).lean()
+        ]);
 
-        // التحقق من وجود كود الطالب
-        if (allUsers.some(user => user.id === id)) {
-            return res.status(400).json({ error: 'Student code already used' });
+        if (existingId) {
+            return res.status(400).json({ error: 'رقم الجلوس مستخدم من قبل' });
         }
 
-        // التحقق من وجود اسم المستخدم
-        if (allUsers.some(user => user.username === username)) {
-            return res.status(400).json({ error: 'Username already used' });
+        if (existingUsername.some(u => u)) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
         }
 
-        // التحقق من وجود البريد الإلكتروني
-        if (allUsers.some(user => user.profile && user.profile.email === email)) {
-            return res.status(400).json({ error: 'Email already used' });
+        if (existingParentId) {
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
         }
 
         // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        // إنشاء حساب طالب جديد
+        // إنشاء الطالب (profile يحتوي على الحقول الجديدة فقط)
         const student = new Student({
             fullName,
             id,
             username,
             password: hashedPassword,
-            originalPassword: password, // اختياري
+            originalPassword: password,
             subjects: [],
             profile: {
-                email,
                 phone,
-                birthdate,
-                address,
-                bio: ''
+                parentName,
+                parentId
             }
         });
 
         await student.save();
-        res.json({ 
-            message: 'Student account created successfully',
-            username
-        });
+
+        console.log(`Student registered: \( {username} ( \){id})`);
+        res.json({ message: 'تم إنشاء الحساب بنجاح', username });
+
     } catch (error) {
-        console.error('Error creating student account:', error.message);
-        res.status(500).json({ error: 'Error creating account: ' + error.message });
+        console.error('Error in register-student:', error);
+        res.status(500).json({ error: 'خطأ في إنشاء الحساب: ' + error.message });
     }
 });
 // === مهم جدًا: أضف الـ routes دي في server.js قبل app.listen ===
