@@ -551,46 +551,53 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, id, email, phone, birthdate, address, password } = req.body;
+        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
 
-        if (!fullName || !username || !id || !email || !phone || !birthdate || !address || !password) {
+        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        if (!/^STU\d{3}$/.test(id)) {
-            return res.status(400).json({ error: 'كود الطالب يجب أن يكون STU + 3 أرقام' });
+        // التحقق من رقم الجلوس (1-7 أرقام)
+        if (!/^\d{1,7}$/.test(id)) {
+            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام' });
         }
 
+        // التحقق من رقم بطاقة ولي الأمر (14 رقم)
+        if (!/^\d{14}$/.test(parentId)) {
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم' });
+        }
+
+        // التحقق من اسم المستخدم
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
             return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        // === التحقق من التكرار (سريع ودقيق) ===
-        const [existingId, existingUsername, existingEmail] = await Promise.all([
+        // التحقق من التكرار
+        const [existingId, existingUsername, existingParentId] = await Promise.all([
             Student.findOne({ id }).lean(),
             Promise.all([
                 Admin.findOne({ username }).lean(),
                 Student.findOne({ username }).lean()
             ]),
-            Student.findOne({ 'profile.email': email }).lean()
+            Student.findOne({ 'profile.parentId': parentId }).lean()
         ]);
 
         if (existingId) {
-            return res.status(400).json({ error: 'كود الطالب مستخدم من قبل' });
+            return res.status(400).json({ error: 'رقم الجلوس مستخدم من قبل' });
         }
 
         if (existingUsername.some(u => u)) {
             return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
         }
 
-        if (existingEmail) {
-            return res.status(400).json({ error: 'البريد الإلكتروني مستخدم من قبل' });
+        if (existingParentId) {
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
         }
 
-        // === تشفير كلمة المرور ===
+        // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        // === إنشاء الطالب ===
+        // إنشاء الطالب
         const student = new Student({
             fullName,
             id,
@@ -598,12 +605,12 @@ app.post('/api/register-student', async (req, res) => {
             password: hashedPassword,
             originalPassword: password,
             subjects: [],
-            profile: { email, phone, birthdate, address, bio: '' }
+            profile: { phone, parentName, parentId }
         });
 
         await student.save();
 
-        console.log(`Student registered: ${username} (${id})`);
+        console.log(`Student registered: \( {username} ( \){id})`);
         res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
     } catch (error) {
