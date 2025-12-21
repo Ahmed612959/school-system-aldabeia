@@ -40,11 +40,9 @@ const studentSchema = new mongoose.Schema({
     semester: { type: String, enum: ['first', 'second'], default: 'first' },
     subjects: [{ name: String, grade: Number }],
     profile: {
-        email: String,
         phone: String,
-        birthdate: String,
-        address: String,
-        bio: String
+        parentName: String,
+        parentId: String
     }
 });
 
