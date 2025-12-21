@@ -16,8 +16,8 @@
             <h2>إنشاء حساب طالب</h2>
             <form id="student-signup-form">
                 <div class="input-group">
-                    <label for="fullName">الاسم الكامل</label>
-                    <input type="text" id="fullName" name="fullName" placeholder="مثال: أحمد محمد علي" required>
+                    <label for="fullName">اسم الطالب رباعي</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="مثال: أحمد محمد علي السيد" required>
                 </div>
 
                 <div class="input-group">
@@ -27,28 +27,13 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="studentCode">كود الطالب</label>
-                    <div style="display: flex; align-items: center;">
-                        <span style="padding: 10px 15px; background: #d4af37; color: #1a2526; border-radius: 5px 0 0 5px; font-weight: bold; font-size: 1.1em;">STU</span>
-                        <input 
-                            type="text" 
-                            id="studentCode" 
-                            name="studentCode" 
-                            inputmode="numeric"
-                            maxlength="3" 
-                            placeholder="123"
-                            required 
-                            style="border-radius: 0 5px 5px 0; flex: 1; text-align: center; font-size: 1.1em;"
-                        >
-                    </div>
-                    <small style="color: #666; font-size: 0.75em; margin-top: 5px; display: block;">
-                        أدخل آخر 3 أرقام فقط (مثال: 001)
-                    </small>
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
                 </div>
 
                 <div class="input-group">
-                    <label for="email">البريد الإلكتروني</label>
-                    <input type="email" id="email" name="email" placeholder="example@school.com" required>
+                    <label for="studentId">رقم الجلوس</label>
+                    <input type="text" id="studentId" name="studentId" inputmode="numeric" maxlength="7" placeholder="من 1 إلى 7 أرقام" required>
                 </div>
 
                 <div class="input-group">
@@ -57,18 +42,13 @@
                 </div>
 
                 <div class="input-group">
-                    <label for="birthdate">تاريخ الميلاد</label>
-                    <input type="date" id="birthdate" name="birthdate" required>
+                    <label for="parentName">اسم الأب أو الأم رباعي</label>
+                    <input type="text" id="parentName" name="parentName" placeholder="مثال: محمد علي أحمد السيد" required>
                 </div>
 
                 <div class="input-group">
-                    <label for="address">العنوان</label>
-                    <input type="text" id="address" name="address" placeholder="المدينة - الحي - الشارع" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="password">كلمة المرور</label>
-                    <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
+                    <label for="parentId">رقم بطاقة ولي الأمر</label>
+                    <input type="text" id="parentId" name="parentId" placeholder="14 رقم" maxlength="14" inputmode="numeric" required>
                 </div>
 
                 <button type="submit" class="submit-btn">إنشاء الحساب</button>
@@ -83,7 +63,7 @@
     <footer>
         <p>Developed by Ahmed Mousa <span class="heart">❤</span></p>
     </footer>
-<script src="signup.js" defer></script>   <!-- في signup.html -->
-    
+
+    <script src="signup.js" defer></script>
 </body>
 </html>
