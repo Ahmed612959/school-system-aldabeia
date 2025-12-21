@@ -65,13 +65,21 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const studentId = document.getElementById('studentId').value.replace(/\s/g, '').trim();
     const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
-    const parentId = document.getElementById('parentId').value.replace(/\s/g, '').trim(); // حذف المسافات
+    const parentId = document.getElementById('parentId').value.replace(/\s/g, '').trim();
 
     // إعادة تعيين رسائل الخطأ
     document.getElementById('username-availability').style.display = 'none';
 
-    // التحقق من الحقول الفارغة
-    if (!fullName || !username || !password || !studentId || !phone || !parentName || !parentId) {
+    // التحقق من الحقول الفارغة (مع حذف المسافات الزيادة)
+    if (
+        fullName === '' ||
+        username === '' ||
+        password === '' ||
+        studentId === '' ||
+        phone === '' ||
+        parentName === '' ||
+        parentId === ''
+    ) {
         showToast('يرجى ملء جميع الحقول!', 'error');
         return;
     }
