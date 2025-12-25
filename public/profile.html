@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الملف الشخصي</title>
+    <title>الملف الشخصي - SchoolX بورسعيد</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -96,7 +96,7 @@
     <div class="card">
         <div class="ch">
             <h2 id="user-name">جاري التحميل...</h2>
-            <span id="admin-badge" style="display:none;">تاج</span>
+            <span id="admin-badge" style="display:none;">👑</span>
         </div>
 
         <div class="p">
@@ -109,11 +109,9 @@
             <form id="profile-form">
                 <div class="ig"><label>الاسم الكامل</label><input type="text" id="full-name" disabled></div>
                 <div class="ig"><label>اسم المستخدم</label><input type="text" id="username" disabled></div>
-                <div class="ig"><label>البريد الإلكتروني</label><input type="email" id="email"></div>
                 <div class="ig"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
-                <div class="ig"><label>تاريخ الميلاد</label><input type="date" id="birthdate"></div>
-                <div class="ig"><label>العنوان</label><input type="text" id="address"></div>
-                <div class="ig"><label>السيرة الذاتية</label><textarea id="bio" rows="2"></textarea></div>
+                <div class="ig"><label>اسم ولي الأمر</label><input type="text" id="parentName"></div>
+                <div class="ig"><label>رقم بطاقة ولي الأمر</label><input type="text" id="parentId"></div>
                 <button type="submit" class="btn">حفظ التغييرات</button>
             </form>
         </div>
@@ -125,7 +123,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
-    
+
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
         Toastify({ text: "يرجى تسجيل الدخول أولاً!", backgroundColor: "#dc3545", duration: 4000 }).showToast();
         setTimeout(() => window.location.href = 'login.html', 2000);
@@ -137,8 +135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let user = null;
     try {
-        const response = await fetch(`/api/\( {userType}s/ \){username}`);
-        
+        const response = await fetch(`/api/\( {userType}s/ \){username}`);  // <-- التعديل الرئيسي هنا
+
         if (!response.ok) {
             if (response.status === 404) {
                 Toastify({ text: "المستخدم غير موجود!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
@@ -155,20 +153,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    user.profile = user.profile || { email: '', phone: '', birthdate: '', address: '', bio: '' };
+    // التأكد من وجود profile
+    user.profile = user.profile || { phone: '', parentName: '', parentId: '' };
 
+    // عرض البيانات
     document.getElementById('user-name').textContent = user.fullName || user.username;
     document.getElementById('full-name').value = user.fullName || '';
     document.getElementById('username').value = user.username;
-    document.getElementById('email').value = user.profile.email || '';
     document.getElementById('phone').value = user.profile.phone || '';
-    document.getElementById('birthdate').value = user.profile.birthdate || '';
-    document.getElementById('address').value = user.profile.address || '';
-    document.getElementById('bio').value = user.profile.bio || '';
+    document.getElementById('parentName').value = user.profile.parentName || '';
+    document.getElementById('parentId').value = user.profile.parentId || '';
 
-    const fields = ['email', 'phone', 'birthdate', 'address', 'bio'];
+    // حساب نسبة الاكتمال (3 حقول فقط)
+    const fields = ['phone', 'parentName', 'parentId'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
-    const percentage = Math.round((completed / 5) * 100);
+    const percentage = Math.round((completed / 3) * 100);
     document.getElementById('profile-progress').value = percentage;
     document.getElementById('progress-percentage').textContent = percentage + '%';
 
@@ -182,16 +181,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         duration: 4000
     }).showToast();
 
-    // حفظ التعديلات
+    // حفظ التغييرات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
         const updatedProfile = {
-            email: document.getElementById('email').value.trim(),
             phone: document.getElementById('phone').value.trim(),
-            birthdate: document.getElementById('birthdate').value,
-            address: document.getElementById('address').value.trim(),
-            bio: document.getElementById('bio').value.trim()
+            parentName: document.getElementById('parentName').value.trim(),
+            parentId: document.getElementById('parentId').value.trim()
         };
 
         try {
@@ -202,7 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
 
             if (res.ok) {
-                const newPercentage = Math.round((fields.filter(f => updatedProfile[f]).length / 5) * 100);
+                const newPercentage = Math.round((fields.filter(f => updatedProfile[f]).length / 3) * 100);
                 document.getElementById('profile-progress').value = newPercentage;
                 document.getElementById('progress-percentage').textContent = newPercentage + '%';
 
@@ -222,10 +219,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // الناف بار ديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
-        { href: 'Home.html', icon: 'fa-solid fa-chart-simple' },
+        { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
         { href: 'profile.html', icon: 'fa-solid fa-user', active: true },
         { href: 'exams.html', icon: 'fa-solid fa-book-open' },
-        { href: 'chatbot.html', icon: 'fa-solid fa-robot' }
+        { href: 'leaderboard.html', icon: 'fa-solid fa-trophy' }
     ];
 
     if (userType === 'admin') {
