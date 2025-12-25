@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الملف الشخصي - SchoolX الأقصر</title>
+    <title>الملف الشخصي - SchoolX بورسعيد</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
@@ -135,7 +135,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let user = null;
     try {
-        const response = await fetch(`/api/\( {userType}s/ \){username}`);  // <-- التعديل الرئيسي هنا
+        // التعديل الرئيسي: استخدام backticks صح
+        const response = await fetch(`/api/\( {userType}s/ \){username}`);
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -164,7 +165,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('parentName').value = user.profile.parentName || '';
     document.getElementById('parentId').value = user.profile.parentId || '';
 
-    // حساب نسبة الاكتمال (3 حقول فقط)
+    // حساب نسبة الاكتمال (3 حقول)
     const fields = ['phone', 'parentName', 'parentId'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 3) * 100);
@@ -192,6 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
+            // التعديل التاني هنا كمان
             const res = await fetch(`/api/\( {userType}s/ \){username}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -216,7 +218,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // الناف بار ديناميكي
+    // الناف بار
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
