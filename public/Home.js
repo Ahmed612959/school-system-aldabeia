@@ -183,16 +183,20 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     function renderWelcomeMessage() {
-        const welcome = document.querySelector('.welcome-message');
-        const user = JSON.parse(localStorage.getItem('loggedInUser') || 'null');
-        if (!welcome) return;
+    const welcome = document.getElementById('welcome-message');
+    const user = JSON.parse(localStorage.getItem('loggedInUser') || 'null');
+    if (!welcome || !user) return;
 
-        if (user) {
-            const name = user.fullName || user.username;
-            const msg = user.type === 'admin' 
-                ? `أهلًا يا قائد العمليات، ${name}! جاهز للانطلاق؟`
-                : `مرحبًا يا نجم، ${name}! نتايجك في انتظارك!`;
-            welcome.textContent = msg;
+    let msg = '';
+    if (user.type === 'admin') {
+        msg = `أهلًا يا مدير، ${user.fullName || user.username}!`;
+    } else if (user.type === 'parent') {  // الإضافة الجديدة
+        msg = `مرحبًا يا ولي الأمر، نتايج ابنك في انتظارك!`;
+    } else {
+        msg = `مرحبًا يا ${user.fullName || user.username}! نتايجك جاهزة`;
+    }
+    welcome.textContent = msg;
+}
             showToast(msg, 'success');
         } else {
             welcome.textContent = 'مرحبًا بك! سجل الدخول لرؤية نتائجك';
@@ -217,6 +221,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         }).showToast();
     }
+
+function renderForParent() {
+    const user = JSON.parse(localStorage.getItem('loggedInUser') || 'null');
+    if (user.type !== 'parent') return;
+
+    // إخفاء البحث واللوحة الشخصية
+    document.getElementById('search-form').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'none';
+
+    // عرض نتايج ابنه تلقائي
+    const student = students.find(s => s.id === user.studentId || s.username === user.username);
+    if (student) {
+        const resultBody = document.getElementById('result-table-body');
+        const violationsBody = document.getElementById('violations-table-body');
+        renderStudentResult(student, resultBody, violationsBody);
+    } else {
+        showToast('لم يتم العثور على بيانات ابنك!', 'error');
+    }
+}
 
     // تنفيذ كل حاجة بالترتيب الصحيح
     await loadInitialData();
