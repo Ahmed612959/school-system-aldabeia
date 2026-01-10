@@ -246,5 +246,6 @@ function renderForParent() {
     renderNavbar();
     renderWelcomeMessage();
     await renderNotifications();
+renderForParent();  // السطر الجديد ده
     renderDashboard();
 }); 
