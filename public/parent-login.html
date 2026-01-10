@@ -91,13 +91,13 @@
                 }
 
                 // حفظ بيانات الطالب + علامة إنه ولي أمر
-                localStorage.setItem('currentUser', JSON.stringify({
-                    username: student.username,
-                    fullName: student.fullName,
-                    role: 'parent',
-                    studentId: student.id,
-                    parentView: true
-                }));
+                localStorage.setItem('loggedInUser', JSON.stringify({
+    username: student.username,
+    fullName: student.fullName,
+    type: 'parent', // بدل role
+    studentId: student.id,
+    parentView: true
+}));
 
                 showToast(`مرحباً ${parentName}، جاري تحويلك لحساب ابنك...`, 'success');
                 setTimeout(() => {
