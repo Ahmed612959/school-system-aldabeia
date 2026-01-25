@@ -122,6 +122,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
+    // 1. جلب بيانات المستخدم من localStorage
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
@@ -131,12 +132,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const username = loggedInUser.username;
-    const userType = loggedInUser.type;
+    const userType = loggedInUser.type; // student أو parent أو admin
+
+    // 2. تحديد الـ endpoint حسب النوع
+    let endpoint;
+    if (userType === 'student' || userType === 'parent') {
+        endpoint = `/api/students/${username}`;
+    } else if (userType === 'admin') {
+        endpoint = `/api/admins/${username}`;
+    } else {
+        Toastify({ text: "نوع المستخدم غير معروف!", backgroundColor: "#dc3545" }).showToast();
+        return;
+    }
 
     let user = null;
     try {
-        // التعديل الرئيسي: استخدام backticks صح
-        const response = await fetch(`/api/\( {userType}s/ \){username}`);
+        const response = await fetch(endpoint);
 
         if (!response.ok) {
             if (response.status === 404) {
@@ -154,10 +165,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    // التأكد من وجود profile
+    // 3. التأكد من وجود profile (حتى لو فاضي)
     user.profile = user.profile || { phone: '', parentName: '', parentId: '' };
 
-    // عرض البيانات
+    // 4. عرض البيانات تلقائيًا
     document.getElementById('user-name').textContent = user.fullName || user.username;
     document.getElementById('full-name').value = user.fullName || '';
     document.getElementById('username').value = user.username;
@@ -165,24 +176,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('parentName').value = user.profile.parentName || '';
     document.getElementById('parentId').value = user.profile.parentId || '';
 
-    // حساب نسبة الاكتمال (3 حقول)
+    // 5. حساب نسبة الاكتمال (من 3 حقول)
     const fields = ['phone', 'parentName', 'parentId'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 3) * 100);
     document.getElementById('profile-progress').value = percentage;
     document.getElementById('progress-percentage').textContent = percentage + '%';
 
+    // 6. لو أدمن، يظهر البادج
     if (userType === 'admin') {
         document.getElementById('admin-badge').style.display = 'inline-block';
     }
 
+    // 7. رسالة ترحيب
     Toastify({
         text: `أهلاً يا ${user.fullName?.split(' ')[0] || username}!`,
         backgroundColor: "#d4af37",
         duration: 4000
     }).showToast();
 
-    // حفظ التغييرات
+    // 8. حفظ التعديلات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -193,8 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         try {
-            // التعديل التاني هنا كمان
-            const res = await fetch(`/api/\( {userType}s/ \){username}`, {
+            const res = await fetch(endpoint, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ profile: updatedProfile })
@@ -218,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // الناف بار
+    // 9. الناف بار ديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
