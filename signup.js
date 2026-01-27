@@ -129,10 +129,22 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             password
         });
 
-        showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username}`, 'success');
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 3000);
+if (response && response.username) {
+    // حفظ اليوزر في localStorage عشان profile.html يلاقيه فورًا
+    localStorage.setItem('loggedInUser', JSON.stringify({
+        username: response.username,
+        fullName: fullName,
+        type: 'student',
+        id: studentId
+    }));
+
+    showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username}`, 'success');
+
+    // تحويل مباشر للملف الشخصي عشان يشوف بياناته فورًا
+    setTimeout(() => {
+        window.location.href = 'profile.html';
+    }, 2000);
+}
 
     } catch (error) {
         console.error('خطأ في إنشاء الحساب:', error);
