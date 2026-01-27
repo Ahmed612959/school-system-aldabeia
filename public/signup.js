@@ -130,16 +130,6 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             password
         });
 
-if (response && response.username) {
-    // حفظ اليوزر في localStorage عشان profile.html يلاقيه فورًا
-    localStorage.setItem('loggedInUser', JSON.stringify({
-        username: response.username,
-        fullName: fullName,           // من اللي دخله الطالب
-        type: 'student',
-        id: studentId                 // من اللي دخله
-    }));
-
-
         showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username}`, 'success');
         setTimeout(() => {
             window.location.href = 'login.html';
