@@ -40,7 +40,7 @@
         .p label { font-size: 0.74rem; font-weight: bold; color: #333; margin-bottom: 4px; }
         progress { width: 100%; height: 6px; border-radius: 3px; }
         progress::-webkit-progress-value { background: var(--g); border-radius: 3px; }
-        #pp { margin-top: 4px; font-size: 0.98rem; color: var(--g); font-weight: bold; }
+        #progress-percentage { margin-top: 4px; font-size: 0.98rem; color: var(--g); font-weight: bold; }
 
         .f { padding: 11px 9px; }
         .ig { margin-bottom: 9px; }
@@ -118,11 +118,16 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
-    // جلب بيانات المستخدم من localStorage (اللي حفظناه في login أو signup)
+    // 1. جلب بيانات المستخدم من localStorage
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
 
+    // لو مفيش يوزر مسجل → رجّعه لتسجيل الدخول
     if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
-        Toastify({ text: "يرجى تسجيل الدخول أولاً!", backgroundColor: "#dc3545", duration: 4000 }).showToast();
+        Toastify({
+            text: "يرجى تسجيل الدخول أولاً!",
+            style: { background: "#dc3545" },
+            duration: 4000
+        }).showToast();
         setTimeout(() => window.location.href = 'login.html', 2000);
         return;
     }
@@ -130,14 +135,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     const username = loggedInUser.username;
     const userType = loggedInUser.type; // student أو parent أو admin
 
-    // تحديد الـ endpoint بناءً على نوع المستخدم
+    // 2. تحديد الـ endpoint بناءً على النوع
     let endpoint;
     if (userType === 'student' || userType === 'parent') {
         endpoint = `/api/students/${username}`;
     } else if (userType === 'admin') {
         endpoint = `/api/admins/${username}`;
     } else {
-        Toastify({ text: "نوع المستخدم غير معروف!", backgroundColor: "#dc3545" }).showToast();
+        Toastify({
+            text: "نوع المستخدم غير معروف!",
+            style: { background: "#dc3545" }
+        }).showToast();
         return;
     }
 
@@ -147,9 +155,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!response.ok) {
             if (response.status === 404) {
-                Toastify({ text: "المستخدم غير موجود!", backgroundColor: "#dc3545", duration: 6000 }).showToast();
+                Toastify({
+                    text: "المستخدم غير موجود! جرب تسجيل الدخول تاني.",
+                    style: { background: "#dc3545" },
+                    duration: 6000
+                }).showToast();
             } else {
-                Toastify({ text: `خطأ في السيرفر: ${response.status}`, backgroundColor: "#dc3545", duration: 6000 }).showToast();
+                Toastify({
+                    text: `خطأ في السيرفر: ${response.status}`,
+                    style: { background: "#dc3545" },
+                    duration: 6000
+                }).showToast();
             }
             return;
         }
@@ -157,14 +173,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         user = await response.json();
 
     } catch (err) {
-        Toastify({ text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر", backgroundColor: "#dc3545", duration: 7000 }).showToast();
+        Toastify({
+            text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر",
+            style: { background: "#dc3545" },
+            duration: 7000
+        }).showToast();
         return;
     }
 
-    // التأكد من وجود profile (حتى لو فاضي)
+    // 3. التأكد من وجود profile
     user.profile = user.profile || { phone: '', parentName: '', parentId: '' };
 
-    // عرض البيانات تلقائيًا
+    // 4. عرض البيانات
     document.getElementById('user-name').textContent = user.fullName || user.username;
     document.getElementById('full-name').value = user.fullName || '';
     document.getElementById('username').value = user.username;
@@ -172,26 +192,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('parentName').value = user.profile.parentName || '';
     document.getElementById('parentId').value = user.profile.parentId || '';
 
-    // حساب نسبة الاكتمال (3 حقول فقط)
+    // 5. حساب نسبة الاكتمال
     const fields = ['phone', 'parentName', 'parentId'];
     const completed = fields.filter(f => user.profile[f]?.trim()).length;
     const percentage = Math.round((completed / 3) * 100);
     document.getElementById('profile-progress').value = percentage;
     document.getElementById('progress-percentage').textContent = percentage + '%';
 
-    // لو أدمن، يظهر البادج
+    // 6. لو أدمن، يظهر البادج
     if (userType === 'admin') {
         document.getElementById('admin-badge').style.display = 'inline-block';
     }
 
-    // رسالة ترحيب
+    // 7. رسالة ترحيب
     Toastify({
         text: `أهلاً يا ${user.fullName?.split(' ')[0] || username}!`,
-        backgroundColor: "#d4af37",
+        style: { background: "#d4af37" },
         duration: 4000
     }).showToast();
 
-    // حفظ التعديلات
+    // 8. حفظ التعديلات
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -215,18 +235,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 Toastify({
                     text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح!",
-                    backgroundColor: "#28a745",
+                    style: { background: "#28a745" },
                     duration: 4000
                 }).showToast();
             } else {
-                Toastify({ text: "فشل في الحفظ", backgroundColor: "#dc3545" }).showToast();
+                Toastify({
+                    text: "فشل في الحفظ، جرب تاني",
+                    style: { background: "#dc3545" }
+                }).showToast();
             }
         } catch (err) {
-            Toastify({ text: "لا يوجد اتصال بالإنترنت", backgroundColor: "#dc3545" }).showToast();
+            Toastify({
+                text: "لا يوجد اتصال بالإنترنت",
+                style: { background: "#dc3545" }
+            }).showToast();
         }
     });
 
-    // الناف بار ديناميكي
+    // 9. الناف بار ديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
