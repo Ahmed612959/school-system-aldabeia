@@ -3,309 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الملف الشخصي | SchoolX</title>
-
-    <!-- الأيقونات والخطوط -->
+    <title>الملف الشخصي - SchoolX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
-        :root {
-            --gold: #d4af37;
-            --gold-dark: #b8972e;
-            --dark: #0f1419;
-            --navy: #182c47;
-            --light: #f8f9fa;
-            --gray: #ecf0f1;
-        }
-
+        :root { --g: #d4af37; --d: #1a2526; --d2: #2a3a3b; }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Cairo', sans-serif;
-            background: var(--dark);
+            background: #0f1419;
             color: #fff;
             min-height: 100vh;
-            padding-bottom: 100px;
+            padding-bottom: 72px;
+            font-size: 12.8px;
+            line-height: 1.4;
         }
+        .c { padding: 7px; }
+        header { text-align: center; padding: 10px 0; }
+        .logo { width: 42px; height: 42px; border: 2.5px solid var(--g); border-radius: 50%; padding: 3px; background: #fff; }
+        h1 { color: var(--g); font-size: 1.12rem; margin-top: 5px; }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: linear-gradient(135deg, #182c47 0%, #0f1419 100%);
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
+        .card {
+            background: #fff; color: #111; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.5); margin: 7px 0;
         }
-
-        header {
-            background: var(--navy);
-            padding: 25px 20px;
-            text-align: center;
-            border-bottom: 6px solid var(--gold);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        .ch {
+            background: linear-gradient(135deg, var(--g), #b8972e);
+            padding: 11px 8px; text-align: center; color: #fff;
         }
+        .ch h2 { font-size: 1.08rem; margin: 3px 0; }
+        #admin-badge { font-size: 1.3rem; }
 
-        .logo {
-            width: 90px;
-            height: 90px;
-            border: 5px solid var(--gold);
-            border-radius: 50%;
-            padding: 8px;
-            background: white;
-            box-shadow: 0 0 30px rgba(212,175,55,0.6);
+        .p { padding: 10px; text-align: center; background: #fafafa; }
+        .p label { font-size: 0.74rem; font-weight: bold; color: #333; margin-bottom: 4px; }
+        progress { width: 100%; height: 6px; border-radius: 3px; }
+        progress::-webkit-progress-value { background: var(--g); border-radius: 3px; }
+        #progress-percentage { margin-top: 4px; font-size: 0.98rem; color: var(--g); font-weight: bold; }
+
+        .f { padding: 11px 9px; }
+        .ig { margin-bottom: 9px; }
+        .ig label { font-size: 0.73rem; color: #333; margin-bottom: 3px; font-weight: 600; }
+        .ig input {
+            width: 100%; padding: 7px 9px; border: 1.8px solid var(--g);
+            border-radius: 8px; font-size: 0.81rem; background: #fdfdfd;
         }
+        .ig input:focus { outline: none; border-color: var(--d); background: #fff; }
+        .ig input[disabled] { background: #f0f0f0; color: #777; }
 
-        header h1 {
-            color: var(--gold);
-            font-size: 2rem;
-            margin-top: 12px;
-            text-shadow: 0 0 15px rgba(212,175,55,0.5);
+        .btn {
+            width: 100%; padding: 9px; background: var(--g); color: var(--d);
+            border: none; border-radius: 9px; font-size: 0.88rem; font-weight: bold;
+            cursor: pointer; margin-top: 5px;
         }
+        .btn:hover { background: #b8972e; }
 
-        .profile-card {
-            background: white;
-            margin: 20px;
-            border-radius: 25px;
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
-            color: #2c3e50;
+        .nav {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(180deg, var(--d), var(--d2));
+            padding: 12px 20px 22px; display: flex; justify-content: space-around;
+            align-items: center; border-top-left-radius: 24px; border-top-right-radius: 24px;
+            border-top: 3px solid var(--g); box-shadow: 0 -8px 30px rgba(0,0,0,0.8); z-index: 9999;
         }
-
-        .profile-header {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: white;
-            padding: 25px;
-            text-align: center;
+        .nav a {
+            color: var(--g); font-size: 1.45rem; padding: 10px 14px;
+            background: rgba(255,255,255,0.05); border-radius: 50%;
+            transition: all .4s ease; position: relative; backdrop-filter: blur(10px);
         }
-
-        .profile-header h2 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
+        .nav a.active {
+            color: #fff; background: var(--g); transform: translateY(-12px) scale(1.15);
+            box-shadow: 0 8px 25px rgba(212,175,55,0.6);
         }
-
-        #admin-badge {
-            font-size: 2rem;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .progress-section {
-            padding: 25px;
-            text-align: center;
-            background: #f8f9fa;
-        }
-
-        .progress-section label {
-            font-weight: bold;
-            color: var(--navy);
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        progress {
-            width: 100%;
-            height: 28px;
-            border-radius: 14px;
-            background: #ddd;
-            overflow: hidden;
-            border: 3px solid var(--gold);
-        }
-
-        progress::-webkit-progress-value {
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-        }
-
-        progress::-moz-progress-bar {
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold));
-        }
-
-        #progress-percentage {
-            margin-top: 12px;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--gold);
-            text-shadow: 0 0 10px rgba(212,175,55,0.4);
-        }
-
-        .form-section {
-            padding: 30px 25px;
-        }
-
-        .input-group {
-            margin-bottom: 22px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: var(--navy);
-        }
-
-        .input-group input,
-        .input-group textarea {
-            width: 100%;
-            padding: 16px 20px;
-            border: 3px solid var(--gold);
-            border-radius: 18px;
-            font-size: 1.1rem;
-            background: #fdfdfd;
-            transition: all 0.4s;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .input-group input:focus,
-        .input-group textarea:focus {
-            outline: none;
-            border-color: var(--navy);
-            box-shadow: 0 0 25px rgba(24,44,71,0.2);
-            transform: scale(1.02);
-        }
-
-        .input-group input[disabled] {
-            background: #f0f0f0;
-            color: #666;
-            cursor: not-allowed;
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(90deg, var(--gold), var(--gold-dark));
-            color: var(--navy);
-            border: none;
-            border-radius: 20px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(212,175,55,0.5);
-            transition: all 0.4s;
-        }
-
-        .submit-btn:hover {
-            background: var(--navy);
-            color: var(--gold);
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(24,44,71,0.6);
-        }
-
-        /* النافبار الفخم زي الشات بوت */
-        #nav-bar {
-            position: fixed;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 100%;
-            max-width: 600px;
-            background: var(--navy);
-            padding: 16px 0;
-            border-top: 6px solid var(--gold);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-            z-index: 9999;
-        }
-
-        #nav-bar a {
-            color: var(--gold);
-            font-size: 1.9rem;
-            padding: 12px;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        #nav-bar a.active {
-            color: white;
-            transform: scale(1.4);
-        }
-
-        #nav-bar a.active::after {
-            content: '';
-            position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 8px;
-            height: 8px;
-            background: var(--gold);
-            border-radius: 50%;
-            box-shadow: 0 0 20px var(--gold);
+        .nav a.active::after {
+            content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+            width: 7px; height: 7px; background: var(--g); border-radius: 50%; box-shadow: 0 0 20px var(--g);
         }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="c">
     <header>
-        <img src="logo.png" alt="شعار المدرسة" class="logo">
+        <img src="logo.png" alt="شعار المعهد" class="logo">
         <h1>الملف الشخصي</h1>
     </header>
 
-    <div class="profile-card">
-        <div class="profile-header">
+    <div class="card">
+        <div class="ch">
             <h2 id="user-name">جاري التحميل...</h2>
-            <span id="admin-badge" style="display:none;">Crown</span>
+            <span id="admin-badge" style="display:none;">👑</span>
         </div>
 
-        <div class="progress-section">
-            <label>نسبة اكتمال الملف الشخصي</label>
+        <div class="p">
+            <label>نسبة اكتمال الملف</label>
             <progress id="profile-progress" value="0" max="100"></progress>
             <div id="progress-percentage">0%</div>
         </div>
 
-        <div class="form-section">
+        <div class="f">
             <form id="profile-form">
-                <div class="input-group">
-                    <label>الاسم الكامل</label>
-                    <input type="text" id="full-name" disabled>
-                </div>
-                <div class="input-group">
-                    <label>اسم المستخدم</label>
-                    <input type="text" id="username" disabled>
-                </div>
-                <div class="input-group">
-                    <label>البريد الإلكتروني</label>
-                    <input type="email" id="email" placeholder="example@school.com">
-                </div>
-                <div class="input-group">
-                    <label>رقم الهاتف</label>
-                    <input type="tel" id="phone" placeholder="010xxxxxxxx">
-                </div>
-                <div class="input-group">
-                    <label>تاريخ الميلاد</label>
-                    <input type="date" id="birthdate">
-                </div>
-                <div class="input-group">
-                    <label>العنوان</label>
-                    <input type="text" id="address" placeholder="المدينة - الحي - الشارع">
-                </div>
-                <div class="input-group">
-                    <label>السيرة الذاتية (اختياري)</label>
-                    <textarea id="bio" rows="4" placeholder="حكيلنا عن نفسك..."></textarea>
-                </div>
-
-                <button type="submit" class="submit-btn">
-                    حفظ التغييرات
-                </button>
+                <div class="ig"><label>الاسم الكامل</label><input type="text" id="full-name" disabled></div>
+                <div class="ig"><label>اسم المستخدم</label><input type="text" id="username" disabled></div>
+                <div class="ig"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
+                <div class="ig"><label>اسم ولي الأمر</label><input type="text" id="parentName"></div>
+                <div class="ig"><label>رقم بطاقة ولي الأمر</label><input type="text" id="parentId"></div>
+                <button type="submit" class="btn">حفظ التغييرات</button>
             </form>
         </div>
     </div>
-
-    <!-- النافبار هنا بالجافا سكريبت -->
-    <nav id="nav-bar"></nav>
 </div>
 
-<!-- Toastify + profile.js -->
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script src="profile.js"></script>
+<nav class="nav"></nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. جلب بيانات المستخدم من localStorage
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+
+    // لو مفيش يوزر مسجل → رجّعه لتسجيل الدخول
+    if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
+        Toastify({
+            text: "يرجى تسجيل الدخول أولاً!",
+            style: { background: "#dc3545" },
+            duration: 4000
+        }).showToast();
+        setTimeout(() => window.location.href = 'login.html', 2000);
+        return;
+    }
+
+    const username = loggedInUser.username;
+    const userType = loggedInUser.type; // student أو parent أو admin
+
+    // 2. تحديد الـ endpoint بناءً على النوع
+    let endpoint;
+    if (userType === 'student' || userType === 'parent') {
+        endpoint = `/api/students/${username}`;
+    } else if (userType === 'admin') {
+        endpoint = `/api/admins/${username}`;
+    } else {
+        Toastify({
+            text: "نوع المستخدم غير معروف!",
+            style: { background: "#dc3545" }
+        }).showToast();
+        return;
+    }
+
+    let user = null;
+    try {
+        const response = await fetch(endpoint);
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                Toastify({
+                    text: "المستخدم غير موجود! جرب تسجيل الدخول تاني.",
+                    style: { background: "#dc3545" },
+                    duration: 6000
+                }).showToast();
+            } else {
+                Toastify({
+                    text: `خطأ في السيرفر: ${response.status}`,
+                    style: { background: "#dc3545" },
+                    duration: 6000
+                }).showToast();
+            }
+            return;
+        }
+
+        user = await response.json();
+
+    } catch (err) {
+        Toastify({
+            text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر",
+            style: { background: "#dc3545" },
+            duration: 7000
+        }).showToast();
+        return;
+    }
+
+    // 3. التأكد من وجود profile
+    user.profile = user.profile || { phone: '', parentName: '', parentId: '' };
+
+    // 4. عرض البيانات
+    document.getElementById('user-name').textContent = user.fullName || user.username;
+    document.getElementById('full-name').value = user.fullName || '';
+    document.getElementById('username').value = user.username;
+    document.getElementById('phone').value = user.profile.phone || '';
+    document.getElementById('parentName').value = user.profile.parentName || '';
+    document.getElementById('parentId').value = user.profile.parentId || '';
+
+    // 5. حساب نسبة الاكتمال
+    const fields = ['phone', 'parentName', 'parentId'];
+    const completed = fields.filter(f => user.profile[f]?.trim()).length;
+    const percentage = Math.round((completed / 3) * 100);
+    document.getElementById('profile-progress').value = percentage;
+    document.getElementById('progress-percentage').textContent = percentage + '%';
+
+    // 6. لو أدمن، يظهر البادج
+    if (userType === 'admin') {
+        document.getElementById('admin-badge').style.display = 'inline-block';
+    }
+
+    // 7. رسالة ترحيب
+    Toastify({
+        text: `أهلاً يا ${user.fullName?.split(' ')[0] || username}!`,
+        style: { background: "#d4af37" },
+        duration: 4000
+    }).showToast();
+
+    // 8. حفظ التعديلات
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const updatedProfile = {
+            phone: document.getElementById('phone').value.trim(),
+            parentName: document.getElementById('parentName').value.trim(),
+            parentId: document.getElementById('parentId').value.trim()
+        };
+
+        try {
+            const res = await fetch(endpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile: updatedProfile })
+            });
+
+            if (res.ok) {
+                const newPercentage = Math.round((fields.filter(f => updatedProfile[f]).length / 3) * 100);
+                document.getElementById('profile-progress').value = newPercentage;
+                document.getElementById('progress-percentage').textContent = newPercentage + '%';
+
+                Toastify({
+                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح!",
+                    style: { background: "#28a745" },
+                    duration: 4000
+                }).showToast();
+            } else {
+                Toastify({
+                    text: "فشل في الحفظ، جرب تاني",
+                    style: { background: "#dc3545" }
+                }).showToast();
+            }
+        } catch (err) {
+            Toastify({
+                text: "لا يوجد اتصال بالإنترنت",
+                style: { background: "#dc3545" }
+            }).showToast();
+        }
+    });
+
+    // 9. الناف بار ديناميكي
+    const navItems = [
+        { href: 'index.html', icon: 'fa-solid fa-house' },
+        { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
+        { href: 'profile.html', icon: 'fa-solid fa-user', active: true },
+        { href: 'exams.html', icon: 'fa-solid fa-book-open' },
+        { href: 'leaderboard.html', icon: 'fa-solid fa-trophy' }
+    ];
+
+    if (userType === 'admin') {
+        navItems.push({ href: 'admin.html', icon: 'fa-solid fa-cogs' });
+    }
+
+    document.querySelector('.nav').innerHTML = navItems.map(item => 
+        `<a href="\( {item.href}" class=" \){item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
+    ).join('');
+});
+</script>
+
 </body>
 </html>
