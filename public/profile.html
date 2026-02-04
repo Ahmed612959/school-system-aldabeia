@@ -2,203 +2,127 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>الملف الشخصي - SchoolX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <style>
+        :root { --g: #d4af37; --d: #1a2526; --d2: #2a3a3b; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Cairo', sans-serif;
             background: #0f1419;
-            color: #e2e8f0;
-            margin: 0;
-            padding: 0;
+            color: #fff;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            padding-bottom: 72px;
+            font-size: 12.8px;
+            line-height: 1.4;
         }
-        header {
-            background: #1e293b;
-            padding: 20px;
-            text-align: center;
-            border-bottom: 4px solid #d4af37;
-        }
-        .logo {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: 4px solid #d4af37;
-            margin-bottom: 10px;
-        }
-        h1 {
-            color: #d4af37;
-            margin: 0;
-            font-size: 1.8rem;
-        }
-        .container {
-            max-width: 600px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
+        .c { padding: 7px; }
+        header { text-align: center; padding: 10px 0; }
+        .logo { width: 42px; height: 42px; border: 2.5px solid var(--g); border-radius: 50%; padding: 3px; background: #fff; }
+        h1 { color: var(--g); font-size: 1.12rem; margin-top: 5px; }
+
         .card {
-            background: #1e293b;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            margin-bottom: 20px;
+            background: #fff; color: #111; border-radius: 14px; overflow: hidden;
+            box-shadow: 0 5px 18px rgba(0,0,0,0.5); margin: 7px 0;
         }
-        .info-item {
-            margin-bottom: 18px;
+        .ch {
+            background: linear-gradient(135deg, var(--g), #b8972e);
+            padding: 11px 8px; text-align: center; color: #fff;
         }
-        .info-item label {
-            display: block;
-            color: #94a3b8;
-            font-size: 0.95rem;
-            margin-bottom: 6px;
-            font-weight: 600;
+        .ch h2 { font-size: 1.08rem; margin: 3px 0; }
+        #admin-badge { font-size: 1.3rem; }
+
+        .p { padding: 10px; text-align: center; background: #fafafa; }
+        .p label { font-size: 0.74rem; font-weight: bold; color: #333; margin-bottom: 4px; }
+        progress { width: 100%; height: 6px; border-radius: 3px; }
+        progress::-webkit-progress-value { background: var(--g); border-radius: 3px; }
+        #progress-percentage { margin-top: 4px; font-size: 0.98rem; color: var(--g); font-weight: bold; }
+
+        .f { padding: 11px 9px; }
+        .ig { margin-bottom: 9px; }
+        .ig label { font-size: 0.73rem; color: #333; margin-bottom: 3px; font-weight: 600; }
+        .ig input {
+            width: 100%; padding: 7px 9px; border: 1.8px solid var(--g);
+            border-radius: 8px; font-size: 0.81rem; background: #fdfdfd;
         }
-        .info-item span, .info-item input {
-            width: 100%;
-            padding: 12px;
-            background: #111827;
-            border: 1px solid #4b5563;
-            border-radius: 10px;
-            color: #e2e8f0;
-            font-size: 1.05rem;
-        }
-        .info-item input {
-            border-color: #d4af37;
-        }
-        .info-item input:focus {
-            outline: none;
-            border-color: #facc15;
-            box-shadow: 0 0 0 3px rgba(212,175,55,0.3);
-        }
+        .ig input:focus { outline: none; border-color: var(--d); background: #fff; }
+        .ig input[disabled] { background: #f0f0f0; color: #777; }
+
         .btn {
-            width: 100%;
-            padding: 14px;
-            background: #d4af37;
-            color: #0f1419;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
+            width: 100%; padding: 9px; background: var(--g); color: var(--d);
+            border: none; border-radius: 9px; font-size: 0.88rem; font-weight: bold;
+            cursor: pointer; margin-top: 5px;
         }
-        .btn:hover {
-            background: #facc15;
-            transform: translateY(-2px);
-        }
-        .progress-container {
-            margin: 25px 0;
-            text-align: center;
-        }
-        progress {
-            width: 100%;
-            height: 12px;
-            border-radius: 10px;
-        }
-        progress::-webkit-progress-bar {
-            background: #1e293b;
-            border-radius: 10px;
-        }
-        progress::-webkit-progress-value {
-            background: linear-gradient(to right, #d4af37, #facc15);
-            border-radius: 10px;
-        }
-        #progress-text {
-            color: #d4af37;
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-top: 8px;
-        }
+        .btn:hover { background: #b8972e; }
+
         .nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #1e293b;
-            padding: 12px;
-            display: flex;
-            justify-content: space-around;
-            border-top: 3px solid #d4af37;
-            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(180deg, var(--d), var(--d2));
+            padding: 12px 20px 22px; display: flex; justify-content: space-around;
+            align-items: center; border-top-left-radius: 24px; border-top-right-radius: 24px;
+            border-top: 3px solid var(--g); box-shadow: 0 -8px 30px rgba(0,0,0,0.8); z-index: 9999;
         }
         .nav a {
-            color: #d4af37;
-            font-size: 1.8rem;
-            text-decoration: none;
-            padding: 10px;
-            border-radius: 50%;
-            transition: all 0.3s;
+            color: var(--g); font-size: 1.45rem; padding: 10px 14px;
+            background: rgba(255,255,255,0.05); border-radius: 50%;
+            transition: all .4s ease; position: relative; backdrop-filter: blur(10px);
         }
-        .nav a.active, .nav a:hover {
-            background: #d4af37;
-            color: #0f1419;
-            transform: scale(1.15);
+        .nav a.active {
+            color: #fff; background: var(--g); transform: translateY(-12px) scale(1.15);
+            box-shadow: 0 8px 25px rgba(212,175,55,0.6);
+        }
+        .nav a.active::after {
+            content: ''; position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+            width: 7px; height: 7px; background: var(--g); border-radius: 50%; box-shadow: 0 0 20px var(--g);
         }
     </style>
 </head>
 <body>
 
-<header>
-    <img src="logo.png" alt="شعار المعهد" class="logo">
-    <h1>الملف الشخصي</h1>
-</header>
+<div class="c">
+    <header>
+        <img src="logo.png" alt="شعار المعهد" class="logo">
+        <h1>الملف الشخصي</h1>
+    </header>
 
-<div class="container">
     <div class="card">
-        <div class="progress-container">
+        <div class="ch">
+            <h2 id="user-name">جاري التحميل...</h2>
+            <span id="admin-badge" style="display:none;">👑</span>
+        </div>
+
+        <div class="p">
             <label>نسبة اكتمال الملف</label>
             <progress id="profile-progress" value="0" max="100"></progress>
-            <div id="progress-text">0%</div>
+            <div id="progress-percentage">0%</div>
         </div>
 
-        <div class="info-item">
-            <label>الاسم الكامل</label>
-            <span id="full-name">جاري التحميل...</span>
+        <div class="f">
+            <form id="profile-form">
+                <div class="ig"><label>الاسم الكامل</label><input type="text" id="full-name" disabled></div>
+                <div class="ig"><label>اسم المستخدم</label><input type="text" id="username" disabled></div>
+                <div class="ig"><label>رقم الهاتف</label><input type="tel" id="phone"></div>
+                <div class="ig"><label>اسم ولي الأمر</label><input type="text" id="parentName"></div>
+                <div class="ig"><label>رقم بطاقة ولي الأمر</label><input type="text" id="parentId"></div>
+                <button type="submit" class="btn">حفظ التغييرات</button>
+            </form>
         </div>
-
-        <div class="info-item">
-            <label>اسم المستخدم</label>
-            <span id="username">جاري التحميل...</span>
-        </div>
-
-        <div class="info-item">
-            <label>رقم الهاتف</label>
-            <input type="tel" id="phone" placeholder="أدخل رقم هاتفك">
-        </div>
-
-        <div class="info-item">
-            <label>اسم ولي الأمر</label>
-            <input type="text" id="parentName" placeholder="أدخل اسم ولي الأمر">
-        </div>
-
-        <div class="info-item">
-            <label>رقم بطاقة ولي الأمر</label>
-            <input type="text" id="parentId" placeholder="أدخل الرقم القومي">
-        </div>
-
-        <button class="btn" id="save-btn">حفظ التغييرات</button>
     </div>
 </div>
 
-<nav class="nav">
-    <a href="Home.html"><i class="fas fa-home"></i></a>
-    <a href="profile.html" class="active"><i class="fas fa-user"></i></a>
-    <a href="exams.html"><i class="fas fa-book"></i></a>
-    <a href="leaderboard.html"><i class="fas fa-trophy"></i></a>
-</nav>
+<nav class="nav"></nav>
 
 <script>
-// جلب البيانات من localStorage فور تحميل الصفحة
 document.addEventListener('DOMContentLoaded', () => {
-    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+    // جلب البيانات من localStorage فقط (بدون fetch من السيرفر حاليًا)
+    const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
 
-    if (!user || !user.username) {
+    if (!loggedInUser || !loggedInUser.username) {
         Toastify({
             text: "يرجى تسجيل الدخول أولاً!",
             style: { background: "#dc3545" },
@@ -208,44 +132,78 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    // عرض البيانات اللي موجودة في localStorage
-    document.getElementById('full-name').textContent = user.fullName || 'غير محدد';
-    document.getElementById('username').textContent = user.username || 'غير محدد';
+    // عرض البيانات الأساسية من localStorage
+    document.getElementById('user-name').textContent = loggedInUser.fullName || loggedInUser.username;
+    document.getElementById('full-name').value = loggedInUser.fullName || '';
+    document.getElementById('username').value = loggedInUser.username;
 
-    // جلب البيانات الإضافية (لو كانت محفوظة من قبل)
-    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    // عرض البيانات الإضافية (اللي ممكن الطالب عدّلها قبل كده)
     document.getElementById('phone').value = savedProfile.phone || '';
     document.getElementById('parentName').value = savedProfile.parentName || '';
     document.getElementById('parentId').value = savedProfile.parentId || '';
 
-    // حساب نسبة الاكتمال (3 حقول)
+    // حساب نسبة الاكتمال (3 حقول فقط)
     const fields = [savedProfile.phone, savedProfile.parentName, savedProfile.parentId];
-    const completed = fields.filter(f => f && f.trim()).length;
+    const completed = fields.filter(f => f && f.trim() !== '').length;
     const percentage = Math.round((completed / 3) * 100);
     document.getElementById('profile-progress').value = percentage;
-    document.getElementById('progress-text').textContent = `${percentage}%`;
+    document.getElementById('progress-percentage').textContent = percentage + '%';
+
+    // لو أدمن، يظهر البادج
+    if (loggedInUser.type === 'admin') {
+        document.getElementById('admin-badge').style.display = 'inline-block';
+    }
+
+    // رسالة ترحيب
+    Toastify({
+        text: `أهلاً يا ${loggedInUser.fullName?.split(' ')[0] || loggedInUser.username}!`,
+        style: { background: "#d4af37" },
+        duration: 4000
+    }).showToast();
 
     // حفظ التعديلات في localStorage فقط (مؤقت لحد ما نحل السيرفر)
-    document.getElementById('save-btn').addEventListener('click', () => {
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+
         const updatedProfile = {
             phone: document.getElementById('phone').value.trim(),
             parentName: document.getElementById('parentName').value.trim(),
             parentId: document.getElementById('parentId').value.trim()
         };
 
+        // حفظ في localStorage
         localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
 
-        const newCompleted = [updatedProfile.phone, updatedProfile.parentName, updatedProfile.parentId].filter(f => f.trim()).length;
+        // إعادة حساب النسبة بعد التعديل
+        const newFields = [updatedProfile.phone, updatedProfile.parentName, updatedProfile.parentId];
+        const newCompleted = newFields.filter(f => f.trim() !== '').length;
         const newPercentage = Math.round((newCompleted / 3) * 100);
         document.getElementById('profile-progress').value = newPercentage;
-        document.getElementById('progress-text').textContent = `${newPercentage}%`;
+        document.getElementById('progress-percentage').textContent = newPercentage + '%';
 
         Toastify({
-            text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم حفظ التغييرات بنجاح",
+            text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح!",
             style: { background: "#28a745" },
             duration: 4000
         }).showToast();
     });
+
+    // الناف بار ديناميكي
+    const navItems = [
+        { href: 'index.html', icon: 'fa-solid fa-house' },
+        { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
+        { href: 'profile.html', icon: 'fa-solid fa-user', active: true },
+        { href: 'exams.html', icon: 'fa-solid fa-book-open' },
+        { href: 'leaderboard.html', icon: 'fa-solid fa-trophy' }
+    ];
+
+    if (loggedInUser.type === 'admin') {
+        navItems.push({ href: 'admin.html', icon: 'fa-solid fa-cogs' });
+    }
+
+    document.querySelector('.nav').innerHTML = navItems.map(item => 
+        `<a href="\( {item.href}" class=" \){item.active ? 'active' : ''}"><i class="${item.icon}"></i></a>`
+    ).join('');
 });
 </script>
 
