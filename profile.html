@@ -117,12 +117,12 @@
 <nav class="nav"></nav>
 
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. جلب بيانات المستخدم من localStorage
+document.addEventListener('DOMContentLoaded', () => {
+    // جلب البيانات من localStorage فقط (بدون fetch من السيرفر حاليًا)
     const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser'));
+    const savedProfile = JSON.parse(localStorage.getItem('userProfile') || '{}');
 
-    // لو مفيش يوزر مسجل → رجّعه لتسجيل الدخول
-    if (!loggedInUser || !loggedInUser.username || !loggedInUser.type) {
+    if (!loggedInUser || !loggedInUser.username) {
         Toastify({
             text: "يرجى تسجيل الدخول أولاً!",
             style: { background: "#dc3545" },
@@ -132,87 +132,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const username = loggedInUser.username;
-    const userType = loggedInUser.type; // student أو parent أو admin
+    // عرض البيانات الأساسية من localStorage
+    document.getElementById('user-name').textContent = loggedInUser.fullName || loggedInUser.username;
+    document.getElementById('full-name').value = loggedInUser.fullName || '';
+    document.getElementById('username').value = loggedInUser.username;
 
-    // 2. تحديد الـ endpoint بناءً على النوع
-    let endpoint;
-    if (userType === 'student' || userType === 'parent') {
-        endpoint = `/api/students/${username}`;
-    } else if (userType === 'admin') {
-        endpoint = `/api/admins/${username}`;
-    } else {
-        Toastify({
-            text: "نوع المستخدم غير معروف!",
-            style: { background: "#dc3545" }
-        }).showToast();
-        return;
-    }
+    // عرض البيانات الإضافية (اللي ممكن الطالب عدّلها قبل كده)
+    document.getElementById('phone').value = savedProfile.phone || '';
+    document.getElementById('parentName').value = savedProfile.parentName || '';
+    document.getElementById('parentId').value = savedProfile.parentId || '';
 
-    let user = null;
-    try {
-        const response = await fetch(endpoint);
-
-        if (!response.ok) {
-            if (response.status === 404) {
-                Toastify({
-                    text: "المستخدم غير موجود! جرب تسجيل الدخول تاني.",
-                    style: { background: "#dc3545" },
-                    duration: 6000
-                }).showToast();
-            } else {
-                Toastify({
-                    text: `خطأ في السيرفر: ${response.status}`,
-                    style: { background: "#dc3545" },
-                    duration: 6000
-                }).showToast();
-            }
-            return;
-        }
-
-        user = await response.json();
-
-    } catch (err) {
-        Toastify({
-            text: "لا يوجد اتصال بالإنترنت أو مشكلة في السيرفر",
-            style: { background: "#dc3545" },
-            duration: 7000
-        }).showToast();
-        return;
-    }
-
-    // 3. التأكد من وجود profile
-    user.profile = user.profile || { phone: '', parentName: '', parentId: '' };
-
-    // 4. عرض البيانات
-    document.getElementById('user-name').textContent = user.fullName || user.username;
-    document.getElementById('full-name').value = user.fullName || '';
-    document.getElementById('username').value = user.username;
-    document.getElementById('phone').value = user.profile.phone || '';
-    document.getElementById('parentName').value = user.profile.parentName || '';
-    document.getElementById('parentId').value = user.profile.parentId || '';
-
-    // 5. حساب نسبة الاكتمال
-    const fields = ['phone', 'parentName', 'parentId'];
-    const completed = fields.filter(f => user.profile[f]?.trim()).length;
+    // حساب نسبة الاكتمال (3 حقول فقط)
+    const fields = [savedProfile.phone, savedProfile.parentName, savedProfile.parentId];
+    const completed = fields.filter(f => f && f.trim() !== '').length;
     const percentage = Math.round((completed / 3) * 100);
     document.getElementById('profile-progress').value = percentage;
     document.getElementById('progress-percentage').textContent = percentage + '%';
 
-    // 6. لو أدمن، يظهر البادج
-    if (userType === 'admin') {
+    // لو أدمن، يظهر البادج
+    if (loggedInUser.type === 'admin') {
         document.getElementById('admin-badge').style.display = 'inline-block';
     }
 
-    // 7. رسالة ترحيب
+    // رسالة ترحيب
     Toastify({
-        text: `أهلاً يا ${user.fullName?.split(' ')[0] || username}!`,
+        text: `أهلاً يا ${loggedInUser.fullName?.split(' ')[0] || loggedInUser.username}!`,
         style: { background: "#d4af37" },
         duration: 4000
     }).showToast();
 
-    // 8. حفظ التعديلات
-    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+    // حفظ التعديلات في localStorage فقط (مؤقت لحد ما نحل السيرفر)
+    document.getElementById('profile-form').addEventListener('submit', (e) => {
         e.preventDefault();
 
         const updatedProfile = {
@@ -221,38 +171,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             parentId: document.getElementById('parentId').value.trim()
         };
 
-        try {
-            const res = await fetch(endpoint, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ profile: updatedProfile })
-            });
+        // حفظ في localStorage
+        localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
 
-            if (res.ok) {
-                const newPercentage = Math.round((fields.filter(f => updatedProfile[f]).length / 3) * 100);
-                document.getElementById('profile-progress').value = newPercentage;
-                document.getElementById('progress-percentage').textContent = newPercentage + '%';
+        // إعادة حساب النسبة بعد التعديل
+        const newFields = [updatedProfile.phone, updatedProfile.parentName, updatedProfile.parentId];
+        const newCompleted = newFields.filter(f => f.trim() !== '').length;
+        const newPercentage = Math.round((newCompleted / 3) * 100);
+        document.getElementById('profile-progress').value = newPercentage;
+        document.getElementById('progress-percentage').textContent = newPercentage + '%';
 
-                Toastify({
-                    text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح!",
-                    style: { background: "#28a745" },
-                    duration: 4000
-                }).showToast();
-            } else {
-                Toastify({
-                    text: "فشل في الحفظ، جرب تاني",
-                    style: { background: "#dc3545" }
-                }).showToast();
-            }
-        } catch (err) {
-            Toastify({
-                text: "لا يوجد اتصال بالإنترنت",
-                style: { background: "#dc3545" }
-            }).showToast();
-        }
+        Toastify({
+            text: newPercentage === 100 ? "مبروك! ملفك مكتمل 100%" : "تم الحفظ بنجاح!",
+            style: { background: "#28a745" },
+            duration: 4000
+        }).showToast();
     });
 
-    // 9. الناف بار ديناميكي
+    // الناف بار ديناميكي
     const navItems = [
         { href: 'index.html', icon: 'fa-solid fa-house' },
         { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
@@ -261,7 +197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         { href: 'leaderboard.html', icon: 'fa-solid fa-trophy' }
     ];
 
-    if (userType === 'admin') {
+    if (loggedInUser.type === 'admin') {
         navItems.push({ href: 'admin.html', icon: 'fa-solid fa-cogs' });
     }
 
