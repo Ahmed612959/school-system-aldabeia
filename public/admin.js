@@ -946,10 +946,9 @@ window.logout = function () {
     }
 };
 
-
-// بيانات كل الفصول (جميع الطلاب من الـ PDF كامل)
+// بيانات الفصول كاملة (من الـ PDF اللي بعته، كل الأسماء موجودة ومصححة)
 const classesData = {
-    1: [  // فصل 1/2
+    1: [  // فصل 1/2 (اللي في الصورة الجديدة)
         { num: 1, name: 'إبراهيم عبدالحميد إبراهيم يونس' },
         { num: 2, name: 'أحمد الطيب أحمد عبدالعزيز محمد' },
         { num: 3, name: 'أحمد جابر أحمد أمين أبوبكر' },
@@ -1080,7 +1079,7 @@ const classesData = {
         { num: 29, name: 'ياسمين رجب عياد مرعزي' },
         { num: 30, name: 'ياسمين منصور عبيد أحمد' }
     ],
-    5: [  // فصل 1/1 (بدل 5/2)
+    5: [  // فصل 1/1 (اللي كان 5/2 سابقًا)
         { num: 1, name: 'محمد أحمد محمد أبوالمجد' },
         { num: 2, name: 'أسامة محمد فكري حسين' },
         { num: 3, name: 'ذياد محمد خيري الراوي' },
@@ -1107,26 +1106,26 @@ const classesData = {
     ]
 };
 
-// عرض أزرار الفصول لما يضغط على الزر الرئيسي
-document.getElementById('show-classes-btn').addEventListener('click', () => {
+// عرض أزرار الفصول
+document.getElementById('show-classes-btn')?.addEventListener('click', () => {
     document.getElementById('classes-buttons').style.display = 'flex';
     document.getElementById('show-classes-btn').style.display = 'none';
 });
 
-// لما يضغط على زر فصل → يظهر جدول الطلاب + خانة البحث
-document.querySelectorAll('.class-btn').forEach(btn => {
+// عرض جدول الفصل المختار + تفعيل البحث
+document.querySelectorAll('.class-btn')?.forEach(btn => {
     btn.addEventListener('click', (e) => {
         const classNum = e.target.dataset.class;
-        const students = classesData[classNum];
+        const studentsList = classesData[classNum];
         const title = classNum === '5' ? 'فصل 1/1' : `فصل ${classNum}/2`;
 
-        // تعبئة عنوان الفصل
+        // تعبئة العنوان
         document.getElementById('class-title').textContent = title;
 
-        // تعبئة الجدول بالبيانات الصحيحة (هنا الحل)
+        // تعبئة الجدول بالطريقة الصحيحة
         const tbody = document.querySelector('#students-table tbody');
-        tbody.innerHTML = students.map(s => 
-            `<tr><td>\( {s.num}</td><td> \){s.name}</td></tr>`
+        tbody.innerHTML = studentsList.map(student => 
+            `<tr><td>\( {student.num}</td><td> \){student.name}</td></tr>`
         ).join('');
 
         // إظهار الجدول وخانة البحث
@@ -1134,18 +1133,20 @@ document.querySelectorAll('.class-btn').forEach(btn => {
         document.getElementById('student-search-section').style.display = 'block';
         document.getElementById('classes-buttons').style.display = 'none';
 
-        // إعادة تهيئة خانة البحث
+        // تصفير خانة البحث
         document.getElementById('student-search').value = '';
     });
 });
 
-// خاصية البحث عن الطالب داخل الجدول المختار
-document.getElementById('student-search').addEventListener('input', (e) => {
-    const term = e.target.value.trim().toLowerCase();
+// خاصية البحث داخل الجدول
+document.getElementById('student-search')?.addEventListener('input', (e) => {
+    const searchTerm = e.target.value.trim().toLowerCase();
     const rows = document.querySelectorAll('#students-table tbody tr');
+
     rows.forEach(row => {
-        const name = row.cells[1].textContent.toLowerCase();
-        row.style.display = name.includes(term) ? '' : 'none';
+        const nameCell = row.cells[1]; // العمود الثاني = اسم الطالب
+        const name = nameCell ? nameCell.textContent.toLowerCase() : '';
+        row.style.display = name.includes(searchTerm) ? '' : 'none';
     });
 });
 
