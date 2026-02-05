@@ -1589,3 +1589,45 @@ html, body {
     .test-results-table th:nth-child(2), .test-results-table td:nth-child(2) { width: 33%; }
     .test-results-table th:nth-child(3), .test-results-table td:nth-child(3) { width: 34%; }
 }
+
+
+.students-list-table {
+    width: 100%;
+    border-collapse: collapse;
+    direction: rtl;
+    font-family: 'Tajawal', sans-serif;
+    background: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 2px solid #1a2526;
+}
+
+.students-list-table th,
+.students-list-table td {
+    padding: 12px 15px;
+    text-align: right;
+    border: 1px solid #ddd;
+    font-size: 1.05rem;
+}
+
+.students-list-table th {
+    background: #1a2526;
+    color: white;
+    font-weight: bold;
+}
+
+.students-list-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.students-list-table tr:hover {
+    background-color: #e9ecef;
+}
+
+/* خط فاصل أفقي أقوى بين كل صف (زي الـ PDF) */
+.students-list-table tr {
+    border-bottom: 2px solid #1a2526;
+}
+
+.students-list-table tr:last-child {
+    border-bottom: none;
+} 
