@@ -1120,13 +1120,22 @@ document.querySelectorAll('.class-btn').forEach(btn => {
         const students = classesData[classNum];
         const title = classNum === '5' ? 'فصل 1/1' : `فصل ${classNum}/2`;
 
+        // تعبئة عنوان الفصل
         document.getElementById('class-title').textContent = title;
-        const tbody = document.querySelector('#students-table tbody');
-        tbody.innerHTML = students.map(s => `<tr><td>\( {s.num}</td><td> \){s.name}</td></tr>`).join('');
 
+        // تعبئة الجدول بالبيانات الصحيحة (هنا الحل)
+        const tbody = document.querySelector('#students-table tbody');
+        tbody.innerHTML = students.map(s => 
+            `<tr><td>\( {s.num}</td><td> \){s.name}</td></tr>`
+        ).join('');
+
+        // إظهار الجدول وخانة البحث
         document.getElementById('class-table-container').style.display = 'block';
         document.getElementById('student-search-section').style.display = 'block';
         document.getElementById('classes-buttons').style.display = 'none';
+
+        // إعادة تهيئة خانة البحث
+        document.getElementById('student-search').value = '';
     });
 });
 
