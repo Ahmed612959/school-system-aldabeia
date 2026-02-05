@@ -1120,20 +1120,31 @@ document.querySelectorAll('.class-btn')?.forEach(btn => {
         const title = classNum === '5' ? 'فصل 1/1' : `فصل ${classNum}/2`;
 
         // تعبئة العنوان
+        // عرض جدول الفصل المختار + تفعيل البحث
+document.querySelectorAll('.class-btn')?.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const classNum = e.target.dataset.class;
+        const studentsList = classesData[classNum];
+        const title = classNum === '5' ? 'فصل 1/1' : `فصل ${classNum}/2`;
+
         document.getElementById('class-title').textContent = title;
 
-        // تعبئة الجدول بالطريقة الصحيحة
         const tbody = document.querySelector('#students-table tbody');
-        tbody.innerHTML = studentsList.map(student => 
-            `<tr><td>\( {student.num}</td><td> \){student.name}</td></tr>`
-        ).join('');
+        tbody.innerHTML = ''; // مسح أي محتوى قديم أولًا
 
-        // إظهار الجدول وخانة البحث
+        studentsList.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${student.num}</td>
+                <td>${student.name}</td>
+            `;
+            tbody.appendChild(row);
+        });
+
         document.getElementById('class-table-container').style.display = 'block';
         document.getElementById('student-search-section').style.display = 'block';
         document.getElementById('classes-buttons').style.display = 'none';
 
-        // تصفير خانة البحث
         document.getElementById('student-search').value = '';
     });
 });
