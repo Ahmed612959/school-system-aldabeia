@@ -947,12 +947,34 @@ window.logout = function () {
 };
 
 
+    
+window.toggleYear = function() {
+    const year = document.getElementById('student-year').value;
+    document.getElementById('year-first').style.display = year === 'first' ? 'block' : 'none';
+    document.getElementById('year-second').style.display = year === 'second' ? 'block' : 'none';
+    
+    // إعادة ضبط الترم عند تغيير السنة
+    document.getElementById('semester').value = 'first';
+    toggleSemester();
+};
 
+window.toggleSemester = function() {
+    const year = document.getElementById('student-year').value;
+    const semester = document.getElementById('semester').value;
 
+    if (year === 'first') {
+        document.getElementById('history-group').style.display = semester === 'first' ? 'block' : 'none';
+        document.getElementById('geography-group').style.display = semester === 'second' ? 'block' : 'none';
+    } else if (year === 'second') {
+        document.querySelector('.term-first-only').style.display = semester === 'first' ? 'block' : 'none';
+        document.querySelector('.term-second-only').style.display = semester === 'second' ? 'block' : 'none';
+    }
+};
 
-
+    
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
     renderAdminWelcomeMessage();
+    toggleYear(); 
 });
