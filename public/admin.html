@@ -78,24 +78,32 @@
     <form id="add-result-form">
         <div class="input-group">
             <label for="student-name">اسم الطالب</label>
-            <input type="text" id="student-name" name="student-name" placeholder="أدخل اسم الطالب">
+            <input type="text" id="student-name" required>
         </div>
         <div class="input-group">
             <label for="student-id">رقم الجلوس</label>
-            <input type="text" id="student-id" name="student-id" placeholder="أدخل رقم الجلوس">
+            <input type="text" id="student-id" required>
+        </div>
+        <div class="input-group">
+            <label for="student-year">السنة الدراسية</label>
+            <select id="student-year" name="year" onchange="toggleYear()">
+                <option value="first">السنة الأولى</option>
+                <option value="second">السنة الثانية</option>
+            </select>
         </div>
         <div class="input-group">
             <label for="semester">الترم</label>
-            <select id="semester" name="semester" onchange="toggleSubjects()">
+            <select id="semester" name="semester" onchange="toggleSemester()">
                 <option value="first">الترم الأول</option>
                 <option value="second">الترم الثاني</option>
             </select>
         </div>
-        <div class="input-group">
-            <label for="subject1">مبادئ وأسس تمريض</label>
-            <input type="number" id="subject1" name="subject1" min="0" max="100" placeholder="أدخل الدرجة">
-        </div>
-        <div class="input-group">
+
+        <!-- مواد السنة الأولى -->
+        <div id="year-first" class="year-subjects">
+            <!-- المواد الحالية اللي عندك -->
+            <div class="input-group"><label>مبادئ وأسس تمريض</label><input type="number" class="subject" data-name="مبادئ وأسس تمريض" min="0" max="100"></div>
+            <div class="input-group">
             <label for="subject2">اللغة العربية</label>
             <input type="number" id="subject2" name="subject2" min="0" max="100" placeholder="أدخل الدرجة">
         </div>
@@ -122,18 +130,38 @@
         <div class="input-group">
             <label for="subject8">الكمبيوتر</label>
             <input type="number" id="subject8" name="subject8" min="0" max="100" placeholder="أدخل الدرجة">
+            </div>
+            <!-- باقي المواد الأولى ... -->
+            <div class="input-group" id="history-group"><label>التاريخ</label><input type="number" class="subject" data-name="التاريخ" min="0" max="100"></div>
+            <div class="input-group" id="geography-group" style="display:none;"><label>الجغرافيا</label><input type="number" class="subject" data-name="الجغرافيا" min="0" max="100"></div>
         </div>
-        <div class="input-group" id="history-group">
-            <label for="subject9">التاريخ</label>
-            <input type="number" id="subject9" name="subject9" min="0" max="100" placeholder="أدخل الدرجة">
+
+        <!-- مواد السنة الثانية -->
+        <div id="year-second" class="year-subjects" style="display:none;">
+            <div class="input-group"><label>اللغة العربية</label><input type="number" class="subject" data-name="اللغة العربية" min="0" max="100"></div>
+            <div class="input-group"><label>التربية الدينية</label><input type="number" class="subject" data-name="التربية الدينية" min="0" max="100"></div>
+            <div class="input-group"><label>تمريض باطني جراحي</label><input type="number" class="subject" data-name="تمريض باطني جراحي" min="0" max="100"></div>
+            <div class="input-group"><label>الكمبيوتر</label><input type="number" class="subject" data-name="الكمبيوتر" min="0" max="100"></div>
+            <div class="input-group"><label>اللغة الإنجليزية</label><input type="number" class="subject" data-name="اللغة الإنجليزية" min="0" max="100"></div>
+
+            <!-- الترم الأول فقط -->
+            <div class="term-first-only">
+                <div class="input-group"><label>طب باطنة</label><input type="number" class="subject" data-name="طب باطنة" min="0" max="100"></div>
+                <div class="input-group"><label>الكيمياء</label><input type="number" class="subject" data-name="الكيمياء" min="0" max="100"></div>
+                <div class="input-group"><label>الفيزياء</label><input type="number" class="subject" data-name="الفيزياء" min="0" max="100"></div>
+                <div class="input-group"><label>الأحياء</label><input type="number" class="subject" data-name="الأحياء" min="0" max="100"></div>
+            </div>
+
+            <!-- الترم الثاني فقط -->
+            <div class="term-second-only" style="display:none;">
+                <div class="input-group"><label>الإحصاء</label><input type="number" class="subject" data-name="الإحصاء" min="0" max="100"></div>
+                <div class="input-group"><label>الجراحة العامة</label><input type="number" class="subject" data-name="الجراحة العامة" min="0" max="100"></div>
+            </div>
         </div>
-        <div class="input-group" id="geography-group" style="display: none;">
-            <label for="subject10">الجغرافيا</label>
-            <input type="number" id="subject10" name="subject10" min="0" max="100" placeholder="أدخل الدرجة">
-        </div>
-        <button type="submit" class="submit-btn">إضافة النتيجة</button>
+
+        <button type="submit" class="submit-btn">إضافة / تحديث النتيجة</button>
     </form>
-</div>
+    </div>
 
         <h2>قائمة النتايج</h2>
         <div class="filter-section" style="text-align: center; margin-bottom: 15px;">
