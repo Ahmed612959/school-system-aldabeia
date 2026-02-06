@@ -37,6 +37,12 @@ const studentSchema = new mongoose.Schema({
     username: String,
     password: String,
     originalPassword: String,
+  year: { 
+        type: String, 
+        enum: ['first', 'second'], 
+        required: true,
+        default: 'first'
+    },
     semester: { type: String, enum: ['first', 'second'], default: 'first' },
     subjects: [{ name: String, grade: Number }],
     profile: {
@@ -743,6 +749,7 @@ app.post('/api/nour', async (req, res) => {
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
