@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7676282531413677"
      crossorigin="anonymous"></script>
-  
+
 </head>
 <body>
 
@@ -28,7 +28,7 @@
 
     <div class="admin-container">
         <div class="admin-welcome-message"></div>
-        
+
         <h2>إدارة المستخدمين</h2>
         <div class="manage-users-section">
             <h3>إضافة أدمن جديد</h3>
@@ -172,7 +172,7 @@
                 <option value="failed">الراسبين فقط</option>
             </select>
         </div>
-        
+
         <div class="search-section">
             <input type="text" id="search-input" class="search-bar" placeholder="ابحث باسم الطالب أو رقم الجلوس">
         </div>
@@ -335,34 +335,13 @@
 
 
 
-    
+
     <!-- أضف هذين السطرين فقط -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="admin.js"></script>
     <script src="auth.js"></script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947cc960f9459a73',t:'MTc0ODU5Mjk1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-// فتح وإغلاق القايمة
-document.getElementById('hamburgerBtn').onclick = function() {
-    document.getElementById('adminSidebar').classList.toggle('active');
-    document.getElementById('overlay').classList.toggle('active');
-};
-
-document.getElementById('overlay').onclick = function() {
-    document.getElementById('adminSidebar').classList.remove('active');
-    document.getElementById('overlay').classList.remove('active');
-};
-
-// إغلاق تلقائي على الموبايل
-document.querySelectorAll('.sidebar-menu a').forEach(a => {
-    a.onclick = () => {
-        if (window.innerWidth <= 768) {
-            document.getElementById('adminSidebar').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
-        }
-    };
-});
-</script>
+    
 </body>
 </html>
