@@ -541,24 +541,21 @@ function displayPDFResults(results) {
     document.getElementById('add-result-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
 
-    // 1. جمع البيانات الأساسية
     const fullName   = document.getElementById('student-name').value.trim();
     const studentId  = document.getElementById('student-id').value.trim();
-    const year       = document.getElementById('student-year').value;     // first أو second
-    const semester   = document.getElementById('semester').value;         // first أو second
+    const year       = document.getElementById('student-year').value;
+    const semester   = document.getElementById('semester').value;
 
-    // التحقق الأساسي
     if (!fullName || !studentId || !year || !semester) {
         showToast('يرجى ملء الاسم ورقم الجلوس والسنة والترم!', 'error');
         return;
     }
 
-    // 2. جمع كل الدرجات من الحقول المرئية فقط
     const subjects = [];
     document.querySelectorAll('.year-subjects:visible .subject, .term-first-only:visible .subject, .term-second-only:visible .subject')
         .forEach(input => {
             const grade = parseInt(input.value) || 0;
-            if (grade >= 0 && grade <= 100) {  // نتحقق من القيمة قبل الإضافة
+            if (grade >= 0 && grade <= 100) {
                 subjects.push({
                     name: input.dataset.name,
                     grade
@@ -571,51 +568,38 @@ function displayPDFResults(results) {
         return;
     }
 
-    // 3. التحقق من نطاق الدرجات
-    const invalidGrades = subjects.filter(s => s.grade < 0 || s.grade > 100);
-    if (invalidGrades.length > 0) {
-        showToast('كل الدرجات لازم تكون بين 0 و100!', 'error');
+    const invalid = subjects.filter(s => s.grade < 0 || s.grade > 100);
+    if (invalid.length > 0) {
+        showToast('كل الدرجات لازم تكون بين 0 و 100!', 'error');
         return;
     }
 
-    // 4. البيانات اللي هنرسلها
-    const payload = {
-        fullName,
-        id: studentId,
-        year,
-        semester,
-        subjects
-    };
+    const payload = { fullName, id: studentId, year, semester, subjects };
 
-    console.log('البيانات اللي هنرسلها:', payload);
+    console.log('البيانات اللي هتترسل:', payload);
 
     try {
         let response;
+        const existing = students.find(s => s.id === studentId);
 
-        // الطالب موجود؟ → تحديث
-        const existingStudent = students.find(s => s.id === studentId);
-        if (existingStudent) {
+        if (existing) {
             response = await saveToServer(`/api/students/${studentId}`, payload, 'PUT');
-            showToast(`تم تحديث درجات \( {fullName} ( \){year} - ${semester}) بنجاح`, 'success');
-        } 
-        // طالب جديد → إضافة
-        else {
+            showToast(`تم تحديث درجات \( {fullName} ( \){year} - ${semester})`, 'success');
+        } else {
             response = await saveToServer('/api/students', payload);
-            showToast(`تم إضافة الطالب \( {fullName} ( \){year}) بنجاح!\nاسم المستخدم: ${response?.student?.username || 'غير متوفر'}\nكلمة المرور: ${response?.student?.originalPassword || 'غير متوفر'}`, 'success');
+            showToast(`تم إضافة \( {fullName} ( \){year}) بنجاح!`, 'success');
         }
 
-        // 5. تحديث البيانات المحلية وإعادة الرسم
         if (response) {
             students = await getFromServer('/api/students');
             renderResults();
             renderStats();
             this.reset();
-            toggleYear();  // إعادة ضبط الواجهة
+            toggleYear();
         }
-
     } catch (err) {
-        console.error('خطأ أثناء حفظ النتيجة:', err);
-        showToast('حصل خطأ أثناء الحفظ، حاول مرة تانية', 'error');
+        console.error('خطأ في الحفظ:', err);
+        showToast('حصل خطأ أثناء الحفظ، جرب تاني', 'error');
     }
 });
     window.deleteStudent = async function(studentId) {
@@ -952,12 +936,12 @@ window.logout = function () {
 };
 
 
-    
+
 window.toggleYear = function() {
     const year = document.getElementById('student-year').value;
     document.getElementById('year-first').style.display = year === 'first' ? 'block' : 'none';
     document.getElementById('year-second').style.display = year === 'second' ? 'block' : 'none';
-    
+
     // إعادة ضبط الترم عند تغيير السنة
     document.getElementById('semester').value = 'first';
     toggleSemester();
@@ -976,7 +960,7 @@ window.toggleSemester = function() {
     }
 };
 
-    
+
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
