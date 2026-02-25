@@ -164,46 +164,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    function renderResults(filter = '') {
-        const tableBody = document.getElementById('results-table-body');
-        if (tableBody) {
-            tableBody.innerHTML = '';
-            const filteredStudents = students.filter(student => 
-                student.fullName.toLowerCase().includes(filter.toLowerCase()) ||
-                student.id.toLowerCase().includes(filter.toLowerCase())
-            );
-            filteredStudents.forEach(student => {
-                const total = student.subjects.reduce((sum, s) => sum + (s.grade || 0), 0);
-                const percentage = student.subjects.length ? (total / (student.subjects.length * 100)) * 100 : 0;
-                let percentageClass = '';
-                if (percentage >= 85) percentageClass = 'high-percentage';
-                else if (percentage >= 60) percentageClass = 'medium-percentage';
-                else percentageClass = 'low-percentage';
+function renderResults(filter = '') {
+    const tableBody = document.getElementById('results-table-body');
+    if (!tableBody) return;
 
-                const labels = ['اسم الطالب', 'رقم الجلوس'].concat(student.subjects.map(s => s.name));
-                const values = [student.fullName, student.id].concat(student.subjects.map(s => s.grade || 0));
-                const labelsWithSeparators = labels.map((label, index) => 
-                    index < labels.length - 1 ? `${label}<hr class="table-separator">` : label
-                ).join('');
-                const valuesWithSeparators = values.map((value, index) => 
-                    index < values.length - 1 ? `${value}<hr class="table-separator">` : value
-                ).join('');
+    tableBody.innerHTML = '';
 
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${labelsWithSeparators}</td>
-                    <td>${valuesWithSeparators}</td>
-                    <td>${total}</td>
-                    <td class="${percentageClass}">${percentage.toFixed(1)}%</td>
-                    <td>
-                        <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        }
-    }
+    const filteredStudents = students.filter(student => 
+        (student.fullName || '').toLowerCase().includes(filter.toLowerCase()) ||
+        (student.id || '').toLowerCase().includes(filter.toLowerCase())
+    );
+
+    filteredStudents.forEach(student => {
+        // جمع كل المواد + الدرجات
+        const subjectNames = student.subjects.map(s => s.name);
+        const subjectGrades = student.subjects.map(s => s.grade || 0);
+
+        const total = subjectGrades.reduce((sum, g) => sum + g, 0);
+        const subjectCount = subjectGrades.length;
+        const percentage = subjectCount > 0 ? (total / (subjectCount * 100)) * 100 : 0;
+
+        let percentageClass = '';
+        if (percentage >= 85) percentageClass = 'high-percentage';
+        else if (percentage >= 60) percentageClass = 'medium-percentage';
+        else percentageClass = 'low-percentage';
+
+        // بناء الصفوف ديناميكيًا
+        let labelsHTML = '<div>اسم الطالب</div><div>رقم الجلوس</div>';
+        let valuesHTML = `<div>\( {student.fullName || 'غير متوفر'}</div><div> \){student.id || 'غير متوفر'}</div>`;
+
+        student.subjects.forEach(sub => {
+            labelsHTML += `<div>${sub.name}</div>`;
+            valuesHTML += `<div>${sub.grade || 0}</div>`;
+        });
+
+        // إضافة السنة والترم
+        labelsHTML += '<div>السنة</div><div>الترم</div>';
+        valuesHTML += `<div>\( {student.year === 'first' ? 'الأولى' : 'الثانية'}</div><div> \){student.semester === 'first' ? 'الأول' : 'الثاني'}</div>`;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${labelsHTML}</td>
+            <td>${valuesHTML}</td>
+            <td>${total}</td>
+            <td class="\( {percentageClass}"> \){percentage.toFixed(1)}%</td>
+            <td>
+                <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
+                <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
 
     document.getElementById('search-input')?.addEventListener('input', function() {
         const searchTerm = this.value.trim();
