@@ -11,12 +11,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7676282531413677"
      crossorigin="anonymous"></script>
-
 </head>
 <body>
-
-<!-- الخلفية الداكنة -->
-<div class="overlay" id="overlay"></div>
     <header class="main-header">
         <img src="logo.png" alt="شعار معهد رعاية الضبعية" class="logo">
         <h1>لوحة تحكم الأدمن</h1>
@@ -27,8 +23,8 @@
     </header>
 
     <div class="admin-container">
-        <div class="admin-welcome-message"></div>
-
+        <div class="welcome-message" id="welcome-message"></div>
+        
         <h2>إدارة المستخدمين</h2>
         <div class="manage-users-section">
             <h3>إضافة أدمن جديد</h3>
@@ -78,95 +74,62 @@
     <form id="add-result-form">
         <div class="input-group">
             <label for="student-name">اسم الطالب</label>
-            <input type="text" id="student-name" required>
+            <input type="text" id="student-name" name="student-name" placeholder="أدخل اسم الطالب">
         </div>
         <div class="input-group">
             <label for="student-id">رقم الجلوس</label>
-            <input type="text" id="student-id" required>
-        </div>
-        <div class="input-group">
-            <label for="student-year">السنة الدراسية</label>
-            <select id="student-year" name="year" onchange="toggleYear()">
-                <option value="first">السنة الأولى</option>
-                <option value="second">السنة الثانية</option>
-            </select>
+            <input type="text" id="student-id" name="student-id" placeholder="أدخل رقم الجلوس">
         </div>
         <div class="input-group">
             <label for="semester">الترم</label>
-            <select id="semester" name="semester" onchange="toggleSemester()">
+            <select id="semester" name="semester" onchange="toggleSubjects()">
                 <option value="first">الترم الأول</option>
                 <option value="second">الترم الثاني</option>
             </select>
         </div>
-
-        <!-- مواد السنة الأولى -->
-        <div id="year-first" class="year-subjects">
-            <!-- المواد الحالية اللي عندك -->
-            <div class="input-group"><label>مبادئ وأسس تمريض</label><input type="number" class="subject" data-name="مبادئ وأسس تمريض" min="0" max="100"></div>
-            <div class="input-group">
-    <label>اللغة العربية</label>
-    <input type="number" class="subject" data-name="اللغة العربية" min="0" max="100">
-</div>
         <div class="input-group">
-    <label>اللغة الإنجليزية</label>
-    <input type="number" class="subject" data-name="اللغة الإنجليزية" min="0" max="100">
+            <label for="subject1">مبادئ وأسس تمريض</label>
+            <input type="number" id="subject1" name="subject1" min="0" max="100" placeholder="أدخل الدرجة">
         </div>
         <div class="input-group">
-    <label>الفيزياء</label>
-    <input type</label>
-    <input type="number" class="subject" data-name="الفيزياء" min="0" max="100">
+            <label for="subject2">اللغة العربية</label>
+            <input type="number" id="subject2" name="subject2" min="0" max="100" placeholder="أدخل الدرجة">
         </div>
-<div class="input-group">
-    <label> الكيمْياء </label>
-    <input type="number" class="subject" data-name=" الكيمياء " min="0" max="100">
-<div class="input-group">
-    <label> علم و ظائف الاعضاء/التشريح  </label>
-    <input type="number" class="subject" data-name="علم وظائف الاعضاء/التشريح  " min="0" max="100">
-</div>
         <div class="input-group">
-    <label> الكمبيوتر </label>
-    <input type="number" class="subject" data-name=" الكومبيوتر " min="0" max="100">
-<div class="input-group">
-    <div class="input-group">
-    <label> التربية الدينية </label>
-    <input type="number" class="subject" data-name=" التربية الدينية " min="0" max="100">
-<div class="input-group">
-            <!-- باقي المواد الأولى ... -->
-            <div class="input-group" id="history-group"><label>التاريخ</label><input type="number" class="subject" data-name="التاريخ" min="0" max="100"></div>
-            <div class="input-group" id="geography-group" style="display:none;"><label>الجغرافيا</label><input type="number" class="subject" data-name="الجغرافيا" min="0" max="100"></div>
+            <label for="subject3">اللغة الإنجليزية</label>
+            <input type="number" id="subject3" name="subject3" min="0" max="100" placeholder="أدخل الدرجة">
         </div>
-
-        <!-- مواد السنة الثانية -->
-        <div id="year-second" class="year-subjects" style="display:none;">
-            <div class="input-group"><label>اللغة العربية</label><input type="number" class="subject" data-name="اللغة العربية" min="0" max="100"></div>
-            <div class="input-group"><label>التربية الدينية</label><input type="number" class="subject" data-name="التربية الدينية" min="0" max="100"></div>
-            <div class="i
         <div class="input-group">
-    <label> علم و ظائف الاعضاء /التشريح  </label>
-    <input type="number" class="subject" data-name="علم و ظائفالاعضاء/التشريح " min="0" max="100">
+            <label for="subject4">الفيزياء</label>
+            <input type="number" id="subject4" name="subject4" min="0" max="100" placeholder="أدخل الدرجة">
         </div>
-        nput-group"><label>تمريض باطني جراحي</label><input type="number" class="subject" data-name="تمريض باطني جراحي" min="0" max="100"></div>
-            <div class="input-group"><label>الكمبيوتر</label><input type="number" class="subject" data-name="الكمبيوتر" min="0" max="100"></div>
-            <div class="input-group"><label>اللغة الإنجليزية</label><input type="number" class="subject" data-name="اللغة الإنجليزية" min="0" max="100"></div>
-
-            <!-- الترم الأول فقط -->
-            <div class="term-first-only">
-                <div class="input-group"><label>طب باطنة</label><input type="number" class="subject" data-name="طب باطنة" min="0" max="100"></div>
-                <div class="input-group"><label>الكيمياء</label><input type="number" class="subject" data-name="الكيمياء" min="0" max="100"></div>
-                <div class="input-group"><label>الفيزياء</label><input type="number" class="subject" data-name="الفيزياء" min="0" max="100"></div>
-                <div class="input-group"><label>الأحياء</label><input type="number" class="subject" data-name="الأحياء" min="0" max="100"></div>
-            </div>
-
-            <!-- الترم الثاني فقط -->
-            <div class="term-second-only" style="display:none;">
-                <div class="input-group"><label>الإحصاء</label><input type="number" class="subject" data-name="الإحصاء" min="0" max="100"></div>
-                <div class="input-group"><label>الجراحة العامة</label><input type="number" class="subject" data-name="الجراحة العامة" min="0" max="100"></div>
-            </div>
+        <div class="input-group">
+            <label for="subject5">الكيمياء</label>
+            <input type="number" id="subject5" name="subject5" min="0" max="100" placeholder="أدخل الدرجة">
         </div>
-
-        <button type="submit" class="submit-btn">إضافة / تحديث النتيجة</button>
+        <div class="input-group">
+            <label for="subject6">التشريح / علم وظائف الأعضاء</label>
+            <input type="number" id="subject6" name="subject6" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject7">التربية الدينية</label>
+            <input type="number" id="subject7" name="subject7" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject8">الكمبيوتر</label>
+            <input type="number" id="subject8" name="subject8" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group" id="history-group">
+            <label for="subject9">التاريخ</label>
+            <input type="number" id="subject9" name="subject9" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group" id="geography-group" style="display: none;">
+            <label for="subject10">الجغرافيا</label>
+            <input type="number" id="subject10" name="subject10" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <button type="submit" class="submit-btn">إضافة النتيجة</button>
     </form>
-    </div>
+</div>
 
         <h2>قائمة النتايج</h2>
         <div class="filter-section" style="text-align: center; margin-bottom: 15px;">
@@ -177,7 +140,7 @@
                 <option value="failed">الراسبين فقط</option>
             </select>
         </div>
-
+        
         <div class="search-section">
             <input type="text" id="search-input" class="search-bar" placeholder="ابحث باسم الطالب أو رقم الجلوس">
         </div>
@@ -251,11 +214,6 @@
 
         <h2>إحصائيات</h2>
         <div class="stats-section" id="stats-section"></div>
-
-
-
-
-
        <!-- قسم إنشاء الاختبارات الإلكترونية -->
 <section class="exams-section">
     <h2>إنشاء اختبار إلكتروني</h2>
@@ -340,13 +298,11 @@
 
 
 
-
-    <!-- أضف هذين السطرين فقط -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-    <script src="admin.js"></script>
+    <script src="crypto-js.js"></script>
+    <script src="dataManager.js"></script>
     <script src="auth.js"></script>
+    <script src="admin.js"></script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947cc960f9459a73',t:'MTc0ODU5Mjk1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-       <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </body>
 </html>
