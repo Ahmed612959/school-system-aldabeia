@@ -1,48 +1,40 @@
 document.addEventListener('DOMContentLoaded', function() {
     async function getFromServer(endpoint) {
-    try {
-        let cleanEndpoint = endpoint.split('/api/').pop() || endpoint;
-        cleanEndpoint = cleanEndpoint.replace(/^\/+/, '');
-        const response = await fetch(`/api/${cleanEndpoint}`);
-        if (!response.ok) throw new Error(`خطأ ${response.status}`);
-        const data = await response.json();
-        console.log(`Data loaded from /api/${cleanEndpoint}:`, data.length, 'items');
-        return data || [];
-    } catch (error) {
-        console.error(`Error fetching from ${endpoint}:`, error);
-        showToast('خطأ في جلب البيانات من الخادم!', 'error');
-        return [];
+        try {
+            const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+            const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`);
+            if (!response.ok) throw new Error(`خطأ ${response.status}`);
+            const data = await response.json();
+            console.log(`Data loaded from server for ${cleanEndpoint}:`, data.length, 'items');
+            return data || [];
+        } catch (error) {
+            console.error(`Error fetching from ${endpoint}:`, error);
+            showToast('خطأ في جلب البيانات من الخادم!', 'error');
+            return [];
+        }
     }
-}
 
     async function saveToServer(endpoint, data, method = 'POST', id = null) {
-    try {
-        // الحل السحري والأخير: نشيل كل حاجة قبل آخر /api/
-        let cleanEndpoint = endpoint.split('/api/').pop() || endpoint;
-        cleanEndpoint = cleanEndpoint.replace(/^\/+/, ''); // نشيل أي / من البداية
-
-        const url = id 
-            ? `/api/${cleanEndpoint}/${id}` 
-            : `/api/${cleanEndpoint}`;
-
-        const options = {
-            method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        };
-
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`خطأ ${response.status}: ${errorText}`);
+        try {
+            const cleanEndpoint = endpoint.replace(/^\/+/, ''); // إزالة / زائدة
+            const url = id ? `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}/${id}` : `https://school-system-aldabeia-production-33db.up.railway.app/${cleanEndpoint}`;
+            const options = {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            };
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`خطأ ${response.status}: ${errorText}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error(`Error saving to ${endpoint}:`, error);
+            showToast(`خطأ في حفظ البيانات: ${error.message}`, 'error');
+            throw error;
         }
-        return await response.json();
-    } catch (error) {
-        console.error(`Error saving to ${endpoint}:`, error);
-        showToast(`خطأ في حفظ البيانات: ${error.message}`, 'error');
-        throw error;
     }
-}
 
     function renderAdminWelcomeMessage() {
         const welcomeMessage = document.querySelector('.admin-welcome-message');
@@ -164,58 +156,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-function renderResults(filter = '') {
-    const tableBody = document.getElementById('results-table-body');
-    if (!tableBody) return;
+    function renderResults(filter = '') {
+        const tableBody = document.getElementById('results-table-body');
+        if (tableBody) {
+            tableBody.innerHTML = '';
+            const filteredStudents = students.filter(student => 
+                student.fullName.toLowerCase().includes(filter.toLowerCase()) ||
+                student.id.toLowerCase().includes(filter.toLowerCase())
+            );
+            filteredStudents.forEach(student => {
+                const total = student.subjects.reduce((sum, s) => sum + (s.grade || 0), 0);
+                const percentage = student.subjects.length ? (total / (student.subjects.length * 100)) * 100 : 0;
+                let percentageClass = '';
+                if (percentage >= 85) percentageClass = 'high-percentage';
+                else if (percentage >= 60) percentageClass = 'medium-percentage';
+                else percentageClass = 'low-percentage';
 
-    tableBody.innerHTML = '';
+                const labels = ['اسم الطالب', 'رقم الجلوس'].concat(student.subjects.map(s => s.name));
+                const values = [student.fullName, student.id].concat(student.subjects.map(s => s.grade || 0));
+                const labelsWithSeparators = labels.map((label, index) => 
+                    index < labels.length - 1 ? `${label}<hr class="table-separator">` : label
+                ).join('');
+                const valuesWithSeparators = values.map((value, index) => 
+                    index < values.length - 1 ? `${value}<hr class="table-separator">` : value
+                ).join('');
 
-    const filteredStudents = students.filter(student => 
-        (student.fullName || '').toLowerCase().includes(filter.toLowerCase()) ||
-        (student.id || '').toLowerCase().includes(filter.toLowerCase())
-    );
-
-    filteredStudents.forEach(student => {
-        // جمع كل المواد + الدرجات
-        const subjectNames = student.subjects.map(s => s.name);
-        const subjectGrades = student.subjects.map(s => s.grade || 0);
-
-        const total = subjectGrades.reduce((sum, g) => sum + g, 0);
-        const subjectCount = subjectGrades.length;
-        const percentage = subjectCount > 0 ? (total / (subjectCount * 100)) * 100 : 0;
-
-        let percentageClass = '';
-        if (percentage >= 85) percentageClass = 'high-percentage';
-        else if (percentage >= 60) percentageClass = 'medium-percentage';
-        else percentageClass = 'low-percentage';
-
-        // بناء الصفوف ديناميكيًا
-        let labelsHTML = '<div>اسم الطالب</div><div>رقم الجلوس</div>';
-        let valuesHTML = `<div>\( {student.fullName || 'غير متوفر'}</div><div> \){student.id || 'غير متوفر'}</div>`;
-
-        student.subjects.forEach(sub => {
-            labelsHTML += `<div>${sub.name}</div>`;
-            valuesHTML += `<div>${sub.grade || 0}</div>`;
-        });
-
-        // إضافة السنة والترم
-        labelsHTML += '<div>السنة</div><div>الترم</div>';
-        valuesHTML += `<div>\( {student.year === 'first' ? 'الأولى' : 'الثانية'}</div><div> \){student.semester === 'first' ? 'الأول' : 'الثاني'}</div>`;
-
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${labelsHTML}</td>
-            <td>${valuesHTML}</td>
-            <td>${total}</td>
-            <td class="\( {percentageClass}"> \){percentage.toFixed(1)}%</td>
-            <td>
-                <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
-                <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
-}
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${labelsWithSeparators}</td>
+                    <td>${valuesWithSeparators}</td>
+                    <td>${total}</td>
+                    <td class="${percentageClass}">${percentage.toFixed(1)}%</td>
+                    <td>
+                        <button class="edit-btn" onclick="editStudent('${student.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn" onclick="deleteStudent('${student.id}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    }
 
     document.getElementById('search-input')?.addEventListener('input', function() {
         const searchTerm = this.value.trim();
@@ -552,68 +532,79 @@ function displayPDFResults(results) {
 
     document.getElementById('add-result-form')?.addEventListener('submit', async function(e) {
     e.preventDefault();
+    const fullName = document.getElementById('student-name').value.trim();
+    const studentId = document.getElementById('student-id').value.trim();
+    const semester = document.getElementById('semester').value;
+    const subject1 = parseInt(document.getElementById('subject1').value) || 0;
+    const subject2 = parseInt(document.getElementById('subject2').value) || 0;
+    const subject3 = parseInt(document.getElementById('subject3').value) || 0;
+    const subject4 = parseInt(document.getElementById('subject4').value) || 0;
+    const subject5 = parseInt(document.getElementById('subject5').value) || 0;
+    const subject6 = parseInt(document.getElementById('subject6').value) || 0;
+    const subject7 = parseInt(document.getElementById('subject7').value) || 0;
+    const subject8 = parseInt(document.getElementById('subject8').value) || 0;
+    const subject9 = parseInt(document.getElementById('subject9').value) || 0;
+    const subject10 = parseInt(document.getElementById('subject10').value) || 0;
 
-    const fullName   = document.getElementById('student-name').value.trim();
-    const studentId  = document.getElementById('student-id').value.trim();
-    const year       = document.getElementById('student-year').value;
-    const semester   = document.getElementById('semester').value;
-
-    if (!fullName || !studentId || !year || !semester) {
-        showToast('يرجى ملء الاسم ورقم الجلوس والسنة والترم!', 'error');
+    if (!fullName || !studentId) {
+        showToast('يرجى إدخال اسم الطالب ورقم الجلوس!', 'error');
         return;
     }
 
-    const subjects = [];
-    document.querySelectorAll('.year-subjects:visible .subject, .term-first-only:visible .subject, .term-second-only:visible .subject')
-        .forEach(input => {
-            const grade = parseInt(input.value) || 0;
-            if (grade >= 0 && grade <= 100) {
-                subjects.push({
-                    name: input.dataset.name,
-                    grade
-                });
-            }
-        });
-
-    if (subjects.length === 0) {
-        showToast('يرجى إدخال درجة واحدة على الأقل!', 'error');
+    if ([subject1, subject2, subject3, subject4, subject5, subject6, subject7, subject8, subject9, subject10].some(g => g < 0 || g > 100)) {
+        showToast('تأكد أن جميع الدرجات بين 0 و100!', 'error');
         return;
     }
 
-    const invalid = subjects.filter(s => s.grade < 0 || s.grade > 100);
-    if (invalid.length > 0) {
-        showToast('كل الدرجات لازم تكون بين 0 و 100!', 'error');
-        return;
-    }
+    const subjects = [
+        { name: "مبادئ وأسس تمريض", grade: subject1 },
+        { name: "اللغة العربية", grade: subject2 },
+        { name: "اللغة الإنجليزية", grade: subject3 },
+        { name: "الفيزياء", grade: subject4 },
+        { name: "الكيمياء", grade: subject5 },
+        { name: "التشريح / علم وظائف الأعضاء", grade: subject6 },
+        { name: "التربية الدينية", grade: subject7 },
+        { name: "الكمبيوتر", grade: subject8 }
+    ];
 
-    const payload = { fullName, id: studentId, year, semester, subjects };
-
-    console.log('البيانات اللي هتترسل:', payload);
-
-    try {
-        let response;
-        const existing = students.find(s => s.id === studentId);
-
-        if (existing) {
-            response = await saveToServer(`/api/students/${studentId}`, payload, 'PUT');
-            showToast(`تم تحديث درجات \( {fullName} ( \){year} - ${semester})`, 'success');
-        } else {
-            response = await saveToServer('/api/students', payload);
-            showToast(`تم إضافة \( {fullName} ( \){year}) بنجاح!`, 'success');
+    if (semester === 'first') {
+        if (subject9 > 0) { // إضافة التاريخ فقط إذا كانت الدرجة أكبر من 0
+            subjects.push({ name: "التاريخ", grade: subject9 });
         }
+    } else {
+        if (subject10 > 0) { // إضافة الجغرافيا فقط إذا كانت الدرجة أكبر من 0
+            subjects.push({ name: "الجغرافيا", grade: subject10 });
+        }
+    }
 
+    console.log('البيانات المرسلة:', { fullName, studentId, semester, subjects }); // تسجيل البيانات
+
+    const existingStudent = students.find(s => s.id === studentId);
+    if (existingStudent) {
+        const response = await saveToServer(`/api/students/${studentId}`, { subjects, semester }, 'PUT');
         if (response) {
             students = await getFromServer('/api/students');
+            console.log('البيانات المحدثة من الخادم:', students.find(s => s.id === studentId)); // تسجيل بيانات الطالب المحدثة
             renderResults();
             renderStats();
+            showToast(`تم تحديث درجات الطالب ${fullName} بنجاح!`, 'success');
             this.reset();
-            toggleYear();
+            toggleSubjects();
         }
-    } catch (err) {
-        console.error('خطأ في الحفظ:', err);
-        showToast('حصل خطأ أثناء الحفظ، جرب تاني', 'error');
+    } else {
+        const response = await saveToServer('/api/students', { fullName, id: studentId, subjects, semester });
+        if (response) {
+            students = await getFromServer('/api/students');
+            console.log('بيانات الطالب الجديد:', response); // تسجيل بيانات الطالب الجديد
+            renderResults();
+            renderStats();
+            showToast(`تم إضافة الطالب بنجاح!\nاسم المستخدم: ${response.student.username}\nكلمة المرور: ${response.student.originalPassword}`, 'success');
+            this.reset();
+            toggleSubjects();
+        }
     }
 });
+
     window.deleteStudent = async function(studentId) {
         if (confirm('هل أنت متأكد؟ لن تتمكن من استرجاع بيانات هذا الطالب!')) {
             const response = await saveToServer(`/api/students/${studentId}`, {}, 'DELETE');
@@ -673,7 +664,7 @@ function displayPDFResults(results) {
  // دالة للتحقق من توفر كود الاختبار
 async function checkExamCodeAvailability(code) {
     try {
-        const response = await fetch('/api/exams/check-code', {
+        const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams/check-code', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code })
@@ -682,7 +673,6 @@ async function checkExamCodeAvailability(code) {
         return data.available;
     } catch (error) {
         console.error('Error checking exam code:', error);
-        showToast('فشل التحقق من كود الاختبار!', 'error');
         return false;
     }
 }
@@ -862,11 +852,11 @@ document.getElementById('save-exam').addEventListener('click', async function() 
 
     try {
         console.log('Saving exam with data:', JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions }, null, 2));
-        const response = await fetch('/api/exams', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions })
-});
+        const response = await fetch('https://school-system-aldabeia-production-33db.up.railway.app/api/exams', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: examName, stage, code: examCode, duration: parseInt(duration), questions })
+        });
 
         if (response.ok) {
             const result = await response.json();
@@ -896,9 +886,57 @@ document.getElementById('fetch-results').addEventListener('click', async functio
     }
 
     try {
-        const response = await fetch(`/api/exams/${encodeURIComponent(examCode)}/results`);
+        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(examCode)}/results`);
         if (!response.ok) {
             const errorData = await response.json();
+            console.error('Error fetching results:', errorData);
+            showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
+            return;
+        }
+        const results = await response.json();
+        const resultsList = document.getElementById('exam-results-list');
+        if (results.length === 0) {
+            resultsList.innerHTML = '<p>لا توجد نتائج لهذا الاختبار.</p>';
+            return;
+        }
+        resultsList.innerHTML = `
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>اسم المستخدم</th>
+                        <th>النتيجة (%)</th>
+                        <th>تاريخ الإكمال</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${results.map(result => `
+                        <tr>
+                            <td>${result.studentId}</td>
+                            <td>${result.score.toFixed(1)}</td>
+                            <td>${new Date(result.completionTime).toLocaleString('ar-EG')}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (error) {
+        console.error('Error fetching exam results:', error);
+        showToast(`خطأ في جلب النتائج: ${error.message}`, 'error');
+    }
+});
+// عرض نتائج الاختبار
+document.getElementById('fetch-results').addEventListener('click', async function() {
+    const examCode = document.getElementById('results-exam-code').value.trim();
+    if (!examCode) {
+        showToast('يرجى إدخال كود الاختبار!', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://school-system-aldabeia-production-33db.up.railway.app/api/exams/${encodeURIComponent(examCode)}/results`);
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Error fetching results:', errorData);
             showToast(errorData.error || 'كود الاختبار غير صحيح!', 'error');
             return;
         }
@@ -939,43 +977,8 @@ document.getElementById('fetch-results').addEventListener('click', async functio
         showToast(`خطأ في جلب النتائج: ${error.message}`, 'error');
     }
 });
-    // أضف هذا في آخر الملف قبل `});`
-window.logout = function () {
-    if (confirm('هل تريد تسجيل الخروج؟')) {
-        localStorage.removeItem('loggedInUser');
-        window.location.href = 'login.html';
-    }
-};
-
-
-
-window.toggleYear = function() {
-    const year = document.getElementById('student-year').value;
-    document.getElementById('year-first').style.display = year === 'first' ? 'block' : 'none';
-    document.getElementById('year-second').style.display = year === 'second' ? 'block' : 'none';
-
-    // إعادة ضبط الترم عند تغيير السنة
-    document.getElementById('semester').value = 'first';
-    toggleSemester();
-};
-
-window.toggleSemester = function() {
-    const year = document.getElementById('student-year').value;
-    const semester = document.getElementById('semester').value;
-
-    if (year === 'first') {
-        document.getElementById('history-group').style.display = semester === 'first' ? 'block' : 'none';
-        document.getElementById('geography-group').style.display = semester === 'second' ? 'block' : 'none';
-    } else if (year === 'second') {
-        document.querySelector('.term-first-only').style.display = semester === 'first' ? 'block' : 'none';
-        document.querySelector('.term-second-only').style.display = semester === 'second' ? 'block' : 'none';
-    }
-};
-
-
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
     renderAdminWelcomeMessage();
-    toggleYear(); 
 });
