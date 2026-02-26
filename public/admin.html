@@ -65,6 +65,40 @@
             </div>
         </div>
 
+
+
+<h2>إدارة السنوات الدراسية</h2>
+<div class="manage-years-section">
+    <h3>إضافة سنة دراسية جديدة</h3>
+    <form id="add-year-form">
+        <div class="input-group">
+            <label for="year-name">اسم السنة (مثل: first أو second)</label>
+            <input type="text" id="year-name" required>
+        </div>
+        <div id="subjects-container"></div>
+        <button type="button" class="submit-btn" onclick="addSubjectField()">إضافة مادة</button>
+        <button type="submit" class="submit-btn">إضافة السنة</button>
+    </form>
+
+    <h3>قائمة السنوات</h3>
+    <div class="years-table">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>السنة</th>
+                        <th>المواد</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="years-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
         <div class="upload-section">
     <h2>رفع وتحليل نتائج من ملف (PDF أو صورة)</h2>
     <p>1. اختر ملف PDF يحتوي على بيانات الطلاب (تنسيق: طالب: [اسم] - رقم الجلوس: [رقم], [مادة]: [درجة]).</p>
