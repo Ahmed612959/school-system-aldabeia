@@ -52,6 +52,62 @@ const studentSchema = new mongoose.Schema({
     }
 });
 
+// نموذج السنة الدراسية
+const yearSchema = new mongoose.Schema({
+    name: { type: String, required: true, unique: true }, // مثل 'first' أو 'second'
+    subjects: [{
+        name: { type: String, required: true },
+        semester: { type: String, enum: ['first_only', 'second_only', 'both'], required: true },
+        maxGrade: { type: Number, required: true, min: 1 }
+    }]
+});
+const Year = mongoose.model('Year', yearSchema);
+
+// Routes لإدارة السنوات
+app.get('/api/years', async (req, res) => {
+    try {
+        const years = await Year.find();
+        res.json(years);
+    } catch (error) {
+        res.status(500).json({ error: 'خطأ في جلب السنوات' });
+    }
+});
+
+app.post('/api/years', async (req, res) => {
+    try {
+        const { name, subjects } = req.body;
+        if (!name || !subjects || !Array.isArray(subjects)) {
+            return res.status(400).json({ error: 'البيانات غير مكتملة' });
+        }
+        const newYear = new Year({ name, subjects });
+        await newYear.save();
+        res.json({ message: 'تم إضافة السنة', year: newYear });
+    } catch (error) {
+        res.status(500).json({ error: 'خطأ في إضافة السنة' });
+    }
+});
+
+app.put('/api/years/:name', async (req, res) => {
+    try {
+        const { subjects } = req.body;
+        const updated = await Year.findOneAndUpdate({ name: req.params.name }, { subjects }, { new: true });
+        if (!updated) return res.status(404).json({ error: 'السنة غير موجودة' });
+        res.json({ message: 'تم تحديث المواد' });
+    } catch (error) {
+        res.status(500).json({ error: 'خطأ في التحديث' });
+    }
+});
+
+app.delete('/api/years/:name', async (req, res) => {
+    try {
+        await Year.deleteOne({ name: req.params.name });
+        res.json({ message: 'تم حذف السنة' });
+    } catch (error) {
+        res.status(500).json({ error: 'خطأ في الحذف' });
+    }
+});
+
+
 const violationSchema = new mongoose.Schema({
     studentId: String,
     type: String,
