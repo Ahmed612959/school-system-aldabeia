@@ -4,186 +4,196 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>لوحة تحكم الأدمن - معهد رعاية الضبعية</title>
-    
-    <!-- Toastify -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    <!-- Google Fonts - Tajawal -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="admin.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7676282531413677"
+     crossorigin="anonymous"></script>
 </head>
 <body>
-
-<!-- Overlay للقوائم الجانبية إذا وجدت -->
-<div class="overlay" id="overlay"></div>
-
-<header class="main-header">
-    <img src="logo.png" alt="شعار معهد رعاية الضبعية" class="logo">
-    <h1>لوحة تحكم الأدمن</h1>
-    <div class="header-buttons">
-        <button class="home-btn" onclick="window.location.href='Home.html'">
-            <i class="fas fa-home"></i> الصفحة الرئيسية
-        </button>
-        <button class="logout-btn" onclick="logout()">
-            تسجيل الخروج
-        </button>
-    </div>
-</header>
-
-<div class="admin-container">
-
-    <!-- رسالة الترحيب -->
-    <div class="admin-welcome-message"></div>
-
-    <!-- 1. إدارة المستخدمين -->
-    <h2>إدارة المستخدمين</h2>
-    <div class="manage-users-section">
-        <h3>إضافة أدمن جديد</h3>
-        <form id="add-user-form">
-            <div class="input-group">
-                <label for="admin-name">الاسم الكامل</label>
-                <input type="text" id="admin-name" required>
-            </div>
-            <div class="input-group">
-                <label for="admin-username">اسم المستخدم</label>
-                <input type="text" id="admin-username" required>
-            </div>
-            <div class="input-group">
-                <label for="admin-password">كلمة المرور</label>
-                <input type="password" id="admin-password" required>
-            </div>
-            <button type="submit" class="submit-btn">إضافة أدمن</button>
-        </form>
-
-        <h3>قائمة الأدمنز</h3>
-        <div class="users-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>الاسم الكامل</th>
-                        <th>اسم المستخدم</th>
-                        <th>إجراء</th>
-                    </tr>
-                </thead>
-                <tbody id="users-table-body"></tbody>
-            </table>
+    <header class="main-header">
+        <img src="logo.png" alt="شعار معهد رعاية الضبعية" class="logo">
+        <h1>لوحة تحكم الأدمن</h1>
+        <div class="header-buttons">
+            <button class="home-btn" onclick="window.location.href='Home.html'"><i class="fas fa-home"></i> الصفحة الرئيسية</button>
+            <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
         </div>
-    </div>
+    </header>
 
-    <!-- 2. إدارة السنوات الدراسية -->
-    <h2>إدارة السنوات الدراسية</h2>
-    <div class="manage-years-section">
-        <h3>إضافة سنة دراسية جديدة</h3>
-        <form id="add-year-form">
-            <div class="input-group">
-                <label for="year-name">اسم السنة (مثال: first, second, third)</label>
-                <input type="text" id="year-name" required placeholder="second">
+    <div class="admin-container">
+        <div class="welcome-message" id="welcome-message"></div>
+        
+        <h2>إدارة المستخدمين</h2>
+        <div class="manage-users-section">
+            <h3>إضافة أدمن جديد</h3>
+            <form id="add-user-form">
+                <div class="input-group">
+                    <label for="admin-name">الاسم الكامل</label>
+                    <input type="text" id="admin-name" name="admin-name" placeholder="أدخل الاسم الكامل">
+                </div>
+                <div class="input-group">
+                    <label for="admin-username">اسم المستخدم</label>
+                    <input type="text" id="admin-username" name="admin-username" placeholder="أدخل اسم المستخدم">
+                </div>
+                <div class="input-group">
+                    <label for="admin-password">كلمة المرور</label>
+                    <input type="password" id="admin-password" name="admin-password" placeholder="أدخل كلمة المرور">
+                </div>
+                <button type="submit" class="submit-btn">إضافة أدمن</button>
+            </form>
+
+            <h3>قائمة الأدمنز</h3>
+            <div class="users-table">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>الاسم الكامل</th>
+                                <th>اسم المستخدم</th>
+                                <th>إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
             </div>
-            <div id="subjects-container"></div>
-            <button type="button" class="submit-btn" onclick="addSubjectField()">إضافة مادة جديدة</button>
-            <button type="submit" class="submit-btn">حفظ السنة الدراسية</button>
-        </form>
-
-        <h3>السنوات المسجلة حاليًا</h3>
-        <div class="years-table">
-            <table>
-                <thead>
-                    <tr>
-                        <th>اسم السنة</th>
-                        <th>عدد المواد</th>
-                        <th>إجراء</th>
-                    </tr>
-                </thead>
-                <tbody id="years-table-body"></tbody>
-            </table>
         </div>
-    </div>
 
-    <!-- 3. رفع وتحليل نتائج PDF -->
-    <div class="upload-section">
-        <h2>رفع وتحليل نتائج من ملف PDF</h2>
-        <p>اختر ملف PDF يحتوي على بيانات الطلاب والدرجات</p>
-        <input type="file" id="pdf-upload" accept=".pdf">
-        <button id="analyze-pdf" class="submit-btn">تحليل الملف الآن</button>
-        <div id="results-display" class="results-table"></div>
-    </div>
+        <div class="upload-section">
+    <h2>رفع وتحليل نتائج من ملف (PDF أو صورة)</h2>
+    <p>1. اختر ملف PDF يحتوي على بيانات الطلاب (تنسيق: طالب: [اسم] - رقم الجلوس: [رقم], [مادة]: [درجة]).</p>
+    <input type="file" id="pdf-upload" accept=".pdf">
+    <button id="analyze-pdf" class="submit-btn">تحليل PDF</button>
+    <div id="results-display" class="results-table"></div>
+</div>
 
-    <!-- 4. إضافة نتيجة طالب يدويًا (ديناميكي) -->
-    <h2>إضافة / تعديل نتيجة طالب يدويًا</h2>
-    <div class="add-result-section">
-        <form id="add-result-form">
-            <div class="input-group">
-                <label for="student-name">اسم الطالب الكامل</label>
-                <input type="text" id="student-name" required>
+        <h2>إضافة نتيجة طالب يدويًا</h2>
+<div class="add-result-section">
+    <form id="add-result-form">
+        <div class="input-group">
+            <label for="student-name">اسم الطالب</label>
+            <input type="text" id="student-name" name="student-name" placeholder="أدخل اسم الطالب">
+        </div>
+        <div class="input-group">
+            <label for="student-id">رقم الجلوس</label>
+            <input type="text" id="student-id" name="student-id" placeholder="أدخل رقم الجلوس">
+        </div>
+        <div class="input-group">
+            <label for="semester">الترم</label>
+            <select id="semester" name="semester" onchange="toggleSubjects()">
+                <option value="first">الترم الأول</option>
+                <option value="second">الترم الثاني</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="subject1">مبادئ وأسس تمريض</label>
+            <input type="number" id="subject1" name="subject1" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject2">اللغة العربية</label>
+            <input type="number" id="subject2" name="subject2" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject3">اللغة الإنجليزية</label>
+            <input type="number" id="subject3" name="subject3" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject4">الفيزياء</label>
+            <input type="number" id="subject4" name="subject4" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject5">الكيمياء</label>
+            <input type="number" id="subject5" name="subject5" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject6">التشريح / علم وظائف الأعضاء</label>
+            <input type="number" id="subject6" name="subject6" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject7">التربية الدينية</label>
+            <input type="number" id="subject7" name="subject7" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group">
+            <label for="subject8">الكمبيوتر</label>
+            <input type="number" id="subject8" name="subject8" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group" id="history-group">
+            <label for="subject9">التاريخ</label>
+            <input type="number" id="subject9" name="subject9" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <div class="input-group" id="geography-group" style="display: none;">
+            <label for="subject10">الجغرافيا</label>
+            <input type="number" id="subject10" name="subject10" min="0" max="100" placeholder="أدخل الدرجة">
+        </div>
+        <button type="submit" class="submit-btn">إضافة النتيجة</button>
+    </form>
+</div>
+
+        <h2>قائمة النتايج</h2>
+        <div class="filter-section" style="text-align: center; margin-bottom: 15px;">
+            <label for="filter-select">عرض النتائج:</label>
+            <select id="filter-select" class="search-bar" style="width:auto;">
+                <option value="all">الكل</option>
+                <option value="passed">الناجحين فقط</option>
+                <option value="failed">الراسبين فقط</option>
+            </select>
+        </div>
+        
+        <div class="search-section">
+            <input type="text" id="search-input" class="search-bar" placeholder="ابحث باسم الطالب أو رقم الجلوس">
+        </div>
+        <div class="results-table">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>البيانات</th>
+                            <th>القيم</th>
+                            <th>المجموع</th>
+                            <th>النسبة</th>
+                            <th>الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table-body"></tbody>
+                </table>
             </div>
-            <div class="input-group">
-                <label for="student-id">رقم الجلوس</label>
-                <input type="text" id="student-id" required>
-            </div>
-            <div class="input-group">
-                <label for="student-year">السنة الدراسية</label>
-                <select id="student-year" required>
-                    <option value="">— اختر السنة —</option>
-                    <!-- يتم ملؤها ديناميكيًا من جافاسكريبت -->
-                </select>
-            </div>
-            <div class="input-group">
-                <label for="semester">الترم</label>
-                <select id="semester" required>
-                    <option value="first">الترم الأول</option>
-                    <option value="second">الترم الثاني</option>
-                </select>
-            </div>
+        </div>
+        <button id="export-excel" class="submit-btn">تصدير النتائج إلى Excel</button>
+        <section class="violations-section">
+    <h2>إدارة الإنذارات والمخالفات</h2>
+    <form id="add-violation-form">
+        <div class="input-group">
+            <label for="violation-student-id">رقم الجلوس</label>
+            <input type="text" id="violation-student-id" required>
+        </div>
+        <div class="input-group">
+            <label for="violation-type">النوع</label>
+            <select id="violation-type" required>
+                <option value="warning">إنذار</option>
+                <option value="violation">مخالفة</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="violation-reason">السبب</label>
+            <textarea id="violation-reason" required></textarea>
+        </div>
+        <div class="input-group">
+            <label for="violation-penalty">العقوبة</label>
+            <input type="text" id="violation-penalty" required>
+        </div>
+        <div class="input-group">
+            <label for="parent-summons">
+                <input type="checkbox" id="parent-summons"> استدعاء ولي الأمر
+            </label>
+        </div>
+        <button type="submit" class="submit-btn">إضافة إنذار/مخالفة</button>
+    </form>
 
-            <!-- المواد ستظهر هنا تلقائيًا حسب السنة والترم -->
-            <div id="dynamic-subjects" class="dynamic-subjects-container"></div>
-
-            <button type="submit" class="submit-btn">حفظ / تحديث النتيجة</button>
-        </form>
-    </div>
-
-    <!-- 5. قائمة النتايج -->
-    <h2>قائمة النتائج</h2>
-    <div class="filter-section">
-        <label for="filter-select">عرض:</label>
-        <select id="filter-select">
-            <option value="all">الكل</option>
-            <option value="passed">الناجحين فقط</option>
-            <option value="failed">الراسبين فقط</option>
-        </select>
-    </div>
-    <div class="search-section">
-        <input type="text" id="search-input" placeholder="ابحث باسم الطالب أو رقم الجلوس...">
-    </div>
-    <div class="results-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>البيانات</th>
-                    <th>القيم</th>
-                    <th>المجموع</th>
-                    <th>النسبة المئوية</th>
-                    <th>إجراء</th>
-                </tr>
-            </thead>
-            <tbody id="results-table-body"></tbody>
-        </table>
-    </div>
-    <button id="export-excel" class="submit-btn">تصدير النتائج إلى Excel</button>
-
-    <!-- 6. إدارة المخالفات والإنذارات -->
-    <section class="violations-section">
-        <h2>إدارة الإنذارات والمخالفات</h2>
-        <form id="add-violation-form">
-            <!-- ... باقي الحقول كما هي ... -->
-        </form>
-        <h3>قائمة الإنذارات والمخالفات</h3>
-        <div class="violations-table">
+    <h3>قائمة الإنذارات والمخالفات</h3>
+    <div class="violations-table">
+        <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
@@ -192,49 +202,337 @@
                         <th>السبب</th>
                         <th>العقوبة</th>
                         <th>استدعاء ولي الأمر</th>
-                        <th>التاريخ</th>
-                        <th>إجراء</th>
+                        <th>تاريخ الإضافة</th>
+                        <th>الإجراء</th>
                     </tr>
                 </thead>
                 <tbody id="violations-table-body"></tbody>
             </table>
         </div>
-    </section>
+    </div>
+</section>
 
-    <!-- 7. الإحصائيات -->
-    <h2>الإحصائيات العامة</h2>
-    <div class="stats-section" id="stats-section"></div>
+        <h2>إحصائيات</h2>
+        <div class="stats-section" id="stats-section"></div>
 
-    <!-- 8. إنشاء الاختبارات الإلكترونية -->
-    <section class="exams-section">
-        <h2>إنشاء اختبار إلكتروني</h2>
-        <!-- ... باقي الكود الخاص بالاختبارات كما هو ... -->
-    </section>
 
-    <!-- 9. نتائج الاختبارات -->
-    <div class="test-results-section">
-        <h2>نتائج الاختبارات</h2>
-        <!-- ... باقي الكود ... -->
+<!-- قوائم الطلاب كاملة - 5 فصول -->
+<div class="class-card">
+    <h3>فصل 1/2</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>م</th>
+                    <th>اسم الطالب</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>إبراهيم عبدالحميد إبراهيم يونس</td></tr>
+                <tr><td>2</td><td>أحمد الطيب أحمد عبدالعزيز محمد</td></tr>
+                <tr><td>3</td><td>أحمد جابر أحمد أمين أبوبكر</td></tr>
+                <tr><td>4</td><td>أحمد حجاج أحمد محمد محمد</td></tr>
+                <tr><td>5</td><td>أحمد سعدي سيد علي</td></tr>
+                <tr><td>6</td><td>أحمد محمد سلطان حسن</td></tr>
+                <tr><td>7</td><td>أحمد محمد عويس يوسف</td></tr>
+                <tr><td>8</td><td>أحمد موسى أحمد حسين حسن</td></tr>
+                <tr><td>9</td><td>أدهم محمد حسين أبوالوفا مكي</td></tr>
+                <tr><td>10</td><td>أنس مالك حسن يوسف</td></tr>
+                <tr><td>11</td><td>بولا صبحي جادالرب لوندي</td></tr>
+                <tr><td>12</td><td>حذيفة رمضان عبدالحميد حامد إبراهيم</td></tr>
+                <tr><td>13</td><td>الحسن علي محمد علي مصطفى</td></tr>
+                <tr><td>14</td><td>حسن محمود يوسف شرقاوي قناوي</td></tr>
+                <tr><td>15</td><td>حمزة يوسف شعبان عبدالنعيم موسى</td></tr>
+                <tr><td>16</td><td>خالد أحمد أمين سيد يوسف</td></tr>
+                <tr><td>17</td><td>خالد علي عبدالرحيم عبدالقادر أحمد</td></tr>
+                <tr><td>18</td><td>روماني عبده عزيز عبدالملك خليل</td></tr>
+                <tr><td>19</td><td>زياد وائل محمد مهران</td></tr>
+                <tr><td>20</td><td>سيف محمود رمضان أحمد</td></tr>
+                <tr><td>21</td><td>صالح حسن السيد أحمد</td></tr>
+                <tr><td>22</td><td>عبدالرحمن كامل محمد أحمد حسن</td></tr>
+                <tr><td>23</td><td>عبدالرحمن محمود أحمد يونس</td></tr>
+                <tr><td>24</td><td>عبدالله أحمد بدوي عبدالسميع</td></tr>
+                <tr><td>25</td><td>عبدالله أحمد عبدالجواد فهمي</td></tr>
+                <tr><td>26</td><td>عبدالله مصطفى عبدالسميع متولي</td></tr>
+                <tr><td>27</td><td>علي محمد عبدالدايم علي أحمد</td></tr>
+                <tr><td>28</td><td>علي منصور إبراهيم علي عبيد</td></tr>
+                <tr><td>29</td><td>عماد الدين محمد عربي إبراهيم</td></tr>
+                <tr><td>30</td><td>محمود عبد الرحيم محمود حسن</td></tr>
+                <tr><td>31</td><td>مصعب فراج سيد محمد</td></tr>
+                <tr><td>32</td><td>معز عصمت عادل أحمد</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="class-card">
+    <h3>فصل 2/2</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>م</th>
+                    <th>اسم الطالب</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>أسامة عبدالمحسوب يوسف ضوى</td></tr>
+                <tr><td>2</td><td>عبدالرحمن أشرف سيد أحمد</td></tr>
+                <tr><td>3</td><td>عبدالرحمن جابر عبدالقادر أحمد</td></tr>
+                <tr><td>4</td><td>عمرو خالد موسى أحمد</td></tr>
+                <tr><td>5</td><td>عمرو سيد أبو المجد أحمد</td></tr>
+                <tr><td>6</td><td>كمال محمود كمال على عبدالعزيز</td></tr>
+                <tr><td>7</td><td>كيرلس أبهاب عياد سويحة</td></tr>
+                <tr><td>8</td><td>كيرلس متى نبيل نصري عبده</td></tr>
+                <tr><td>9</td><td>ماجد عبدالكريم محمد عبدالراضي</td></tr>
+                <tr><td>10</td><td>مازن حسين عبدالعاطي علي محمد</td></tr>
+                <tr><td>11</td><td>مازن خالد محمد محمد علي</td></tr>
+                <tr><td>12</td><td>محمد إبراهيم بدري محجوب أحمد</td></tr>
+                <tr><td>13</td><td>محمد إبراهيم عبدالوهاب أحمد</td></tr>
+                <tr><td>14</td><td>محمد أحمد السابح علي محمد</td></tr>
+                <tr><td>15</td><td>محمد خالد حسان أحمد</td></tr>
+                <tr><td>16</td><td>محمد صالح عبد السميع متولي حسين</td></tr>
+                <tr><td>17</td><td>محمد صبري عبدالوهاب عبدالراضي</td></tr>
+                <tr><td>18</td><td>محمد عاشور أحمد خليل محمد</td></tr>
+                <tr><td>19</td><td>محمد عاطف عبدالله محمد سليمان</td></tr>
+                <tr><td>20</td><td>محمد عامر قناوي عامر</td></tr>
+                <tr><td>21</td><td>محمد عثمان بدر عبدالوهاب</td></tr>
+                <tr><td>22</td><td>محمد علي محمد حسان</td></tr>
+                <tr><td>23</td><td>محمد محمد صادق محمد</td></tr>
+                <tr><td>24</td><td>محمود حسنين عمر صالح محمد</td></tr>
+                <tr><td>25</td><td>محمود خليل عبدالعزيز خليل صادق</td></tr>
+                <tr><td>26</td><td>معاذ أحمد أبوزيد بدوي</td></tr>
+                <tr><td>27</td><td>معاذ محمود حساني محمد</td></tr>
+                <tr><td>28</td><td>مينا نبيل كامل عبدالمسيح</td></tr>
+                <tr><td>29</td><td>يحيى علي عبدالنعيم علي</td></tr>
+                <tr><td>30</td><td>يوسف عبدالرحمن أحمد مصطفى صالح</td></tr>
+                <tr><td>31</td><td>يوسف عماد سامي قسطندي</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="class-card">
+    <h3>فصل 3/2</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>م</th>
+                    <th>اسم الطالب</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>إسراء علي محمد علي</td></tr>
+                <tr><td>2</td><td>إسراء محمود عبد السلام عباس</td></tr>
+                <tr><td>3</td><td>أسماء صغير جمعة حامد</td></tr>
+                <tr><td>4</td><td>أشرقت عبد الفتاح ذكي عبد السميع</td></tr>
+                <tr><td>5</td><td>الزهراء مصطفى عبد الرزاق</td></tr>
+                <tr><td>6</td><td>الشيماء محمد عبد الرحمن محمد</td></tr>
+                <tr><td>7</td><td>آلاء حمدي محمد كرم</td></tr>
+                <tr><td>8</td><td>آلاء موسى محمد عادلي</td></tr>
+                <tr><td>9</td><td>أمنية حسانين عزب حسانين</td></tr>
+                <tr><td>10</td><td>أنصاف محمد أحمد جاد</td></tr>
+                <tr><td>11</td><td>آية محمد النوبي السمان</td></tr>
+                <tr><td>12</td><td>إيرين لطفي نسيم سمعان</td></tr>
+                <tr><td>13</td><td>إيمان سعد رشيدي أبو الوفا</td></tr>
+                <tr><td>14</td><td>آية عادل النداي جهلان</td></tr>
+                <tr><td>15</td><td>بوسي أحمد محمد أحمد</td></tr>
+                <tr><td>16</td><td>تسنيم علي أحمد محمود</td></tr>
+                <tr><td>17</td><td>تسنيم منتصر عبد الحميد محمد</td></tr>
+                <tr><td>18</td><td>جنة فيصل عبد المنعم بحر</td></tr>
+                <tr><td>19</td><td>جنة حسني خليل أحمد</td></tr>
+                <tr><td>20</td><td>جهاد هاني عبد الجواد مصطفى</td></tr>
+                <tr><td>21</td><td>حبيبة محمد أحمد حسن</td></tr>
+                <tr><td>22</td><td>حسناء علي سعدي حسن</td></tr>
+                <tr><td>23</td><td>حنين عبدالحسيب أحمد</td></tr>
+                <tr><td>24</td><td>دعاء الحسن محمد مدني</td></tr>
+                <tr><td>25</td><td>رحاب رمضان محمد علي</td></tr>
+                <tr><td>26</td><td>رؤى أحمد عبد الرحيم سيد</td></tr>
+                <tr><td>27</td><td>ريتاج محمد الطاهر مشهد عبد المجيد</td></tr>
+                <tr><td>28</td><td>ريفان أحمد محمد كمال</td></tr>
+                <tr><td>29</td><td>زينب عبد الرحيم محمد محمود</td></tr>
+                <tr><td>30</td><td>زينب عبد العزيز عبد السميع</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="class-card">
+    <h3>فصل 4/2</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>م</th>
+                    <th>اسم الطالب</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>جمانة محمد حلمي رجب</td></tr>
+                <tr><td>2</td><td>سلمى أحمد السيد أحمد النوبي</td></tr>
+                <tr><td>3</td><td>شمس حسين رمضان أحمد</td></tr>
+                <tr><td>4</td><td>شيماء عبد المنعم السابح علي</td></tr>
+                <tr><td>5</td><td>صفاء فراج محمد النجار</td></tr>
+                <tr><td>6</td><td>ضحى بدوي حسن محمود</td></tr>
+                <tr><td>7</td><td>ضحى حسين زكي محمد</td></tr>
+                <tr><td>8</td><td>فاطمة أحمد حسان أحمد</td></tr>
+                <tr><td>9</td><td>فاطمة شعبان محمد السيد</td></tr>
+                <tr><td>10</td><td>فاطمة مرتضى عبد القادر</td></tr>
+                <tr><td>11</td><td>فرحة سالم إبراهيم سالم</td></tr>
+                <tr><td>12</td><td>لمياء أحمد محمد عبد الراضي</td></tr>
+                <tr><td>13</td><td>مرفات مصطفى علي يوسف</td></tr>
+                <tr><td>14</td><td>مروة أحمد حامد قناوي</td></tr>
+                <tr><td>15</td><td>مروة حسن أحمد فرشوطي</td></tr>
+                <tr><td>16</td><td>مروة خالد محمد البسطاوي</td></tr>
+                <tr><td>17</td><td>مريم عبدالرحمن محمد إبراهيم</td></tr>
+                <tr><td>18</td><td>مريم محمد عبد المحسن محمود</td></tr>
+                <tr><td>19</td><td>مريم محمود عبد الحفيظ أحمد</td></tr>
+                <tr><td>20</td><td>ملك محمد قرقار محمد</td></tr>
+                <tr><td>21</td><td>منه منصور أبو الحجاج السيد</td></tr>
+                <tr><td>22</td><td>ميرهان محمود محمد زكي</td></tr>
+                <tr><td>23</td><td>نوال عصام أحمد محمد</td></tr>
+                <tr><td>24</td><td>نورهان رفاعي عبد الحميد توفيق</td></tr>
+                <tr><td>25</td><td>هاجر حجاج سيد النوبي</td></tr>
+                <tr><td>26</td><td>هاجر قرني خيري عرفات</td></tr>
+                <tr><td>27</td><td>هند خليفة محمود علي</td></tr>
+                <tr><td>28</td><td>ياسمين أحمد يوسف عثمان</td></tr>
+                <tr><td>29</td><td>ياسمين رجب عياد مرعزي</td></tr>
+                <tr><td>30</td><td>ياسمين منصور عبيد أحمد</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="class-card">
+    <h3>فصل 1/1</h3>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>م</th>
+                    <th>اسم الطالب</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>محمد أحمد محمد أبوالمجد</td></tr>
+                <tr><td>2</td><td>أسامة محمد فكري حسين</td></tr>
+                <tr><td>3</td><td>ذياد محمد خيري الراوي</td></tr>
+                <tr><td>4</td><td>محمد أحمد محمد أحمد</td></tr>
+                <tr><td>5</td><td>عبد الله محمد جمعة حسين ملك</td></tr>
+                <tr><td>6</td><td>عبد الرحمن حسن أحمد حسن</td></tr>
+                <tr><td>7</td><td>أحمد سعدي عباس عبد الراضي</td></tr>
+                <tr><td>8</td><td>أحمد حسن جلال إسماعيل</td></tr>
+                <tr><td>9</td><td>حمزة إدريس محمد قاسم</td></tr>
+                <tr><td>10</td><td>عبدالرحمن طارق حمدان الضوي</td></tr>
+                <tr><td>11</td><td>دليا عبد السلام بدري محمد</td></tr>
+                <tr><td>12</td><td>سارة عامر عبدالراضي صديق</td></tr>
+                <tr><td>13</td><td>شاهندا صابر سيد سعدي أحمد</td></tr>
+                <tr><td>14</td><td>فاطمة خيري عبدالله محمد</td></tr>
+                <tr><td>15</td><td>ملك تيسير محمد الزاهر</td></tr>
+                <tr><td>16</td><td>رضوى محمد فتحي عبدالحميد</td></tr>
+                <tr><td>17</td><td>نوران أحمد رشدي قناوي</td></tr>
+                <tr><td>18</td><td>هاجر عبد النعيم رمضان بشاري</td></tr>
+                <tr><td>19</td><td>زينب محمد عبد الدايم محمد</td></tr>
+                <tr><td>20</td><td>ملك محمد أحمد محمد</td></tr>
+                <tr><td>21</td><td>آية سعد الله عبد الله علي</td></tr>
+                <tr><td>22</td><td>منة أحمد عبد الفتاح أحمد</td></tr>
+                <tr><td>23</td><td>زمزم مصطفى فؤاد محمود</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+       <!-- قسم إنشاء الاختبارات الإلكترونية -->
+<section class="exams-section">
+    <h2>إنشاء اختبار إلكتروني</h2>
+    <div class="exam-form-container">
+        <div class="input-group">
+            <label for="exam-name">اسم الاختبار <span class="required">*</span></label>
+            <input type="text" id="exam-name" placeholder="أدخل اسم الاختبار" required>
+        </div>
+        <div class="input-group">
+            <label for="exam-code">كود الاختبار <span class="required">*</span></label>
+            <input type="text" id="exam-code" placeholder="أدخل كود الاختبار (مثل EXAM123)" required>
+            <span id="code-availability" style="display: none;"></span>
+        </div>
+        <div class="input-group">
+            <label for="exam-stage">المرحلة</label>
+            <select id="exam-stage">
+                <option value="first">الأولى ثانوي</option>
+                <option value="second">الثانية ثانوي</option>
+            </select>
+        </div>
+        <div class="input-group">
+    <label for="exam-duration">مدة الاختبار (بالدقائق) <span class="required">*</span></label>
+    <input type="number" id="exam-duration" min="1" placeholder="أدخل مدة الاختبار (مثال: 30)" required>
+</div>
+        <div class="question-form">
+            <h3>إضافة سؤال</h3>
+            <div class="input-group">
+                <label for="question-type">نوع السؤال</label>
+                <select id="question-type">
+                    <option value="multiple">اختياري</option>
+                    <option value="essay">مقالي</option>
+                    <option value="list">قائمة</option>
+                    <option value="truefalse">صح/خطأ</option>
+                </select>
+            </div>
+            <div id="question-inputs"></div>
+            <button id="add-question" class="submit-btn">إضافة السؤال</button>
+        </div>
+        <div id="questions-list"></div>
+        <button id="save-exam" class="submit-btn">حفظ الاختبار</button>
+    </div>
+</section>
+        <div class="test-results-section">
+    <h2>نتائج الاختبارات</h2>
+    <div class="input-group">
+        <label for="results-exam-code">كود الاختبار</label>
+        <input type="text" id="results-exam-code" placeholder="أدخل كود الاختبار">
+    </div>
+    <button id="fetch-results" class="submit-btn">عرض النتائج</button>
+    <div id="exam-results-list" class="test-results-table"></div>
+</div>
+        <!-- إضافة هذا القسم بعد <div id="stats-section" class="stats-section"></div> -->
+<div class="notifications-section">
+    <h2>إدارة الإشعارات</h2>
+    <div class="input-group">
+        <label for="notification-text">نص الإشعار</label>
+        <textarea id="notification-text" rows="4" placeholder="أدخل نص الإشعار"></textarea>
+    </div>
+    <button class="submit-btn" onclick="addNotification()">إضافة إشعار</button>
+    <div id="notifications-list" class="notifications-list">
+        <h3>قائمة الإشعارات</h3>
+        <div id="notifications-table" class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>نص الإشعار</th>
+                        <th>تاريخ الإضافة</th>
+                        <th>إجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="notifications-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
     </div>
 
-    <!-- 10. إدارة الإشعارات -->
-    <div class="notifications-section">
-        <h2>إدارة الإشعارات</h2>
-        <!-- ... باقي الكود ... -->
-    </div>
+    <nav class="nav-bar" id="nav-bar"></nav>
 
-</div> <!-- نهاية admin-container -->
+    <button class="scroll-btn scroll-up" onclick="scrollToTop()"><i class="fas fa-arrow-up"></i></button>
+    <button class="scroll-btn scroll-down" onclick="scrollToBottom()"><i class="fas fa-arrow-down"></i></button>
 
-<!-- أزرار التمرير -->
-<button class="scroll-btn scroll-up" onclick="scrollToTop()"><i class="fas fa-arrow-up"></i></button>
-<button class="scroll-btn scroll-down" onclick="scrollToBottom()"><i class="fas fa-arrow-down"></i></button>
 
-<!-- Scripts -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="admin.js"></script>
-<script src="auth.js"></script>
 
+    <script src="crypto-js.js"></script>
+    <script src="dataManager.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin.js"></script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947cc960f9459a73',t:'MTc0ODU5Mjk1Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </body>
 </html>
