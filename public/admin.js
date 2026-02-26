@@ -111,6 +111,107 @@ document.addEventListener('DOMContentLoaded', function() {
         renderViolations();
     }
 
+    let years = [];
+
+async function loadYears() {
+    years = await getFromServer('/api/years');
+    renderYears();
+}
+
+function renderYears() {
+    const tableBody = document.getElementById('years-table-body');
+    if (tableBody) {
+        tableBody.innerHTML = '';
+        years.forEach(y => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${y.name}</td>
+                <td>\( {y.subjects.map(s => ` \){s.name} (${s.semester}, max: ${s.maxGrade})`).join('<br>')}</td>
+                <td>
+                    <button class="delete-btn" onclick="deleteYear('${y.name}')"><i class="fas fa-trash"></i></button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+}
+
+window.addSubjectField = function() {
+    const container = document.getElementById('subjects-container');
+    const div = document.createElement('div');
+    div.className = 'input-group';
+    div.innerHTML = `
+        <label>اسم المادة</label>
+        <input type="text" class="subject-name" required>
+        <label>الترم</label>
+        <select class="subject-semester">
+            <option value="first_only">الترم الأول فقط</option>
+            <option value="second_only">الترم الثاني فقط</option>
+            <option value="both">الاثنين معًا</option>
+        </select>
+        <label>الدرجة النهائية</label>
+        <input type="number" class="subject-max" min="1" required>
+        <button type="button" onclick="this.parentNode.remove()">حذف</button>
+    `;
+    container.appendChild(div);
+};
+
+document.getElementById('add-year-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const name = document.getElementById('year-name').value.trim();
+    const subjects = Array.from(document.querySelectorAll('#subjects-container .input-group')).map(group => ({
+        name: group.querySelector('.subject-name').value.trim(),
+        semester: group.querySelector('.subject-semester').value,
+        maxGrade: parseInt(group.querySelector('.subject-max').value) || 100
+    }));
+
+    if (!name || subjects.length === 0) {
+        showToast('يرجى إدخال الاسم ومادة واحدة على الأقل!', 'error');
+        return;
+    }
+
+    const response = await saveToServer('/api/years', { name, subjects });
+    if (response) {
+        await loadYears();
+        showToast('تم إضافة السنة بنجاح!', 'success');
+        this.reset();
+        document.getElementById('subjects-container').innerHTML = '';
+    }
+});
+
+window.deleteYear = async function(name) {
+    if (confirm('هل أنت متأكد؟')) {
+        const response = await saveToServer(`/api/years/${name}`, {}, 'DELETE');
+        if (response) {
+            await loadYears();
+            showToast('تم حذف السنة', 'success');
+        }
+    }
+};
+
+// لإضافة نتيجة: جيب المواد من السنة المختارة
+document.getElementById('student-year').addEventListener('change', async function() {
+    const year = this.value;
+    const dynamic = document.getElementById('dynamic-subjects');
+    dynamic.innerHTML = '';
+    const selectedYear = years.find(y => y.name === year);
+    if (selectedYear) {
+        selectedYear.subjects.forEach(s => {
+            if (s.semester === 'both' || s.semester === document.getElementById('semester').value + '_only') {
+                dynamic.innerHTML += `
+                    <div class="input-group">
+                        <label>${s.name} (من ${s.maxGrade})</label>
+                        <input type="number" class="subject" data-name="\( {s.name}" min="0" max=" \){s.maxGrade}">
+                    </div>
+                `;
+            }
+        });
+    }
+});
+
+// تعديل renderResults ليكون ديناميكي
+// (انسخ الكود اللي في الرد السابق)
+    
     function renderAdmins() {
         const tableBody = document.getElementById('users-table-body');
         if (tableBody) {
