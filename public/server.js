@@ -841,46 +841,100 @@ app.post('/api/nour', async (req, res) => {
     }
 });
 
-
-// ====================== تحليل نتايج الاختبارات الشهرية ======================
-
+// ====================== رفع وتحليل نتايج الاختبارات الشهرية ======================
 app.post('/api/analyze-monthly', async (req, res) => {
     try {
-        // هنا هنستخدم pdf-parse أو OCR للصور (مثال بسيط بـ pdf-parse)
-        const file = req.files?.file; // لو بتستخدم multer
-        // أو لو بتستخدم base64 زي قبل كده
+        const { month } = req.body;  // اسم الشهر من الحقل في الـ form
+        const file = req.files?.file; // افتراض أنك بتستخدم multer أو express-fileupload
 
-        // مثال بسيط (هتعدله حسب طريقتك في رفع الملفات)
-        const text = "اسم الطالب: أحمد محمد\nالمادة: تمريض باطني\nالدرجة: 85\nكود الطالب: 12345";
+        if (!file) {
+            return res.status(400).json({ success: false, message: 'لم يتم رفع ملف' });
+        }
 
-        // تحليل النص (يمكنك تحسينه بـ regex أفضل)
-        const lines = text.split('\n');
+        if (!month || month.trim() === '') {
+            return res.status(400).json({ success: false, message: 'اسم الشهر مطلوب' });
+        }
+
+        let text = '';
+
+        // 1. لو PDF
+        if (file.mimetype === 'application/pdf') {
+            const pdfData = await pdfParse(file.data);
+            text = pdfData.text;
+        }
+        // 2. لو صورة → حاليًا مش مدعوم OCR، لكن ممكن نضيفه لاحقًا بـ tesseract أو api خارجية
+        else if (file.mimetype.startsWith('image/')) {
+            return res.status(400).json({
+                success: false,
+                message: 'حاليًا يدعم الملفات PDF فقط. جاري إضافة دعم الصور قريبًا'
+            });
+        } else {
+            return res.status(400).json({ success: false, message: 'نوع الملف غير مدعوم' });
+        }
+
+        // 3. تحليل النص (بناءً على التنسيق اللي في الصورتين)
+        const lines = text.split('\n')
+            .map(l => l.trim())
+            .filter(l => l.length > 0);
+
         const results = [];
-
         let current = {};
-        for (const line of lines) {
-            if (line.includes('اسم الطالب')) current.studentName = line.split(':')[1]?.trim();
-            if (line.includes('المادة')) current.subject = line.split(':')[1]?.trim();
-            if (line.includes('الدرجة')) current.grade = parseInt(line.split(':')[1]);
-            if (line.includes('كود الطالب')) {
-                current.studentCode = line.split(':')[1]?.trim();
-                current.date = new Date().toLocaleDateString('ar-EG');
 
-                if (current.studentName && current.subject && current.grade && current.studentCode) {
-                    results.push(current);
-                    current = {};
+        for (const line of lines) {
+            // اسم الطالب
+            if (line.match(/اسم الطالب|الطالب|اسم:/i)) {
+                current.studentName = line.split(/[:،-]/)[1]?.trim() || '';
+            }
+            // اسم المادة
+            else if (line.match(/المادة|مادة:/i)) {
+                current.subject = line.split(/[:،-]/)[1]?.trim() || '';
+            }
+            // الدرجة
+            else if (line.match(/درجة|الدرجة|mark|grade|نتيجة/i) || line.match(/^\d+$/)) {
+                const gradeStr = line.replace(/[^0-9]/g, '');
+                current.grade = parseInt(gradeStr) || 0;
+            }
+            // كود الطالب (أي رقم طويل أو يحتوي على كلمة كود)
+            else if (line.match(/كود|Code|رقم/i) || line.match(/\d{4,}/)) {
+                const code = line.replace(/[^0-9]/g, '');
+                if (code.length >= 4) {
+                    current.studentCode = code;
+
+                    // حفظ النتيجة لو كل البيانات موجودة
+                    if (current.studentName && current.subject && current.grade && current.studentCode) {
+                        const resultData = {
+                            ...current,
+                            month: month.trim()  // اسم الشهر من الحقل اللي كتبه الأدمن
+                        };
+
+                        // حفظ في قاعدة البيانات
+                        await MonthlyResult.create(resultData);
+
+                        results.push(resultData);
+                        current = {}; // إعادة تهيئة للطالب التالي
+                    }
                 }
             }
         }
 
-        // حفظ في قاعدة البيانات (نموذج جديد)
-        // MonthlyResult.create(results);   ← أضف النموذج ده بعدين
+        if (results.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'لم يتم العثور على بيانات صالحة في الملف'
+            });
+        }
 
-        res.json({ success: true, count: results.length, results });
-
+        res.json({
+            success: true,
+            count: results.length,
+            results
+        });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ success: false, message: 'خطأ في تحليل الملف' });
+        console.error('خطأ في تحليل النتيجة الشهرية:', error);
+        res.status(500).json({
+            success: false,
+            message: 'حدث خطأ أثناء معالجة الملف'
+        });
     }
 });
 
