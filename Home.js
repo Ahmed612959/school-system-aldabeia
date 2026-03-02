@@ -57,6 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { href: 'index.html', icon: 'fas fa-home', title: 'الرئيسية' },
             { href: 'Home.html', icon: 'fas fa-chart-line', title: 'النتائج' },
             { href: 'profile.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
+        { href: 'search-monthly.html', icon: 'fas fa-user', title: 'الملف الشخصي' },
             { href: 'exams.html', icon: 'fas fa-book', title: 'الاختبارات' }
             
         ];
