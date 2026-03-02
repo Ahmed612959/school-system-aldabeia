@@ -52,6 +52,44 @@ const studentSchema = new mongoose.Schema({
     }
 });
 
+// نموذج نتايج الاختبارات الشهرية
+const monthlyResultSchema = new mongoose.Schema({
+    studentName: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    studentCode: {
+        type: String,
+        required: true,
+        trim: true,
+        index: true   // عشان البحث يبقى أسرع
+    },
+    subject: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    grade: {
+        type: Number,
+        required: true,
+        min: 0
+    },
+    month: {
+        type: String,
+        required: true,
+        trim: true
+        // مثال: "يناير 2025" أو "شهر 1 - 2025"
+    },
+    uploadDate: {
+        type: Date,
+        default: Date.now
+    }
+}, { timestamps: true });
+
+const MonthlyResult = mongoose.model('MonthlyResult', monthlyResultSchema);
+
+
 // نموذج السنة الدراسية
 const yearSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true }, // مثل 'first' أو 'second'
