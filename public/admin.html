@@ -73,17 +73,24 @@
     <div id="results-display" class="results-table"></div>
 </div>
 
-<!-- ====================== نتايج الاختبارات الشهرية ====================== -->
-<h2>نتايج الاختبارات الشهرية</h2>
-<div class="monthly-results-section">
-    <h3>رفع نتيجة شهرية (PDF أو صورة)</h3>
-    <p>ارفع ملف يحتوي على: اسم الطالب + اسم المادة + الدرجة + كود الطالب</p>
-    
-    <input type="file" id="monthly-upload" accept=".pdf,image/*">
-    <button id="analyze-monthly" class="submit-btn">تحليل وإضافة النتايج</button>
-    
-    <div id="monthly-results-display" class="results-table"></div>
-</div>
+ <!-- 3. رفع نتايج شهرية (الجديد المطور) -->
+    <h2>نتايج الاختبارات الشهرية</h2>
+    <div class="monthly-results-section">
+        <h3>رفع نتيجة شهرية (PDF أو صورة)</h3>
+        <p>ارفع الملف اللي فيه نتايج الاختبار الشهري</p>
+        
+        <input type="file" id="monthly-upload" accept=".pdf,image/*">
+        
+        <!-- الحقل الجديد: اسم الشهر -->
+        <div class="input-group">
+            <label for="monthly-month">اسم الشهر (مثال: يناير 2025)</label>
+            <input type="text" id="monthly-month" placeholder="يناير 2025" required>
+        </div>
+        
+        <button id="analyze-monthly" class="submit-btn">تحليل وإضافة النتايج</button>
+        
+        <div id="monthly-results-display" class="results-table"></div>
+    </div>
 
 
         <h2>إضافة نتيجة طالب يدويًا</h2>
