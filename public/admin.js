@@ -947,15 +947,20 @@ window.logout = function () {
 };
 
 
-// ====================== نتايج الاختبارات الشهرية ======================
+// ====================== نتايج الاختبارات الشهرية (النسخة المطورة) ======================
 
-// رفع وتحليل الملف الشهري
 document.getElementById('analyze-monthly')?.addEventListener('click', async () => {
     const fileInput = document.getElementById('monthly-upload');
+    const monthInput = document.getElementById('monthly-month').value.trim();
+
     const file = fileInput.files[0];
-    
+
     if (!file) {
         showToast('يرجى اختيار ملف PDF أو صورة أولاً!', 'error');
+        return;
+    }
+    if (!monthInput) {
+        showToast('يرجى إدخال اسم الشهر!', 'error');
         return;
     }
 
@@ -963,6 +968,7 @@ document.getElementById('analyze-monthly')?.addEventListener('click', async () =
 
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('month', monthInput);
 
     try {
         const response = await fetch('/api/analyze-monthly', {
@@ -973,7 +979,7 @@ document.getElementById('analyze-monthly')?.addEventListener('click', async () =
         const result = await response.json();
 
         if (result.success) {
-            showToast(`تم إضافة ${result.count} نتيجة شهرية بنجاح!`, 'success');
+            showToast(`تم تحليل وإضافة ${result.count} نتيجة شهرية بنجاح!`, 'success');
             renderMonthlyResults(result.results);
         } else {
             showToast(result.message || 'فشل التحليل', 'error');
@@ -994,7 +1000,7 @@ function renderMonthlyResults(results) {
                     <th>المادة</th>
                     <th>الدرجة</th>
                     <th>كود الطالب</th>
-                    <th>التاريخ</th>
+                    <th>الشهر</th>
                 </tr>
             </thead>
             <tbody>
@@ -1004,14 +1010,13 @@ function renderMonthlyResults(results) {
                         <td>${r.subject}</td>
                         <td>${r.grade}</td>
                         <td><strong>${r.studentCode}</strong></td>
-                        <td>${r.date}</td>
+                        <td>${r.month}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
     `;
 }
-
 
 
 // استدعاء دالة إنشاء الواجهة عند التحميل
