@@ -803,6 +803,49 @@ app.post('/api/nour', async (req, res) => {
     }
 });
 
+
+// ====================== تحليل نتايج الاختبارات الشهرية ======================
+
+app.post('/api/analyze-monthly', async (req, res) => {
+    try {
+        // هنا هنستخدم pdf-parse أو OCR للصور (مثال بسيط بـ pdf-parse)
+        const file = req.files?.file; // لو بتستخدم multer
+        // أو لو بتستخدم base64 زي قبل كده
+
+        // مثال بسيط (هتعدله حسب طريقتك في رفع الملفات)
+        const text = "اسم الطالب: أحمد محمد\nالمادة: تمريض باطني\nالدرجة: 85\nكود الطالب: 12345";
+
+        // تحليل النص (يمكنك تحسينه بـ regex أفضل)
+        const lines = text.split('\n');
+        const results = [];
+
+        let current = {};
+        for (const line of lines) {
+            if (line.includes('اسم الطالب')) current.studentName = line.split(':')[1]?.trim();
+            if (line.includes('المادة')) current.subject = line.split(':')[1]?.trim();
+            if (line.includes('الدرجة')) current.grade = parseInt(line.split(':')[1]);
+            if (line.includes('كود الطالب')) {
+                current.studentCode = line.split(':')[1]?.trim();
+                current.date = new Date().toLocaleDateString('ar-EG');
+
+                if (current.studentName && current.subject && current.grade && current.studentCode) {
+                    results.push(current);
+                    current = {};
+                }
+            }
+        }
+
+        // حفظ في قاعدة البيانات (نموذج جديد)
+        // MonthlyResult.create(results);   ← أضف النموذج ده بعدين
+
+        res.json({ success: true, count: results.length, results });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'خطأ في تحليل الملف' });
+    }
+});
+
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
 
