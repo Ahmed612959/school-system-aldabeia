@@ -947,7 +947,70 @@ window.logout = function () {
 };
 
 
+// ====================== نتايج الاختبارات الشهرية ======================
 
+// رفع وتحليل الملف الشهري
+document.getElementById('analyze-monthly')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('monthly-upload');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        showToast('يرجى اختيار ملف PDF أو صورة أولاً!', 'error');
+        return;
+    }
+
+    showToast('جاري تحليل الملف...', 'info');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch('/api/analyze-monthly', {
+            method: 'POST',
+            body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showToast(`تم إضافة ${result.count} نتيجة شهرية بنجاح!`, 'success');
+            renderMonthlyResults(result.results);
+        } else {
+            showToast(result.message || 'فشل التحليل', 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('حدث خطأ أثناء التحليل', 'error');
+    }
+});
+
+function renderMonthlyResults(results) {
+    const container = document.getElementById('monthly-results-display');
+    container.innerHTML = `
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>اسم الطالب</th>
+                    <th>المادة</th>
+                    <th>الدرجة</th>
+                    <th>كود الطالب</th>
+                    <th>التاريخ</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${results.map(r => `
+                    <tr>
+                        <td>${r.studentName}</td>
+                        <td>${r.subject}</td>
+                        <td>${r.grade}</td>
+                        <td><strong>${r.studentCode}</strong></td>
+                        <td>${r.date}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
 
 
 
