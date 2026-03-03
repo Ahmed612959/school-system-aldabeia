@@ -114,7 +114,7 @@
     </div>
 </div>
 
-<nav class="nav"></nav>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -188,14 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }).showToast();
     });
 
-    // الناف بار ديناميكي
-    const navItems = [
-        { href: 'index.html', icon: 'fa-solid fa-house' },
-        { href: 'Home.html', icon: 'fa-solid fa-chart-line' },
-        { href: 'profile.html', icon: 'fa-solid fa-user', active: true },
-        { href: 'exams.html', icon: 'fa-solid fa-book-open' },
-        { href: 'leaderboard.html', icon: 'fa-solid fa-trophy' }
-    ];
+    
 
     if (loggedInUser.type === 'admin') {
         navItems.push({ href: 'admin.html', icon: 'fa-solid fa-cogs' });
