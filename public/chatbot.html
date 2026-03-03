@@ -1,309 +1,379 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نور 2.0 - مساعدك الذكي | معهد رعاية الضبعية</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>مساعد ذكي - معهد رعاية الضبعية</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"/>
 
-    <style>
-        :root {
-            --gold: #d4af37;
-            --gold-dark: #b8860b;
-            --dark: #121212;
-            --light: #f8f9fa;
-            --gray: #2d2d2d;
-            --text: #e0e0e0;
-        }
-        body { margin:0; height:100vh; background:#0d0d0d; font-family:'Cairo',sans-serif; overflow:hidden; }
-        body.light { background:#f5f5f5; }
+  <style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
 
-        .container { height:100vh; max-width:700px; margin:auto; display:flex; flex-direction:column; background:#111; border-radius:0; box-shadow:0 0 30px rgba(212,175,55,0.3); }
+    header {
+      background: #111;
+      padding: clamp(1rem, 3vw, 1.6rem);
+      text-align: center;
+      border-bottom: 4px solid #d4af37;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
 
-        header {
-            background: linear-gradient(135deg, #000, var(--gold-dark));
-            padding:20px 15px;
-            text-align:center;
-            color:white;
-            border-bottom: none;
-            position:relative;
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-        }
-        .logo { width:90px; height:90px; border-radius:50%; border:5px solid var(--gold); box-shadow:0 0 20px rgba(212,175,55,0.6); }
-        header h1 { margin:12px 0 6px; font-size:1.7rem; font-weight:800; }
-        header p { font-size:1rem; opacity:0.9; }
-        .status { margin-top:8px; font-size:0.95rem; }
-        .status i { color:#4ade80; }
+    .logo-circle {
+      width: clamp(90px, 22vw, 160px);
+      height: clamp(90px, 22vw, 160px);
+      margin: 0 auto 0.8rem;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #d4af37;
+      box-shadow: 0 0 20px rgba(212,175,55,0.35);
+    }
 
-        #modeToggle, #clearChat {
-            position:absolute; top:22px; font-size:1.6rem; cursor:pointer; transition:.3s;
-        }
-        #modeToggle { left:20px; color:#fff; }
-        #clearChat { right:20px; color:#ff6b6b; }
+    .logo-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
-        .chat-area {
-            flex:1;
-            overflow-y:auto;
-            padding:20px 15px 120px;
-            background: linear-gradient(to bottom, #111 0%, #1a1a1a 100%);
-        }
-        body.light .chat-area { background:#fff; }
+    header h1 {
+      color: #d4af37;
+      font-size: clamp(1.4rem, 4.5vw, 1.9rem);
+      font-weight: 700;
+    }
 
-        .message {
-            display:flex; margin-bottom:15px 0; animation:slideUp 0.5s ease;
-            max-width:85%;
-        }
-        .message.user { margin-left:auto; flex-direction:row-reverse; }
-        .message.bot { margin-right:auto; }
+    #chat-container {
+      flex: 1;
+      max-width: 980px;
+      margin: clamp(1rem, 3vw, 2rem) auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #111;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #333;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.7);
+    }
 
-        .avatar {
-            width:48px; height:48px; border-radius:50%; overflow:hidden; flex-shrink:0;
-            border:3px solid var(--gold);
-            box-shadow:0 4px 15px rgba(0,0,0,0.4);
-        }
-        .avatar img { width:100%; height:100%; object-fit:cover; }
+    #messages {
+      flex: 1;
+      padding: clamp(1rem, 3vw, 1.6rem);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
 
-        .bubble {
-            background:var(--gold); color:white; padding:14px 18px; border-radius:22px;
-            margin:0 12px; max-width:100%; word-wrap:break-word; font-size:1.02rem; line-height:1.6;
-            box-shadow:0 4px 12px rgba(0,0,0,0.3);
-            position:relative;
-        }
-        .message.user .bubble { background:var(--gold); border-bottom-right-radius:6px; }
-        .message.bot .bubble { background:#2d2d2d; color:#e0e0e0; border-bottom-left-radius:6px; }
+    .msg {
+      max-width: 82%;
+      padding: 1rem 1.3rem;
+      border-radius: 18px;
+      line-height: 1.55;
+      position: relative;
+      font-size: 1.05rem;
+    }
 
-        .time {
-            font-size:0.8rem; opacity:0.7; margin-top:6px; text-align:left;
-        }
+    .user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #d4af37, #b8972e);
+      color: #0f0f0f;
+      border-bottom-right-radius: 5px;
+    }
 
-        .typing {
-            display:flex; align-items:center; gap:8px; padding:14px 18px;
-            background:#2d2d2d; border-radius:22px; margin:15px 12px;
-            color:#aaa; font-style:italic;
-        }
-        .typing-dots span {
-            display:inline-block; width:10px; height:10px; background:var(--gold);
-            border-radius:50%; animation:blink 1.4s infinite both;
-        }
-        .typing-dots span:nth-child(2) { animation-delay:0.2s; }
-        .typing-dots span:nth-child(3) { animation-delay:0.4s; }
-        @keyframes blink { 0%,100% {opacity:0.4} 50% {opacity:1} }
+    .bot {
+      align-self: flex-start;
+      background: #1e1e1e;
+      border: 1px solid #444;
+      border-bottom-left-radius: 5px;
+    }
 
-        .input-area {
-            position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-            width:100%; max-width:700px; padding:15px; background:#111;
-            border-top:1px solid #333; display:flex; gap:12px; z-index:10;
-        }
-        body.light .input-area { background:#fff; border-top-color:#ddd; }
+    .msg .time {
+      font-size: 0.78rem;
+      opacity: 0.75;
+      margin-top: 0.5rem;
+      display: block;
+      text-align: left;
+    }
 
-        #messageInput {
-            flex:1; padding:16px 22px; border-radius:30px; border:none;
-            background:#222; color:white; font-size:1.1rem; outline:none;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
-        }
-        body.light #messageInput { background:#f1f1f1; color:#000; }
+    #input-area {
+      padding: 1rem;
+      background: #141414;
+      border-top: 1px solid #333;
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+    }
 
-        .send-btn, .voice-btn {
-            width:56px; height:56px; border-radius:50%; border:none; cursor:pointer;
-            display:flex; align-items:center; justify-content:center; font-size:1.5rem; transition:.3s;
-        }
-        .send-btn { background:var(--gold); color:white; box-shadow:0 6px 20px rgba(212,175,55,0.5); }
-        .voice-btn { background:#333; color:#fff; }
+    #message-input {
+      flex: 1;
+      padding: 0.9rem 1.2rem;
+      font-size: 1.05rem;
+      background: #1e1e1e;
+      color: #f0f0f0;
+      border: 1px solid #444;
+      border-radius: 12px;
+      outline: none;
+      resize: none;
+      min-height: 48px;
+      max-height: 140px;
+      line-height: 1.5;
+    }
 
-        .quick-replies {
-            display:flex; flex-wrap:wrap; gap:10px; padding:12px 15px; background:#111;
-            border-bottom:1px solid #333;
-        }
-        body.light .quick-replies { background:#fff; }
-        .quick-replies button {
-            padding:10px 18px; background:#222; color:#ccc; border:none; border-radius:25px;
-            font-size:0.95rem; cursor:pointer; transition:.3s;
-        }
-        body.light .quick-replies button { background:#eee; color:#333; }
-        .quick-replies button:hover { background:var(--gold); color:white; }
+    #send-btn {
+      width: 52px;
+      height: 52px;
+      background: #d4af37;
+      color: #0f0f0f;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.35rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:none; } }
-    </style>
+    #send-btn:hover { background: #b8972e; transform: scale(1.08); }
+
+    .typing {
+      align-self: flex-start;
+      background: #222;
+      padding: 0.9rem 1.4rem;
+      border-radius: 18px;
+      max-width: 60%;
+      font-style: italic;
+      color: #aaa;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .typing i { animation: spin 1.4s linear infinite; }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .clear-btn {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: #333;
+      color: #d4af37;
+      border: 1px solid #555;
+      padding: 0.6rem 1rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      z-index: 10;
+    }
+
+    .clear-btn:hover { background: #444; }
+
+    .footer {
+      text-align: center;
+      padding: 1.2rem;
+      color: #777;
+      font-size: 0.92rem;
+      border-top: 1px solid #222;
+    }
+
+    .footer span { color: #d4af37; font-weight: 600; }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.4rem; }
+      .container { margin: 1rem; padding: 1.2rem; }
+      #input-area { padding: 0.8rem; }
+      .msg { max-width: 90%; font-size: 1rem; }
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <i id="modeToggle" class="fa-solid fa-sun"></i>
-        <i id="clearChat" class="fa-solid fa-trash-can"></i>
-        <img src="logo.png" alt="شعار المعهد" class="logo">
-        <h1>نور 2.0</h1>
-        <p>مساعدك الذكي في معهد رعاية الضبعية</p>
-        <div class="status"><i class="fa-solid fa-circle"></i> متصل الآن · ذكاء اصطناعي متقدم</div>
-    </header>
+<header>
+  <div class="logo-circle">
+    <img src="logo.png" alt="شعار معهد رعاية الضبعية">
+  </div>
+  <h1>مساعد ذكي - معهد رعاية الضبعية</h1>
+</header>
 
-    <div class="quick-replies">
-        <button>إيه نتيجة الترم؟</button>
-        <button>جدول الامتحانات</button>
-        <button>شرح الـ Shock بسرعة</button>
-        <button>إزاي أحقن إبرة عضل؟</button>
-        <button>نصايح للمذاكرة</button>
-        <button>كلمني عن الباثوفسيولوجي</button>
-    </div>
+<div id="chat-container">
+  <button class="clear-btn" onclick="clearChat()">مسح المحادثة</button>
 
-    <div id="chat" class="chat-area"></div>
+  <div id="messages">
+    <!-- الرسائل هنا -->
+  </div>
 
-    <div class="input-area">
-        <button class="voice-btn" id="voiceBtn"><i class="fa-solid fa-microphone"></i></button>
-        <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا يا بطل التمريض..." autocomplete="off">
-        <button class="send-btn" id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
-    </div>
+  <div id="input-area">
+    <textarea id="message-input" rows="1" placeholder="اكتب رسالتك هنا... (مثال: شرح palliative care)"></textarea>
+    <button id="send-btn"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<div class="footer">
+  Developed by <span>Ahmed Moussa</span> ♥
 </div>
 
 <script>
-    const API_URL = '/api/nour'; // هيشتغل مع Gemini من السيرفر بأمان تام
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('messageInput');
-    const sendBtn = document.getElementById('sendBtn');
-    const voiceBtn = document.getElementById('voiceBtn');
+// ────────────────────────────────────────────────
+// المتغيرات
+// ────────────────────────────────────────────────
+const messagesDiv = document.getElementById('messages');
+const input = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-btn');
 
-    const clearBtn = document.getElementById('clearChat');
-    const modeBtn = document.getElementById('modeToggle');
+// مفتاح Groq (في الواقع يجب يكون في الباك إند - هنا للاختبار فقط)
+const GROQ_API_KEY = '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';
+const MODEL = 'llama-3.1-70b-versatile';
 
-    // صوت الإرسال والاستقبال
-    const sendSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-message-pop-alert-2353.mp3');
-    const receiveSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3');
+// ────────────────────────────────────────────────
+// إضافة رسالة
+// ────────────────────────────────────────────────
+function addMessage(text, isUser = false) {
+  const msg = document.createElement('div');
+  msg.className = `msg ${isUser ? 'user' : 'bot'}`;
+  
+  const content = document.createElement('div');
+  content.innerHTML = text.replace(/\n/g, '<br>'); // دعم السطور الجديدة
+  
+  const time = document.createElement('span');
+  time.className = 'time';
+  time.textContent = new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'});
+  
+  msg.appendChild(content);
+  msg.appendChild(time);
+  
+  messagesDiv.appendChild(msg);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
 
-    // الوضع الليلي / النهاري
-    modeBtn.onclick = () => {
-        document.body.classList.toggle('light');
-        modeBtn.classList.toggle('fa-sun');
-        modeBtn.classList.toggle('fa-moon');
-    };
+  // حفظ في localStorage
+  saveChat();
+}
 
-    // مسح الشات
-    clearBtn.onclick = () => {
-        if(confirm("هتمسح كل المحادثة؟")) {
-            chat.innerHTML = welcomeMessage();
-            scrollToBottom();
-        }
-    };
-
-    function welcomeMessage() {
-        return `
-            <div class="message bot">
-                <div class="avatar"><img src="logo.png" alt="نور"></div>
-                <div class="bubble">
-                    <strong>أهلاً يا أسطورة التمريض!</strong><br><br>
-                    أنا <strong>نور 2.0</strong>، مساعدك الذكي في معهد رعاية الضبعية<br>
-                    هساعدك في كل حاجة: نتايج، مذاكرة، امتحانات، حقن، ضغط، IV، ECG، وكمان نرغي ونضحك<br>
-                    قول اللي في نفسك يا وحش... أنا سامعك
-                </div>
-            </div>`;
-    }
-
-    function addMessage(text, type) {
-        const msg = document.createElement('div');
-        msg.className = `message ${type}`;
-        msg.innerHTML = `
-            <div class="avatar">
-                <img src="${type==='user' ? 'Karton.jpeg' : 'logo.png'}" alt="">
-            </div>
-            <div class="bubble">
-                ${text.replace(/\n/g, '<br>')}
-                <div class="time">${new Date().toLocaleTimeString('ar-EG', {hour:'numeric', minute:'2-digit'})}</div>
-            </div>`;
-        chat.appendChild(msg);
-        scrollToBottom();
-        if(type==='user') sendSound.play();
-        else receiveSound.play();
-    }
-
-    function showTyping() {
-        const typing = document.createElement('div');
-        typing.className = 'message bot';
-        typing.id = 'typing';
-        typing.innerHTML = `
-            <div class="avatar"><img src="logo.png"></div>
-            <div class="typing">
-                نور بتكتب <span class="typing-dots"><span></span><span></span><span></span></span>
-            </div>`;
-        chat.appendChild(typing);
-        scrollToBottom();
-    }
-
-    function scrollToBottom() {
-        chat.scrollTop = chat.scrollHeight;
-    }
-
-    async function sendMessage() {
-        const text = input.value.trim();
-        if(!text) return;
-
-        addMessage(text, 'user');
-        input.value = '';
-        showTyping();
-
-        try {
-            const res = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: text })
-            });
-
-            document.getElementById('typing')?.remove();
-
-            if(!res.ok) throw new Error();
-
-            const data = await res.json();
-            const reply = data.reply || "ثانية... أنا هنا يا بطل!";
-            addMessage(reply, 'bot');
-
-        } catch(err) {
-            document.getElementById('typing')?.remove();
-            addMessage("النت وقع يا وحش... جرب تاني بعد شوية", 'bot');
-        }
-    }
-
-    // إرسال الرسالة
-    sendBtn.onclick = sendMessage;
-    input.addEventListener('keypress', e => {
-        if(e.key === 'Enter') sendMessage();
+// ────────────────────────────────────────────────
+// طلب Groq API
+// ────────────────────────────────────────────────
+async function getBotResponse(userText) {
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: [
+          {
+            role: 'system',
+            content: `أنت مساعد ذكي لمعهد رعاية الضبعية للتمريض.
+رد بالعربية (فصحى أو عامية مصرية حسب السؤال)، كن ودودًا ودقيقًا ومفيدًا.
+ركز على: التمريض الجراحي، الرعاية التلطيفية، Hospice care, Palliative care, Brain death, Death, Complementary therapy, وكل ما يخص الدراسة والنتائج.
+لو السؤال عن نتيجة شهرية أو نهائية، قول: "روح على صفحة نتيجة الشهري وادخل الكود بتاعك".
+لا تختلق معلومات، وإذا مش متأكد قول "مش متأكد، ممكن توضح أكتر؟"`
+          },
+          { role: 'user', content: userText.trim() }
+        ],
+        temperature: 0.75,
+        max_tokens: 1200,
+        top_p: 0.9
+      })
     });
 
-    // اقتراحات سريعة
-    document.querySelectorAll('.quick-replies button').forEach(btn => {
-        btn.onclick = () => {
-            input.value = btn.textContent;
-            sendMessage();
-        };
-    });
-
-    // الميكروفون
-    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
-        const recognition = (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'ar-EG';
-
-        voiceBtn.onclick = () => {
-            recognition.start();
-            voiceBtn.innerHTML = '<i class="fa-solid fa-stop"></i>';
-            voiceBtn.style.background = '#e74c3c';
-        };
-
-        recognition.onresult = e => {
-            input.value = e.results[0][0].transcript;
-            sendMessage();
-        };
-
-        recognition.onend = () => {
-            voiceBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>';
-            voiceBtn.style.background = '#333';
-        };
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error?.message || res.statusText);
     }
 
-    // رسالة الترحيب
-    setTimeout(() => {
-        chat.innerHTML = welcomeMessage();
-        scrollToBottom();
-    }, 800);
+    const data = await res.json();
+    let reply = data.choices?.[0]?.message?.content || 'معلش، مش قادر أرد دلوقتي...';
+
+    return reply.trim();
+  } catch (err) {
+    console.error(err);
+    return 'معلش يا بطل، فيه مشكلة في الاتصال... جرب تاني بعد شوية 😅';
+  }
+}
+
+// ────────────────────────────────────────────────
+// إرسال الرسالة
+// ────────────────────────────────────────────────
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+
+  addMessage(text, true);
+  input.value = '';
+
+  const typing = document.createElement('div');
+  typing.className = 'msg bot typing';
+  typing.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> جاري التفكير...';
+  messagesDiv.appendChild(typing);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  const reply = await getBotResponse(text);
+
+  typing.remove();
+  addMessage(reply);
+}
+
+// ────────────────────────────────────────────────
+// حفظ وتحميل الدردشة
+// ────────────────────────────────────────────────
+function saveChat() {
+  const messages = Array.from(messagesDiv.children).map(msg => ({
+    text: msg.querySelector('div')?.innerHTML || '',
+    isUser: msg.classList.contains('user')
+  }));
+  localStorage.setItem('chatHistory', JSON.stringify(messages));
+}
+
+function loadChat() {
+  const saved = localStorage.getItem('chatHistory');
+  if (saved) {
+    const history = JSON.parse(saved);
+    history.forEach(m => addMessage(m.text, m.isUser));
+  }
+}
+
+// مسح المحادثة
+function clearChat() {
+  if (confirm('هل أنت متأكد من مسح كل المحادثة؟')) {
+    messagesDiv.innerHTML = '';
+    localStorage.removeItem('chatHistory');
+  }
+}
+
+// ────────────────────────────────────────────────
+// الأحداث
+// ────────────────────────────────────────────────
+sendBtn.addEventListener('click', sendMessage);
+
+input.addEventListener('keypress', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// تكبير تلقائي لمنطقة الكتابة
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = input.scrollHeight + 'px';
+});
+
+// تحميل الدردشة القديمة عند الفتح
+window.addEventListener('load', loadChat);
 </script>
+
 </body>
 </html>
