@@ -111,6 +111,32 @@ app.get('/api/years', async (req, res) => {
     }
 });
 
+
+app.post('/api/get-first-year-result', async (req, res) => {
+  try {
+    const { studentName, seatNumber } = req.body;
+
+    if (!studentName || !seatNumber) {
+      return res.status(400).json({ success: false, message: 'الاسم ورقم الجلوس مطلوبين' });
+    }
+
+    const results = await FirstYearResult.find({
+      studentName: { $regex: new RegExp(studentName, 'i') },
+      seatNumber: seatNumber.trim()
+    });
+
+    if (results.length > 0) {
+      return res.json({ success: true, results });
+    } else {
+      return res.json({ success: false, message: 'لا توجد نتيجة مسجلة بهذا الاسم ورقم الجلوس' });
+    }
+  } catch (error) {
+    console.error('البحث خطأ:', error);
+    res.status(500).json({ success: false, message: 'خطأ في البحث' });
+  }
+});
+
+
 app.post('/api/years', async (req, res) => {
     try {
         const { name, subjects } = req.body;
@@ -940,6 +966,7 @@ app.post('/api/analyze-monthly', async (req, res) => {
 
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
 
 
 
