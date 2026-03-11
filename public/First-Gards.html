@@ -1,575 +1,146 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نتائج طلاب الصف الأول الثانوي تمريض - معهد رعاية الضبعية</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background: #0a0a0a;
-            color: #e0e0e0;
-            min-height: 100vh;
-            line-height: 1.6;
-        }
-
-        .header {
-            background: #111111;
-            padding: 1.5rem 1rem;
-            text-align: center;
-            border-bottom: 4px solid #d4af37;
-        }
-
-        .logo-circle {
-            width: clamp(120px, 25vw, 180px);
-            height: clamp(120px, 25vw, 180px);
-            margin: 0 auto 0.8rem;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 4px solid #d4af37;
-            box-shadow: 0 0 25px rgba(212, 175, 55, 0.35);
-        }
-
-        .header img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .header h1 {
-            font-size: clamp(1.6rem, 5vw, 2.2rem);
-            color: #d4af37;
-            font-weight: 700;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 3rem auto;
-            padding: clamp(1.5rem, 4vw, 3rem);
-            background: #141414;
-            border-radius: 16px;
-            border: 1px solid #3a3a3a;
-            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.08);
-        }
-
-        .search-box {
-            text-align: center;
-            margin: 3rem 0;
-        }
-
-        .search-box label {
-            font-size: clamp(1.1rem, 3.5vw, 1.35rem);
-            font-weight: 600;
-            color: #d4af37;
-            display: block;
-            margin-bottom: 1rem;
-        }
-
-        .search-box input {
-            width: 100%;
-            max-width: 500px;
-            padding: clamp(0.9rem, 2.5vw, 1.1rem) 1.3rem;
-            font-size: clamp(1rem, 3vw, 1.2rem);
-            background: #1e1e1e;
-            color: #f0f0f0;
-            border: 2px solid #444;
-            border-radius: 12px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-box input:focus {
-            border-color: #d4af37;
-            box-shadow: 0 0 0 5px rgba(212,175,55,0.15);
-        }
-
-        .search-box button {
-            margin-top: 1.5rem;
-            padding: clamp(0.9rem, 2.5vw, 1.1rem) 3rem;
-            background: #d4af37;
-            color: #0f0f0f;
-            border: none;
-            border-radius: 12px;
-            font-size: clamp(1.05rem, 3vw, 1.25rem);
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-box button:hover {
-            background: #b8972e;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(212,175,55,0.25);
-        }
-
-        #result-container {
-            margin-top: 3rem;
-            display: none;
-        }
-
-        .student-info {
-            background: #1e1e1e;
-            padding: 1.8rem;
-            border-radius: 12px;
-            margin-bottom: 2rem;
-            text-align: center;
-            font-size: clamp(1.3rem, 4vw, 1.6rem);
-            font-weight: 700;
-            color: #d4af37;
-            border: 1px solid #444;
-        }
-
-        .subject-card {
-            background: #1e1e1e;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 1.6rem;
-            margin: 1.2rem 0;
-            transition: all 0.3s ease;
-        }
-
-        .subject-card:hover {
-            transform: translateY(-5px);
-            border-color: #d4af37;
-            box-shadow: 0 10px 25px rgba(212,175,55,0.12);
-        }
-
-        .subject-title {
-            font-size: clamp(1.15rem, 3.5vw, 1.35rem);
-            font-weight: 600;
-            color: #e0e0e0;
-            margin-bottom: 0.8rem;
-        }
-
-        .grade {
-            font-size: clamp(1.4rem, 4.5vw, 1.7rem);
-            font-weight: bold;
-            color: #d4af37;
-        }
-
-        .no-result {
-            color: #ff6b6b;
-            font-size: 1.4rem;
-            text-align: center;
-            margin-top: 4rem;
-            display: none;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 4rem;
-            padding: 2rem 0;
-            color: #777;
-            font-size: 0.95rem;
-            border-top: 1px solid #333;
-        }
-
-        .footer span {
-            color: #d4af37;
-            font-weight: 600;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .container {
-                margin: 2rem 1rem;
-                padding: 2rem 1.5rem;
-            }
-
-            .header img {
-                max-width: 140px;
-            }
-
-            .search-box input {
-                max-width: 100%;
-            }
-        }
-
-        @media (max-width: 480px) {
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .search-box button {
-                width: 100%;
-                padding: 1rem;
-            }
-
-            .subject-card {
-                padding: 1.2rem;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نتيجة الصف الاول الثانوي تمريض</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Tajawal',sans-serif;background:#eef2ff;color:#222}
+.header{text-align:center;padding:30px}
+.logo{width:100px;height:100px;border-radius:50%;overflow:hidden;margin:auto;border:4px solid #4a6cf7}
+.logo img{width:100%;height:100%;object-fit:cover}
+.header h1{margin-top:10px;font-size:26px;color:#2b3dbf}
+.container{max-width:700px;margin:auto;background:white;padding:30px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.search-box{text-align:center;margin-bottom:25px}
+.search-box input{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid #ddd;font-size:15px}
+.search-box button{margin-top:10px;padding:12px 35px;border:none;background:#4a6cf7;color:white;border-radius:8px;font-size:16px;cursor:pointer}
+.subject{display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #eee}
+.subject-name{display:flex;align-items:center;gap:8px;font-weight:600}
+.grade{font-weight:bold;font-size:16px}
+.good{color:#1aa34a}
+.avg{color:#d8a300}
+.bad{color:#d12b2b}
+.total{background:#f6f7ff;padding:12px;margin-top:12px;border-radius:8px;font-weight:bold}
+.percent{margin-top:8px;font-size:20px;font-weight:bold}
+.rank{margin-top:5px;font-size:16px;font-weight:bold;color:#4a6cf7}
+.no-result{text-align:center;color:red;display:none;margin-top:15px}
+.share-btn{margin-top:12px;padding:10px 25px;background:#25D366;color:white;border:none;border-radius:8px;font-size:15px;cursor:pointer}
+.footer{text-align:center;margin-top:25px;font-size:13px;color:#777}
+</style>
 </head>
-<body>
 
+<body>
 <div class="header">
-    <img src="logo.png" alt="شعار معهد رعاية الضبعية">
-    <h1>استعلام عن نتيجة الصف الأول الثانوي تمريض</h1>
+<div class="logo"><img src="logo.png"></div>
+<h1>نتيجة الصف الاول الثانوي تمريض</h1>
 </div>
 
 <div class="container">
-    <div class="search-box">
-        <label for="student-name">أدخل اسمك الكامل</label>
-        <input type="text" id="student-name" placeholder="مثال: أحمد محمد علي" autocomplete="off">
-        
-        <label for="seat-number">أدخل رقم الجلوس</label>
-        <input type="text" id="seat-number" placeholder="مثال: 541" autocomplete="off">
-        
-        <button onclick="searchFirstYearResult()">عرض النتيجة</button>
-    </div>
-
-    <div id="loading" style="text-align: center; color: #d4af37; font-size: 1.3rem; margin: 2.5rem 0; display: none;">جاري البحث عن نتيجتك...</div>
-
-    <div id="result-container">
-        <div id="student-info" class="student-info"></div>
-        
-        <div id="subjects-list"></div>
-    </div>
-
-    <p id="no-result" class="no-result">
-        لا توجد نتيجة مسجلة بهذا الاسم ورقم الجلوس
-    </p>
+<div class="search-box">
+<input id="student-name" placeholder="الاسم">
+<input id="seat-number" placeholder="رقم الجلوس">
+<button onclick="searchResult()">عرض النتيجة</button>
 </div>
 
-<div class="footer">
-    Developed by <span>Ahmed Moussa</span> ♥
+<div id="result-container" style="display:none">
+<div class="student-header" id="student-info"></div>
+<div id="subjects-list"></div>
+<div class="total" id="total"></div>
+<div class="percent" id="percent"></div>
+<div class="rank" id="rank"></div>
+<button class="share-btn" id="share-btn" onclick="shareWhatsApp()">مشاركة على واتساب</button>
 </div>
+
+<p id="no-result" class="no-result">لا توجد نتيجة مطابقة</p>
+</div>
+
+<div class="footer">Developed by Ahmed Moussa ❤️</div>
 
 <script>
-
-const localResults = [
-
-{seat:"523",name:"احمد حسن جلال اسماعيل",subjects:{
-"اللغة العربية":"18.5 / 20",
-"اللغة الإنجليزية":"9 / 20",
-"العلوم التطبيقية":"35 / 40",
-"التشريح ووظائف الأعضاء":"13.5 / 20",
-"مبادئ التمريض":"5.5 / 12",
-"الحاسب الآلي":"11.5 / 12",
-"التربية الدينية":"14 / 16"},
-total:"107 / 140",percent:"76.4%"},
-
-{seat:"524",name:"احمد سعدي عباس عبد الراضي",subjects:{
-"اللغة العربية":"18 / 20",
-"اللغة الإنجليزية":"18 / 20",
-"العلوم التطبيقية":"29.5 / 40",
-"التشريح ووظائف الأعضاء":"12.5 / 20",
-"مبادئ التمريض":"10 / 12",
-"الحاسب الآلي":"9.5 / 12",
-"التربية الدينية":"13 / 16"},
-total:"110.5 / 140",percent:"78.9%"},
-
-{seat:"525",name:"اسامه محمد فكري حسين",subjects:{
-"اللغة العربية":"17.5 / 20",
-"اللغة الإنجليزية":"17 / 20",
-"العلوم التطبيقية":"31.5 / 40",
-"التشريح ووظائف الأعضاء":"11 / 20",
-"مبادئ التمريض":"10.5 / 12",
-"الحاسب الآلي":"9 / 12",
-"التربية الدينية":"13 / 16"},
-total:"109.5 / 140",percent:"78.2%"},
-
-{seat:"526",name:"حمزه ادريس محمد قاسم",subjects:{
-"اللغة العربية":"17.5 / 20",
-"اللغة الإنجليزية":"10 / 20",
-"العلوم التطبيقية":"26 / 40",
-"التشريح ووظائف الأعضاء":"12.5 / 20",
-"مبادئ التمريض":"6.5 / 12",
-"الحاسب الآلي":"9.5 / 12",
-"التربية الدينية":"14 / 16"},
-total:"96 / 140",percent:"68.6%"},
-
-{seat:"527",name:"دياب محمد خيري الراوي",subjects:{
-"اللغة العربية":"20 / 20",
-"اللغة الإنجليزية":"11.5 / 20",
-"العلوم التطبيقية":"27 / 40",
-"التشريح ووظائف الأعضاء":"14 / 20",
-"مبادئ التمريض":"8.5 / 12",
-"الحاسب الآلي":"9.5 / 12",
-"التربية الدينية":"11 / 16"},
-total:"101.5 / 140",percent:"72.5%"},
-
-{seat:"528",name:"عبد الرحمن حسن احمد حسن",subjects:{
-"اللغة العربية":"18.5 / 20",
-"اللغة الإنجليزية":"10 / 20",
-"العلوم التطبيقية":"24 / 40",
-"التشريح ووظائف الأعضاء":"13.5 / 20",
-"مبادئ التمريض":"5 / 12",
-"الحاسب الآلي":"10 / 12",
-"التربية الدينية":"13 / 16"},
-total:"94 / 140",percent:"67.1%"},
-
-{seat:"529",name:"عبد الله محمد جمعه حسين",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"10.5 / 20",
-"العلوم التطبيقية":"35 / 40",
-"التشريح ووظائف الأعضاء":"17.5 / 20",
-"مبادئ التمريض":"9 / 12",
-"الحاسب الآلي":"10 / 12",
-"التربية الدينية":"13 / 16"},
-total:"114.5 / 140",percent:"81.8%"},
-
-{seat:"530",name:"محمد احمد محمد ابوالمجد",subjects:{
-"اللغة العربية":"19 / 20",
-"اللغة الإنجليزية":"8.5 / 20",
-"العلوم التطبيقية":"30.5 / 40",
-"التشريح ووظائف الأعضاء":"16 / 20",
-"مبادئ التمريض":"7.5 / 12",
-"الحاسب الآلي":"10.5 / 12",
-"التربية الدينية":"14.5 / 16"},
-total:"106.5 / 140",percent:"76.1%"},
-
-{seat:"531",name:"محمد احمد محمد احمد",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"17 / 20",
-"العلوم التطبيقية":"35 / 40",
-"التشريح ووظائف الأعضاء":"18 / 20",
-"مبادئ التمريض":"10.5 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"15 / 16"},
-total:"126 / 140",percent:"90%"},
-
-{seat:"532",name:"ايه سعد الله عبد الله علي",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"17 / 20",
-"العلوم التطبيقية":"35.5 / 40",
-"التشريح ووظائف الأعضاء":"16.5 / 20",
-"مبادئ التمريض":"11.5 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"14.5 / 16"},
-total:"125.5 / 140",percent:"89.6%"},
-
-{seat:"533",name:"داليا عبد السلام بدري محمد",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"15 / 20",
-"العلوم التطبيقية":"34.5 / 40",
-"التشريح ووظائف الأعضاء":"12.5 / 20",
-"مبادئ التمريض":"11.5 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"14.5 / 16"},
-total:"118.5 / 140",percent:"84.6%"},
-
-{seat:"534",name:"رضوى محمد فتحي عبد الحميد",subjects:{
-"اللغة العربية":"18.5 / 20",
-"اللغة الإنجليزية":"9.5 / 20",
-"العلوم التطبيقية":"27 / 40",
-"التشريح ووظائف الأعضاء":"12.5 / 20",
-"مبادئ التمريض":"8 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"14.5 / 16"},
-total:"101 / 140",percent:"72.1%"},
-
-{seat:"535",name:"أرزم مصطفى فؤاد محمود",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"13.5 / 20",
-"العلوم التطبيقية":"32 / 40",
-"التشريح ووظائف الأعضاء":"17 / 20",
-"مبادئ التمريض":"9.5 / 12",
-"الحاسب الآلي":"11.5 / 12",
-"التربية الدينية":"14.5 / 16"},
-total:"117.5 / 140",percent:"83.9%"},
-
-{seat:"536",name:"زينب محمد عبد الدايم محمد",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"17 / 20",
-"العلوم التطبيقية":"32.5 / 40",
-"التشريح ووظائف الأعضاء":"16 / 20",
-"مبادئ التمريض":"11 / 12",
-"الحاسب الآلي":"11.5 / 12",
-"التربية الدينية":"11.5 / 16"},
-total:"119 / 140",percent:"85%"},
-
-{seat:"537",name:"سارة عامر عبد الراضي صديق",subjects:{
-"اللغة العربية":"18 / 20",
-"اللغة الإنجليزية":"8 / 20",
-"العلوم التطبيقية":"31 / 40",
-"التشريح ووظائف الأعضاء":"15.5 / 20",
-"مبادئ التمريض":"7 / 12",
-"الحاسب الآلي":"10.5 / 12",
-"التربية الدينية":"11.5 / 16"},
-total:"101.5 / 140",percent:"72.5%"},
-
-{seat:"538",name:"شاهندا صابر سيد سعدي احمد",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"16.5 / 20",
-"العلوم التطبيقية":"37.5 / 40",
-"التشريح ووظائف الأعضاء":"13 / 20",
-"مبادئ التمريض":"8 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"14 / 16"},
-total:"119.5 / 140",percent:"85.4%"},
-
-{seat:"539",name:"فاطمه خيري عبدالله حسن",subjects:{
-"اللغة العربية":"20 / 20",
-"اللغة الإنجليزية":"17 / 20",
-"العلوم التطبيقية":"36 / 40",
-"التشريح ووظائف الأعضاء":"17 / 20",
-"مبادئ التمريض":"11.5 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"15 / 16"},
-total:"127.5 / 140",percent:"91.1%"},
-
-{seat:"540",name:"ملك تيسير محمد الزاهر",subjects:{
-"اللغة العربية":"19.5 / 20",
-"اللغة الإنجليزية":"16 / 20",
-"العلوم التطبيقية":"32.5 / 40",
-"التشريح ووظائف الأعضاء":"15.5 / 20",
-"مبادئ التمريض":"9.5 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"12 / 16"},
-total:"116 / 140",percent:"82.9%"},
-
-{seat:"541",name:"ملك محمد احمد محمد",subjects:{
-"اللغة العربية":"19 / 20",
-"اللغة الإنجليزية":"15.5 / 20",
-"العلوم التطبيقية":"34 / 40",
-"التشريح ووظائف الأعضاء":"17 / 20",
-"مبادئ التمريض":"10.5 / 12",
-"الحاسب الآلي":"10.5 / 12",
-"التربية الدينية":"16 / 16"},
-total:"122.5 / 140",percent:"87.5%"},
-
-{seat:"542",name:"منه احمد عبد الفتاح احمد",subjects:{
-"اللغة العربية":"20 / 20",
-"اللغة الإنجليزية":"18 / 20",
-"العلوم التطبيقية":"34.5 / 40",
-"التشريح ووظائف الأعضاء":"16 / 20",
-"مبادئ التمريض":"12 / 12",
-"الحاسب الآلي":"10.5 / 12",
-"التربية الدينية":"13 / 16"},
-total:"124 / 140",percent:"88.6%"},
-
-{seat:"543",name:"نوران احمد رشدي قناوي",subjects:{
-"اللغة العربية":"20 / 20",
-"اللغة الإنجليزية":"8 / 20",
-"العلوم التطبيقية":"32 / 40",
-"التشريح ووظائف الأعضاء":"13.5 / 20",
-"مبادئ التمريض":"6.5 / 12",
-"الحاسب الآلي":"11 / 12",
-"التربية الدينية":"14 / 16"},
-total:"105 / 140",percent:"75%"},
-
-{seat:"544",name:"هاجر عبد النعيم رمضان بشاري",subjects:{
-"اللغة العربية":"20 / 20",
-"اللغة الإنجليزية":"13.5 / 20",
-"العلوم التطبيقية":"34.5 / 40",
-"التشريح ووظائف الأعضاء":"15.5 / 20",
-"مبادئ التمريض":"6 / 12",
-"الحاسب الآلي":"11.5 / 12",
-"التربية الدينية":"15 / 16"},
-total:"116 / 140",percent:"82.9%"}
+const results=[
+{seat:"523",name:"احمد حسن جلال اسماعيل",subjects:{"اللغة العربية":"18.5 / 20","اللغة الإنجليزية":"9 / 20","العلوم التطبيقية":"35 / 40","التشريح":"13.5 / 20","مبادئ التمريض":"5.5 / 12","الحاسب":"11.5 / 12","الدين":"14 / 16"}},
+{seat:"524",name:"احمد سعدي عباس عبد الراضي",subjects:{"اللغة العربية":"18 / 20","اللغة الإنجليزية":"18 / 20","العلوم التطبيقية":"29.5 / 40","التشريح":"12.5 / 20","مبادئ التمريض":"10 / 12","الحاسب":"9.5 / 12","الدين":"13 / 16"}},
+{seat:"525",name:"اسامه محمد فكري حسين",subjects:{"اللغة العربية":"17.5 / 20","اللغة الإنجليزية":"17 / 20","العلوم التطبيقية":"31.5 / 40","التشريح":"11 / 20","مبادئ التمريض":"10.5 / 12","الحاسب":"9 / 12","الدين":"13 / 16"}},
+{seat:"526",name:"حمزه ادريس محمد قاسم",subjects:{"اللغة العربية":"17.5 / 20","اللغة الإنجليزية":"10 / 20","العلوم التطبيقية":"26 / 40","التشريح":"12.5 / 20","مبادئ التمريض":"6.5 / 12","الحاسب":"9.5 / 12","الدين":"14 / 16"}},
+{seat:"527",name:"دياب محمد خيري الراوي",subjects:{"اللغة العربية":"20 / 20","اللغة الإنجليزية":"11.5 / 20","العلوم التطبيقية":"27 / 40","التشريح":"14 / 20","مبادئ التمريض":"8.5 / 12","الحاسب":"9.5 / 12","الدين":"11 / 16"}},
+{seat:"528",name:"عبد الرحمن حسن احمد حسن",subjects:{"اللغة العربية":"18.5 / 20","اللغة الإنجليزية":"10 / 20","العلوم التطبيقية":"24 / 40","التشريح":"13.5 / 20","مبادئ التمريض":"5 / 12","الحاسب":"10 / 12","الدين":"13 / 16"}},
+{seat:"529",name:"عبد الله محمد جمعه حسين",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"10.5 / 20","العلوم التطبيقية":"35 / 40","التشريح":"17.5 / 20","مبادئ التمريض":"9 / 12","الحاسب":"10 / 12","الدين":"13 / 16"}},
+{seat:"530",name:"محمد احمد محمد ابوالمجد",subjects:{"اللغة العربية":"19 / 20","اللغة الإنجليزية":"8.5 / 20","العلوم التطبيقية":"30.5 / 40","التشريح":"16 / 20","مبادئ التمريض":"7.5 / 12","الحاسب":"10.5 / 12","الدين":"14.5 / 16"}},
+{seat:"531",name:"محمد احمد محمد احمد",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"17 / 20","العلوم التطبيقية":"35 / 40","التشريح":"18 / 20","مبادئ التمريض":"10.5 / 12","الحاسب":"11 / 12","الدين":"15 / 16"}},
+{seat:"532",name:"ايه سعد الله عبد الله علي",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"17 / 20","العلوم التطبيقية":"35.5 / 40","التشريح":"16.5 / 20","مبادئ التمريض":"11.5 / 12","الحاسب":"11 / 12","الدين":"14.5 / 16"}},
+{seat:"533",name:"داليا عبد السلام بدري محمد",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"15 / 20","العلوم التطبيقية":"34.5 / 40","التشريح":"12.5 / 20","مبادئ التمريض":"11.5 / 12","الحاسب":"11 / 12","الدين":"14.5 / 16"}},
+{seat:"534",name:"رضوى محمد فتحي عبد الحميد",subjects:{"اللغة العربية":"18.5 / 20","اللغة الإنجليزية":"9.5 / 20","العلوم التطبيقية":"27 / 40","التشريح":"12.5 / 20","مبادئ التمريض":"8 / 12","الحاسب":"11 / 12","الدين":"14.5 / 16"}},
+{seat:"535",name:"أرزم مصطفى فؤاد محمود",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"13.5 / 20","العلوم التطبيقية":"32 / 40","التشريح":"17 / 20","مبادئ التمريض":"9.5 / 12","الحاسب":"11.5 / 12","الدين":"14.5 / 16"}},
+{seat:"536",name:"زينب محمد عبد الدايم محمد",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"17 / 20","العلوم التطبيقية":"32.5 / 40","التشريح":"16 / 20","مبادئ التمريض":"11 / 12","الحاسب":"11.5 / 12","الدين":"11.5 / 16"}},
+{seat:"537",name:"سارة عامر عبد الراضي صديق",subjects:{"اللغة العربية":"18 / 20","اللغة الإنجليزية":"8 / 20","العلوم التطبيقية":"31 / 40","التشريح":"15.5 / 20","مبادئ التمريض":"7 / 12","الحاسب":"10.5 / 12","الدين":"11.5 / 16"}},
+{seat:"538",name:"شاهندا صابر سيد سعدي احمد",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"16.5 / 20","العلوم التطبيقية":"37.5 / 40","التشريح":"13 / 20","مبادئ التمريض":"8 / 12","الحاسب":"11 / 12","الدين":"14 / 16"}},
+{seat:"539",name:"فاطمه خيري عبدالله حسن",subjects:{"اللغة العربية":"20 / 20","اللغة الإنجليزية":"17 / 20","العلوم التطبيقية":"36 / 40","التشريح":"17 / 20","مبادئ التمريض":"11.5 / 12","الحاسب":"11 / 12","الدين":"15 / 16"}},
+{seat:"540",name:"ملك تيسير محمد الزاهر",subjects:{"اللغة العربية":"19.5 / 20","اللغة الإنجليزية":"16 / 20","العلوم التطبيقية":"32.5 / 40","التشريح":"15.5 / 20","مبادئ التمريض":"9.5 / 12","الحاسب":"11 / 12","الدين":"12 / 16"}},
+{seat:"541",name:"ملك محمد احمد محمد",subjects:{"اللغة العربية":"19 / 20","اللغة الإنجليزية":"15.5 / 20","العلوم التطبيقية":"34 / 40","التشريح":"17 / 20","مبادئ التمريض":"10.5 / 12","الحاسب":"10.5 / 12","الدين":"16 / 16"}},
+{seat:"542",name:"منه احمد عبد الفتاح احمد",subjects:{"اللغة العربية":"20 / 20","اللغة الإنجليزية":"18 / 20","العلوم التطبيقية":"34.5 / 40","التشريح":"16 / 20","مبادئ التمريض":"12 / 12","الحاسب":"10.5 / 12","الدين":"13 / 16"}},
+{seat:"543",name:"نوران احمد رشدي قناوي",subjects:{"اللغة العربية":"20 / 20","اللغة الإنجليزية":"8 / 20","العلوم التطبيقية":"32 / 40","التشريح":"13.5 / 20","مبادئ التمريض":"6.5 / 12","الحاسب":"11 / 12","الدين":"14 / 16"}},
+{seat:"544",name:"هاجر عبد النعيم رمضان بشاري",subjects:{"اللغة العربية":"20 / 20","اللغة الإنجليزية":"13.5 / 20","العلوم التطبيقية":"34.5 / 40","التشريح":"15.5 / 20","مبادئ التمريض":"6 / 12","الحاسب":"11.5 / 12","الدين":"15 / 16"}}
 ];
 
-async function searchFirstYearResult(){
+const icons={
+"اللغة العربية":"📖",
+"اللغة الإنجليزية":"📝",
+"العلوم التطبيقية":"🔬",
+"التشريح":"🧠",
+"مبادئ التمريض":"💉",
+"الحاسب":"💻",
+"الدين":"🕌"
+};
 
-const name=document.getElementById("student-name").value.trim();
-const seat=document.getElementById("seat-number").value.trim();
+function gradeColor(p){if(p>=85)return "good";if(p>=60)return "avg";return "bad"}
 
-const loading=document.getElementById('loading');
-const resultContainer=document.getElementById('result-container');
-const noResult=document.getElementById('no-result');
-const subjectsList=document.getElementById('subjects-list');
-const studentInfo=document.getElementById('student-info');
-
-subjectsList.innerHTML="";
-resultContainer.style.display="none";
-noResult.style.display="none";
-loading.style.display="block";
-
-try{
-
-const response=await fetch('/api/get-first-year-result',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({studentName:name,seatNumber:seat})
-});
-
-if(response.ok){
-
-const data=await response.json();
-
-if(data.success && data.results.length>0){
-
-loading.style.display="none";
-resultContainer.style.display="block";
-
-studentInfo.textContent=`الطالب: ${data.results[0].studentName} - رقم الجلوس: ${data.results[0].seatNumber}`;
-
-data.results.forEach(r=>{
-
-const card=document.createElement("div");
-card.className="subject-card";
-
-card.innerHTML=`
-<div class="subject-title">${r.subject}</div>
-<div class="grade">${r.writtenGrade}</div>
-`;
-
-subjectsList.appendChild(card);
-
-});
-
-return;
+function searchResult(){
+const name=document.getElementById("student-name").value.trim()
+const seat=document.getElementById("seat-number").value.trim()
+const student=results.find(s=>s.seat===seat && s.name.includes(name))
+const list=document.getElementById("subjects-list")
+list.innerHTML=""
+if(!student){document.getElementById("no-result").style.display="block";return}
+document.getElementById("no-result").style.display="none"
+document.getElementById("student-info").innerHTML=`<h2>${student.name}</h2><div>رقم الجلوس : ${student.seat}</div>`
+let total=0,max=0
+for(const sub in student.subjects){
+const g=student.subjects[sub]
+const [a,b]=g.split('/').map(x=>parseFloat(x))
+const p=(a/b)*100
+total+=a
+max+=b
+list.innerHTML+=`<div class="subject"><div class="subject-name">${icons[sub]} ${sub}</div><div class="grade ${gradeColor(p)}">${a} / ${b}</div></div>`
+}
+const percent=(total/max*100).toFixed(1)
+document.getElementById("total").innerHTML=`المجموع : ${total} / ${max}`
+document.getElementById("percent").innerHTML=`النسبة : ${percent}%`
+const sorted=results.map(s=>{
+let sum=0,maxSum=0
+for(const sub in s.subjects){const [a,b]=s.subjects[sub].split('/').map(x=>parseFloat(x));sum+=a;maxSum+=b}
+return {name:s.name,percent:(sum/maxSum*100).toFixed(1)}
+}).sort((a,b)=>b.percent-a.percent)
+const rankIndex=sorted.findIndex(s=>s.name===student.name)+1
+document.getElementById("rank").innerHTML=`ترتيب الطالب على الدفعة: ${rankIndex} / ${results.length}`
+document.getElementById("result-container").style.display="block"
 }
 
+function shareWhatsApp(){
+const name=document.getElementById("student-name").value.trim()
+const seat=document.getElementById("seat-number").value.trim()
+const student=results.find(s=>s.seat===seat && s.name.includes(name))
+if(!student)return
+let msg=`نتيجة الطالب ${student.name} (رقم الجلوس ${student.seat}):%0A`
+let total=0,max=0
+for(const sub in student.subjects){const g=student.subjects[sub];const [a,b]=g.split('/').map(x=>parseFloat(x));msg+=`${icons[sub]} ${sub}: ${a} / ${b}%0A`;total+=a;max+=b}
+const percent=(total/max*100).toFixed(1)
+msg+=`المجموع: ${total} / ${max}%0Aالنسبة: ${percent}%`
+window.open(`https://wa.me/?text=${msg}`, '_blank')
 }
-
-}catch(e){}
-
-loading.style.display="none";
-
-const student=localResults.find(s=>s.seat===seat && s.name.includes(name));
-
-if(student){
-
-studentInfo.innerHTML=`الطالب: ${student.name} - رقم الجلوس: ${student.seat}`;
-
-for(const subject in student.subjects){
-
-const card=document.createElement("div");
-card.className="subject-card";
-
-card.innerHTML=`
-<div class="subject-title">${subject}</div>
-<div class="grade">${student.subjects[subject]}</div>
-`;
-
-subjectsList.appendChild(card);
-
-}
-
-const totalCard=document.createElement("div");
-totalCard.className="subject-card";
-totalCard.innerHTML=`<div class="subject-title">المجموع الكلي</div><div class="grade">${student.total}</div>`;
-subjectsList.appendChild(totalCard);
-
-const percentCard=document.createElement("div");
-percentCard.className="subject-card";
-percentCard.innerHTML=`<div class="subject-title">النسبة المئوية</div><div class="grade">${student.percent}</div>`;
-subjectsList.appendChild(percentCard);
-
-resultContainer.style.display="block";
-
-}else{
-
-noResult.style.display="block";
-
-}
-
-}
-
 </script>
-
 </body>
 </html>
