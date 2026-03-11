@@ -63,8 +63,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     { href: 'index.html',      icon: 'fa-solid fa-house',           title: 'الرئيسية' },
     { href: 'Home.html',       icon: 'fa-solid fa-chart-simple',    title: 'النتائج' },     // بديل ممتاز وموجود
     { href: 'profile.html',    icon: 'fa-solid fa-user',            title: 'الملف الشخصي' },
-            { href: 'search-monthly.html', icon: 'fa-solid fa-magnifying-glass',   title: 'نتيجة الشهري' },  // بحث عن النتيجة
-
+            { href: 'search-monthly.html', icon: 'fa-solid fa-magnifying-glass',   title: 'نتيجة الشهري' }, // بحث عن النتيجة
+{ href: 'First-Gards.html', icon: 'fa-solid fa-magnifying-glass',   title: 'نتيجة الصف الاول الثانوي تمريض ' },
     { href: 'exams.html',      icon: 'fa-solid fa-book-open',       title: 'الاختبارات' },  // أحلى من fa-book
     { href: 'developer.html',  icon: 'fa-solid fa-microchip',       title: 'عن المطور' }
 ];
