@@ -247,60 +247,328 @@
 </div>
 
 <script>
-    async function searchFirstYearResult() {
-        const name = document.getElementById('student-name').value.trim();
-        const seat = document.getElementById('seat-number').value.trim();
 
-        if (!name || !seat) {
-            alert('من فضلك أدخل الاسم ورقم الجلوس');
-            return;
-        }
+const localResults = [
 
-        const loading = document.getElementById('loading');
-        const resultContainer = document.getElementById('result-container');
-        const noResult = document.getElementById('no-result');
-        const subjectsList = document.getElementById('subjects-list');
-        const studentInfo = document.getElementById('student-info');
+{seat:"523",name:"احمد حسن جلال اسماعيل",subjects:{
+"اللغة العربية":"18.5 / 20",
+"اللغة الإنجليزية":"9 / 20",
+"العلوم التطبيقية":"35 / 40",
+"التشريح ووظائف الأعضاء":"13.5 / 20",
+"مبادئ التمريض":"5.5 / 12",
+"الحاسب الآلي":"11.5 / 12",
+"التربية الدينية":"14 / 16"},
+total:"107 / 140",percent:"76.4%"},
 
-        resultContainer.style.display = 'none';
-        noResult.style.display = 'none';
-        subjectsList.innerHTML = '';
-        studentInfo.textContent = '';
-        loading.style.display = 'block';
+{seat:"524",name:"احمد سعدي عباس عبد الراضي",subjects:{
+"اللغة العربية":"18 / 20",
+"اللغة الإنجليزية":"18 / 20",
+"العلوم التطبيقية":"29.5 / 40",
+"التشريح ووظائف الأعضاء":"12.5 / 20",
+"مبادئ التمريض":"10 / 12",
+"الحاسب الآلي":"9.5 / 12",
+"التربية الدينية":"13 / 16"},
+total:"110.5 / 140",percent:"78.9%"},
 
-        try {
-            const response = await fetch('/api/get-first-year-result', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ studentName: name, seatNumber: seat })
-            });
+{seat:"525",name:"اسامه محمد فكري حسين",subjects:{
+"اللغة العربية":"17.5 / 20",
+"اللغة الإنجليزية":"17 / 20",
+"العلوم التطبيقية":"31.5 / 40",
+"التشريح ووظائف الأعضاء":"11 / 20",
+"مبادئ التمريض":"10.5 / 12",
+"الحاسب الآلي":"9 / 12",
+"التربية الدينية":"13 / 16"},
+total:"109.5 / 140",percent:"78.2%"},
 
-            const data = await response.json();
+{seat:"526",name:"حمزه ادريس محمد قاسم",subjects:{
+"اللغة العربية":"17.5 / 20",
+"اللغة الإنجليزية":"10 / 20",
+"العلوم التطبيقية":"26 / 40",
+"التشريح ووظائف الأعضاء":"12.5 / 20",
+"مبادئ التمريض":"6.5 / 12",
+"الحاسب الآلي":"9.5 / 12",
+"التربية الدينية":"14 / 16"},
+total:"96 / 140",percent:"68.6%"},
 
-            loading.style.display = 'none';
+{seat:"527",name:"دياب محمد خيري الراوي",subjects:{
+"اللغة العربية":"20 / 20",
+"اللغة الإنجليزية":"11.5 / 20",
+"العلوم التطبيقية":"27 / 40",
+"التشريح ووظائف الأعضاء":"14 / 20",
+"مبادئ التمريض":"8.5 / 12",
+"الحاسب الآلي":"9.5 / 12",
+"التربية الدينية":"11 / 16"},
+total:"101.5 / 140",percent:"72.5%"},
 
-            if (data.success && data.results.length > 0) {
-                resultContainer.style.display = 'block';
-                studentInfo.textContent = `الطالب: ${data.results[0].studentName} - رقم الجلوس: ${data.results[0].seatNumber}`;
+{seat:"528",name:"عبد الرحمن حسن احمد حسن",subjects:{
+"اللغة العربية":"18.5 / 20",
+"اللغة الإنجليزية":"10 / 20",
+"العلوم التطبيقية":"24 / 40",
+"التشريح ووظائف الأعضاء":"13.5 / 20",
+"مبادئ التمريض":"5 / 12",
+"الحاسب الآلي":"10 / 12",
+"التربية الدينية":"13 / 16"},
+total:"94 / 140",percent:"67.1%"},
 
-                data.results.forEach(r => {
-                    const card = document.createElement('div');
-                    card.className = 'subject-card';
-                    card.innerHTML = `
-                        <div class="subject-title">${r.subject}</div>
-                        <div class="grade">الدرجة: ${r.writtenGrade}</div>
-                    `;
-                    subjectsList.appendChild(card);
-                });
-            } else {
-                noResult.style.display = 'block';
-            }
-        } catch (err) {
-            loading.style.display = 'none';
-            alert('حدث خطأ أثناء البحث، حاول مرة أخرى');
-            console.error(err);
-        }
-    }
+{seat:"529",name:"عبد الله محمد جمعه حسين",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"10.5 / 20",
+"العلوم التطبيقية":"35 / 40",
+"التشريح ووظائف الأعضاء":"17.5 / 20",
+"مبادئ التمريض":"9 / 12",
+"الحاسب الآلي":"10 / 12",
+"التربية الدينية":"13 / 16"},
+total:"114.5 / 140",percent:"81.8%"},
+
+{seat:"530",name:"محمد احمد محمد ابوالمجد",subjects:{
+"اللغة العربية":"19 / 20",
+"اللغة الإنجليزية":"8.5 / 20",
+"العلوم التطبيقية":"30.5 / 40",
+"التشريح ووظائف الأعضاء":"16 / 20",
+"مبادئ التمريض":"7.5 / 12",
+"الحاسب الآلي":"10.5 / 12",
+"التربية الدينية":"14.5 / 16"},
+total:"106.5 / 140",percent:"76.1%"},
+
+{seat:"531",name:"محمد احمد محمد احمد",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"17 / 20",
+"العلوم التطبيقية":"35 / 40",
+"التشريح ووظائف الأعضاء":"18 / 20",
+"مبادئ التمريض":"10.5 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"15 / 16"},
+total:"126 / 140",percent:"90%"},
+
+{seat:"532",name:"ايه سعد الله عبد الله علي",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"17 / 20",
+"العلوم التطبيقية":"35.5 / 40",
+"التشريح ووظائف الأعضاء":"16.5 / 20",
+"مبادئ التمريض":"11.5 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"14.5 / 16"},
+total:"125.5 / 140",percent:"89.6%"},
+
+{seat:"533",name:"داليا عبد السلام بدري محمد",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"15 / 20",
+"العلوم التطبيقية":"34.5 / 40",
+"التشريح ووظائف الأعضاء":"12.5 / 20",
+"مبادئ التمريض":"11.5 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"14.5 / 16"},
+total:"118.5 / 140",percent:"84.6%"},
+
+{seat:"534",name:"رضوى محمد فتحي عبد الحميد",subjects:{
+"اللغة العربية":"18.5 / 20",
+"اللغة الإنجليزية":"9.5 / 20",
+"العلوم التطبيقية":"27 / 40",
+"التشريح ووظائف الأعضاء":"12.5 / 20",
+"مبادئ التمريض":"8 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"14.5 / 16"},
+total:"101 / 140",percent:"72.1%"},
+
+{seat:"535",name:"أرزم مصطفى فؤاد محمود",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"13.5 / 20",
+"العلوم التطبيقية":"32 / 40",
+"التشريح ووظائف الأعضاء":"17 / 20",
+"مبادئ التمريض":"9.5 / 12",
+"الحاسب الآلي":"11.5 / 12",
+"التربية الدينية":"14.5 / 16"},
+total:"117.5 / 140",percent:"83.9%"},
+
+{seat:"536",name:"زينب محمد عبد الدايم محمد",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"17 / 20",
+"العلوم التطبيقية":"32.5 / 40",
+"التشريح ووظائف الأعضاء":"16 / 20",
+"مبادئ التمريض":"11 / 12",
+"الحاسب الآلي":"11.5 / 12",
+"التربية الدينية":"11.5 / 16"},
+total:"119 / 140",percent:"85%"},
+
+{seat:"537",name:"سارة عامر عبد الراضي صديق",subjects:{
+"اللغة العربية":"18 / 20",
+"اللغة الإنجليزية":"8 / 20",
+"العلوم التطبيقية":"31 / 40",
+"التشريح ووظائف الأعضاء":"15.5 / 20",
+"مبادئ التمريض":"7 / 12",
+"الحاسب الآلي":"10.5 / 12",
+"التربية الدينية":"11.5 / 16"},
+total:"101.5 / 140",percent:"72.5%"},
+
+{seat:"538",name:"شاهندا صابر سيد سعدي احمد",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"16.5 / 20",
+"العلوم التطبيقية":"37.5 / 40",
+"التشريح ووظائف الأعضاء":"13 / 20",
+"مبادئ التمريض":"8 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"14 / 16"},
+total:"119.5 / 140",percent:"85.4%"},
+
+{seat:"539",name:"فاطمه خيري عبدالله حسن",subjects:{
+"اللغة العربية":"20 / 20",
+"اللغة الإنجليزية":"17 / 20",
+"العلوم التطبيقية":"36 / 40",
+"التشريح ووظائف الأعضاء":"17 / 20",
+"مبادئ التمريض":"11.5 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"15 / 16"},
+total:"127.5 / 140",percent:"91.1%"},
+
+{seat:"540",name:"ملك تيسير محمد الزاهر",subjects:{
+"اللغة العربية":"19.5 / 20",
+"اللغة الإنجليزية":"16 / 20",
+"العلوم التطبيقية":"32.5 / 40",
+"التشريح ووظائف الأعضاء":"15.5 / 20",
+"مبادئ التمريض":"9.5 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"12 / 16"},
+total:"116 / 140",percent:"82.9%"},
+
+{seat:"541",name:"ملك محمد احمد محمد",subjects:{
+"اللغة العربية":"19 / 20",
+"اللغة الإنجليزية":"15.5 / 20",
+"العلوم التطبيقية":"34 / 40",
+"التشريح ووظائف الأعضاء":"17 / 20",
+"مبادئ التمريض":"10.5 / 12",
+"الحاسب الآلي":"10.5 / 12",
+"التربية الدينية":"16 / 16"},
+total:"122.5 / 140",percent:"87.5%"},
+
+{seat:"542",name:"منه احمد عبد الفتاح احمد",subjects:{
+"اللغة العربية":"20 / 20",
+"اللغة الإنجليزية":"18 / 20",
+"العلوم التطبيقية":"34.5 / 40",
+"التشريح ووظائف الأعضاء":"16 / 20",
+"مبادئ التمريض":"12 / 12",
+"الحاسب الآلي":"10.5 / 12",
+"التربية الدينية":"13 / 16"},
+total:"124 / 140",percent:"88.6%"},
+
+{seat:"543",name:"نوران احمد رشدي قناوي",subjects:{
+"اللغة العربية":"20 / 20",
+"اللغة الإنجليزية":"8 / 20",
+"العلوم التطبيقية":"32 / 40",
+"التشريح ووظائف الأعضاء":"13.5 / 20",
+"مبادئ التمريض":"6.5 / 12",
+"الحاسب الآلي":"11 / 12",
+"التربية الدينية":"14 / 16"},
+total:"105 / 140",percent:"75%"},
+
+{seat:"544",name:"هاجر عبد النعيم رمضان بشاري",subjects:{
+"اللغة العربية":"20 / 20",
+"اللغة الإنجليزية":"13.5 / 20",
+"العلوم التطبيقية":"34.5 / 40",
+"التشريح ووظائف الأعضاء":"15.5 / 20",
+"مبادئ التمريض":"6 / 12",
+"الحاسب الآلي":"11.5 / 12",
+"التربية الدينية":"15 / 16"},
+total:"116 / 140",percent:"82.9%"}
+];
+
+async function searchFirstYearResult(){
+
+const name=document.getElementById("student-name").value.trim();
+const seat=document.getElementById("seat-number").value.trim();
+
+const loading=document.getElementById('loading');
+const resultContainer=document.getElementById('result-container');
+const noResult=document.getElementById('no-result');
+const subjectsList=document.getElementById('subjects-list');
+const studentInfo=document.getElementById('student-info');
+
+subjectsList.innerHTML="";
+resultContainer.style.display="none";
+noResult.style.display="none";
+loading.style.display="block";
+
+try{
+
+const response=await fetch('/api/get-first-year-result',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({studentName:name,seatNumber:seat})
+});
+
+if(response.ok){
+
+const data=await response.json();
+
+if(data.success && data.results.length>0){
+
+loading.style.display="none";
+resultContainer.style.display="block";
+
+studentInfo.textContent=`الطالب: ${data.results[0].studentName} - رقم الجلوس: ${data.results[0].seatNumber}`;
+
+data.results.forEach(r=>{
+
+const card=document.createElement("div");
+card.className="subject-card";
+
+card.innerHTML=`
+<div class="subject-title">${r.subject}</div>
+<div class="grade">${r.writtenGrade}</div>
+`;
+
+subjectsList.appendChild(card);
+
+});
+
+return;
+}
+
+}
+
+}catch(e){}
+
+loading.style.display="none";
+
+const student=localResults.find(s=>s.seat===seat && s.name.includes(name));
+
+if(student){
+
+studentInfo.innerHTML=`الطالب: ${student.name} - رقم الجلوس: ${student.seat}`;
+
+for(const subject in student.subjects){
+
+const card=document.createElement("div");
+card.className="subject-card";
+
+card.innerHTML=`
+<div class="subject-title">${subject}</div>
+<div class="grade">${student.subjects[subject]}</div>
+`;
+
+subjectsList.appendChild(card);
+
+}
+
+const totalCard=document.createElement("div");
+totalCard.className="subject-card";
+totalCard.innerHTML=`<div class="subject-title">المجموع الكلي</div><div class="grade">${student.total}</div>`;
+subjectsList.appendChild(totalCard);
+
+const percentCard=document.createElement("div");
+percentCard.className="subject-card";
+percentCard.innerHTML=`<div class="subject-title">النسبة المئوية</div><div class="grade">${student.percent}</div>`;
+subjectsList.appendChild(percentCard);
+
+resultContainer.style.display="block";
+
+}else{
+
+noResult.style.display="block";
+
+}
+
+}
+
 </script>
 
 </body>
