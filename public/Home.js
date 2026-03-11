@@ -64,7 +64,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     { href: 'Home.html',       icon: 'fa-solid fa-chart-simple',    title: 'النتائج' },     // بديل ممتاز وموجود
     { href: 'profile.html',    icon: 'fa-solid fa-user',            title: 'الملف الشخصي' },
             { href: 'search-monthly.html', icon: 'fa-solid fa-magnifying-glass',   title: 'نتيجة الشهري' }, // بحث عن النتيجة
-{ href: 'First-Gards.html', icon: 'fa-solid fa-magnifying-glass',   title: 'نتيجة الصف الاول الثانوي تمريض ' },
+{
+  href: 'First-Gards.html',
+  icon: 'fa-solid fa-graduation-cap', // أيقونة قبعة التخرج تعكس النتيجة والتعليم
+  title: 'نتيجة الصف الاول الثانوي تمريض'
+}
     { href: 'exams.html',      icon: 'fa-solid fa-book-open',       title: 'الاختبارات' },  // أحلى من fa-book
     { href: 'developer.html',  icon: 'fa-solid fa-microchip',       title: 'عن المطور' }
 ];
