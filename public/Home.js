@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', async function() {
   href: 'First-Gards.html',
   icon: 'fa-solid fa-graduation-cap', // أيقونة قبعة التخرج تعكس النتيجة والتعليم
   title: 'نتيجة الصف الاول الثانوي تمريض'
-}
+},
     { href: 'exams.html',      icon: 'fa-solid fa-book-open',       title: 'الاختبارات' },  // أحلى من fa-book
     { href: 'developer.html',  icon: 'fa-solid fa-microchip',       title: 'عن المطور' }
 ];
