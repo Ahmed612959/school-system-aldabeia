@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7676282531413677"
      crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
   
 </head>
 <body>
@@ -94,6 +95,15 @@
 
 
 <button class="submit-btn" onclick="window.location.href='admin-first-year-grades.html'"><i class="fas fa-chart-bar"></i> تحليل نتائج السنة الأولى</button>
+
+        
+<div style="margin: 20px 0;">
+  <label for="excel-upload"><b>رفع ملف نتائج (Excel)</b>:</label>
+  <input type="file" id="excel-upload" accept=".xls,.xlsx" />
+  <button id="analyze-excel" type="button">تحليل ملف Excel</button>
+</div>
+<div id="excel-results-display"></div>
+        
         
         <h2>إضافة نتيجة طالب يدويًا</h2>
 <div class="add-result-section">
