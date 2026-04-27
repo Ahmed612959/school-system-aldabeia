@@ -96,13 +96,16 @@
 
 <button class="submit-btn" onclick="window.location.href='admin-first-year-grades.html'"><i class="fas fa-chart-bar"></i> تحليل نتائج السنة الأولى</button>
 
-        
-<div style="margin: 20px 0;">
-  <label for="excel-upload"><b>رفع ملف نتائج (Excel)</b>:</label>
-  <input type="file" id="excel-upload" accept=".xls,.xlsx" />
-  <button id="analyze-excel" type="button">تحليل ملف Excel</button>
+        <div class="excel-upload-section" style="margin:30px 0;">
+  <label style="display:block; margin-bottom:10px; font-weight:bold;">رفع ملف نتائج (Excel):</label>
+  <input type="file" id="excel-upload" accept=".xls,.xlsx" 
+         style="padding:10px; border-radius:10px;"/>
+  <button id="analyze-excel" 
+          style="background:#395886; color:#fff; border:none; border-radius:8px; padding:10px 25px; margin-right:10px; cursor:pointer; font-size:18px; font-family:'Tajawal', Arial;">
+    تحليل ملف Excel
+  </button>
 </div>
-<div id="excel-results-display"></div>
+<div id="excel-results-display" style="margin-top:15px;"></div>
         
         
         <h2>إضافة نتيجة طالب يدويًا</h2>
