@@ -1021,7 +1021,7 @@ function renderMonthlyResults(results) {
 
 
 
-window.analyzeExcel = async function() {
+    window.analyzeExcel = async function() {
     const fileInput = document.getElementById('excel-upload');
     const resultsDisplay = document.getElementById('excel-results-display');
     if (!fileInput || !fileInput.files.length) {
@@ -1035,18 +1035,17 @@ window.analyzeExcel = async function() {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1}); // صفوف raw
+            const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1});
 
-            // تأكيد أن أول صفوف فعلاً رؤوس الأعمدة
-            if (rows.length < 2) {
-                showToast("الملف فارغ أو رؤوس الأعمدة ناقصة!", "error");
+            if (rows.length <= 1) {
+                showToast("الملف فارغ أو ناقص!", "error");
                 return;
             }
 
-            // تجاهل الصف الأول (الرؤوس) إذا كان بها عناوين
-            for (let i = 1; i < rows.length; i++) {
+            let added = 0, updated = 0;
+            for (let i = 1; i < rows.length; i++) { // تخطي رؤوس الأعمدة
                 let row = rows[i];
-                if(!row[0] || !row[1]) continue; // لازم رقم جلوس و اسم
+                if(!row[0] || !row[1]) continue; // لازم رقم جلوس واسم
 
                 let student = {
                     fullName: row[1],
@@ -1059,22 +1058,22 @@ window.analyzeExcel = async function() {
                         { name: "تمريض باطني جراحي", grade: parseInt(row[6]) || 0 },
                         { name: "حاسب آلي", grade: parseInt(row[7]) || 0 },
                         { name: "الدين", grade: parseInt(row[8]) || 0 },
-                        // لا تضف المجموع (row[9]) هنا
                     ]
                 };
                 // رفع/تحديث الطالب في السيرفر
                 const exist = students.find(s => s.id == student.id);
                 if (exist) {
                     await saveToServer(`/api/students/${student.id}`, { subjects: student.subjects }, 'PUT');
+                    updated++;
                 } else {
                     await saveToServer('/api/students', student);
+                    added++;
                 }
             }
-            // جلب البيانات الجديدة وتحديث الجدول
             await loadInitialData();
             renderResults();
             renderStats();
-            showToast('تم تحل��ل ورفع نتائج الإكسل بنجاح!', 'success');
+            showToast(`تم تحليل ${added} طالب وإضافة ${updated} تحديث بنجاح!`, 'success');
         } catch (err) {
             showToast("حدث خطأ أثناء تحليل الملف: " + err.message, "error");
         }
@@ -1084,9 +1083,11 @@ window.analyzeExcel = async function() {
     };
     reader.readAsArrayBuffer(file);
 };
-document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
+if (document.getElementById('analyze-excel')) {
+  document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
+}
 
-    
+
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
