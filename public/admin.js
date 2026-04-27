@@ -1087,6 +1087,30 @@ if (document.getElementById('analyze-excel')) {
   document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
 }
 
+
+    // دالة لمسح جميع النتائج (كل الطلاب)
+window.deleteAllResults = async function() {
+    if (!confirm('تحذير: هذا سيمسح جميع الطلاب ودرجاتهم نهائيًا! هل أنت متأكد؟')) return;
+
+    try {
+        // نرسل طلب DELETE لكل طالب
+        for (const student of students) {
+            await saveToServer(`/api/students/${student.id}`, {}, 'DELETE');
+        }
+        students = [];
+        renderResults();
+        renderStats();
+        showToast('تم حذف جميع النتائج بنجاح!', 'success');
+    } catch (err) {
+        showToast('حدث خطأ أثناء حذف النتائج!', 'error');
+    }
+};
+
+// ربط وظيفة المسح بالزر
+if (document.getElementById('delete-all-results')) {
+    document.getElementById('delete-all-results').addEventListener('click', window.deleteAllResults);
+}
+
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
