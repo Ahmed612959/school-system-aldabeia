@@ -1019,6 +1019,74 @@ function renderMonthlyResults(results) {
 }
 
 
+
+
+window.analyzeExcel = async function() {
+    const fileInput = document.getElementById('excel-upload');
+    const resultsDisplay = document.getElementById('excel-results-display');
+    if (!fileInput || !fileInput.files.length) {
+        showToast('يرجى اختيار ملف Excel!', 'error');
+        return;
+    }
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1}); // صفوف raw
+
+            // تأكيد أن أول صفوف فعلاً رؤوس الأعمدة
+            if (rows.length < 2) {
+                showToast("الملف فارغ أو رؤوس الأعمدة ناقصة!", "error");
+                return;
+            }
+
+            // تجاهل الصف الأول (الرؤوس) إذا كان بها عناوين
+            for (let i = 1; i < rows.length; i++) {
+                let row = rows[i];
+                if(!row[0] || !row[1]) continue; // لازم رقم جلوس و اسم
+
+                let student = {
+                    fullName: row[1],
+                    id: (row[0] + '').trim(),
+                    subjects: [
+                        { name: "اللغة العربية", grade: parseInt(row[2]) || 0 },
+                        { name: "اللغة الإنجليزية", grade: parseInt(row[3]) || 0 },
+                        { name: "علوم تطبيقية", grade: parseInt(row[4]) || 0 },
+                        { name: "طب باطنة", grade: parseInt(row[5]) || 0 },
+                        { name: "تمريض باطني جراحي", grade: parseInt(row[6]) || 0 },
+                        { name: "حاسب آلي", grade: parseInt(row[7]) || 0 },
+                        { name: "الدين", grade: parseInt(row[8]) || 0 },
+                        // لا تضف المجموع (row[9]) هنا
+                    ]
+                };
+                // رفع/تحديث الطالب في السيرفر
+                const exist = students.find(s => s.id == student.id);
+                if (exist) {
+                    await saveToServer(`/api/students/${student.id}`, { subjects: student.subjects }, 'PUT');
+                } else {
+                    await saveToServer('/api/students', student);
+                }
+            }
+            // جلب البيانات الجديدة وتحديث الجدول
+            await loadInitialData();
+            renderResults();
+            renderStats();
+            showToast('تم تحل��ل ورفع نتائج الإكسل بنجاح!', 'success');
+        } catch (err) {
+            showToast("حدث خطأ أثناء تحليل الملف: " + err.message, "error");
+        }
+    };
+    reader.onerror = function() {
+        showToast("خطأ أثناء قراءة الملف!", "error");
+    };
+    reader.readAsArrayBuffer(file);
+};
+document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
+
+    
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
     loadInitialData();
