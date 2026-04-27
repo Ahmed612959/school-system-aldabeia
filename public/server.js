@@ -171,6 +171,14 @@ app.delete('/api/years/:name', async (req, res) => {
     }
 });
 
+app.delete('/api/students/all', async (req, res) => {
+    try {
+        await Student.deleteMany({}); // يفـرغ كل الطلاب
+        res.json({ success: true, message: 'تم مسح كل النتائج' });
+    } catch (err) {
+        res.status(500).json({ success: false, message: 'حدث خطأ في السيرفر' });
+    }
+});
 
 const violationSchema = new mongoose.Schema({
     studentId: String,
