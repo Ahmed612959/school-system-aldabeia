@@ -1051,13 +1051,13 @@ function renderMonthlyResults(results) {
                     fullName: row[1],
                     id: (row[0] + '').trim(),
                     subjects: [
-                        { name: "اللغة العربية", grade: parseInt(row[2]) || 0 },
-                        { name: "اللغة الإنجليزية", grade: parseInt(row[3]) || 0 },
-                        { name: "علوم تطبيقية", grade: parseInt(row[4]) || 0 },
-                        { name: "طب باطنة", grade: parseInt(row[5]) || 0 },
-                        { name: "تمريض باطني جراحي", grade: parseInt(row[6]) || 0 },
-                        { name: "حاسب آلي", grade: parseInt(row[7]) || 0 },
-                        { name: "الدين", grade: parseInt(row[8]) || 0 },
+                        { name: "اللغة العربية", grade: parseFloat(row[2]) || 0 },
+                        { name: "اللغة الإنجليزية", grade: parseFloat(row[3]) || 0 },
+                        { name: "علوم تطبيقية", grade: parseFloat(row[4]) || 0 },
+                        { name: "طب باطنة", grade: parseFloat(row[5]) || 0 },
+                        { name: "تمريض باطني جراحي", grade: parseFloat(row[6]) || 0 },
+                        { name: "حاسب آلي", grade: parseFloat(row[7]) || 0 },
+                        { name: "الدين", grade: parseFloat(row[8]) || 0 },
                     ]
                 };
                 // رفع/تحديث الطالب في السيرفر
@@ -1086,7 +1086,6 @@ function renderMonthlyResults(results) {
 if (document.getElementById('analyze-excel')) {
   document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
 }
-
 
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
