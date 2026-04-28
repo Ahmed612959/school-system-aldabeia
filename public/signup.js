@@ -85,8 +85,8 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 
     // التحقق من رقم الجلوس (1-7 أرقام)
-    if (!/^\d{1,7}$/.test(studentId)) {
-        showToast('رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط!', 'error');
+    if (!/^\d{1,4}$/.test(studentId)) {
+        showToast('رقم الجلوس يجب أن يكون من 1 إلى 4 أرقام فقط!', 'error');
         return;
     }
 
@@ -97,8 +97,8 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 
     // التحقق من صيغة اسم المستخدم
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        showToast('اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)!', 'error');
+    if (!/^[a-zA-Z0-9]{3,5}$/.test(username)) {
+        showToast('اسم المستخدم: 3-5 حرف (أحرف وأرقام فقط)!', 'error');
         return;
     }
 
