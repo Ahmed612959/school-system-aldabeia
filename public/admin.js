@@ -1020,8 +1020,7 @@ function renderMonthlyResults(results) {
 
 
 
-
-    window.analyzeExcel = async function() {
+window.analyzeExcel = async function() {
     const fileInput = document.getElementById('excel-upload');
     const resultsDisplay = document.getElementById('excel-results-display');
     if (!fileInput || !fileInput.files.length) {
@@ -1036,17 +1035,17 @@ function renderMonthlyResults(results) {
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1});
-
+    
             if (rows.length <= 1) {
                 showToast("الملف فارغ أو ناقص!", "error");
                 return;
             }
-
+    
             let added = 0, updated = 0;
             for (let i = 1; i < rows.length; i++) { // تخطي رؤوس الأعمدة
                 let row = rows[i];
                 if(!row[0] || !row[1]) continue; // لازم رقم جلوس واسم
-
+    
                 let student = {
                     fullName: row[1],
                     id: (row[0] + '').trim(),
@@ -1060,13 +1059,17 @@ function renderMonthlyResults(results) {
                         { name: "الدين", grade: parseFloat(row[8]) || 0 },
                     ]
                 };
-                // رفع/تحديث الطالب في السيرفر
+                // رفع/تحديث الطالب في السيرفر بدون عمل أي حساب دخول ولا كلمة مرور
                 const exist = students.find(s => s.id == student.id);
                 if (exist) {
                     await saveToServer(`/api/students/${student.id}`, { subjects: student.subjects }, 'PUT');
                     updated++;
                 } else {
-                    await saveToServer('/api/students', student);
+                    await saveToServer('/api/students', {
+                        fullName: student.fullName,
+                        id: student.id,
+                        subjects: student.subjects
+                    });
                     added++;
                 }
             }
@@ -1083,9 +1086,6 @@ function renderMonthlyResults(results) {
     };
     reader.readAsArrayBuffer(file);
 };
-if (document.getElementById('analyze-excel')) {
-  document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
-}
 
 
 window.deleteAllResults = async function() {
