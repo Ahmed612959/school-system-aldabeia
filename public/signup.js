@@ -98,7 +98,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
     // التحقق من صيغة اسم المستخدم
     if (!/^[a-zA-Z0-9]{3,6}$/.test(username)) {
-        showToast('اسم المستخدم: 3-5 حرف (أحرف وأرقام فقط)!', 'error');
+        showToast('اسم المستخدم: 3-6 حرف (أحرف وأرقام فقط)!', 'error');
         return;
     }
 
