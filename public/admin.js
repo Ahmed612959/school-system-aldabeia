@@ -1023,6 +1023,7 @@ function renderMonthlyResults(results) {
 // <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 
+// تعريف دالة تحليل الملف
 window.analyzeExcel = async function() {
     const fileInput = document.getElementById('excel-upload');
     if (!fileInput || !fileInput.files.length) {
@@ -1064,7 +1065,7 @@ window.analyzeExcel = async function() {
                         { name: "الدين", grade: parseFloat(row[8]) || 0 },
                     ]
                 };
-                await saveToServer('/api/students', student); // فقط رقم الجلوس والاسم والدرجات
+                await saveToServer('/api/students', student);
                 added++;
             }
             await loadInitialData();
@@ -1080,6 +1081,14 @@ window.analyzeExcel = async function() {
     };
     reader.readAsArrayBuffer(file);
 };
+
+// ربط الزر بالدالة عند تحميل الصفحة (خارج أي DOMContentLoaded لأقصى أمان)
+setTimeout(function() {
+    var btn = document.getElementById('analyze-excel');
+    if (btn) {
+        btn.onclick = window.analyzeExcel;
+    }
+}, 0);
 
 
 window.deleteAllResults = async function() {
