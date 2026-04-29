@@ -287,6 +287,17 @@ app.get('/api/students', async (req, res) => {
     }
 });
 
+// ✅ هنا ضيف راوت صفوف الطلاب الجديد
+app.get('/api/students/by-year/:year', async (req, res) => {
+    const { year } = req.params;
+    try {
+        const students = await Student.find({ year }); // جلب الطلاب من نفس الصف
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ error: 'خطأ في جلب الطلاب' });
+    }
+});
+
 app.post('/api/students', async (req, res) => {
     try {
         const { fullName, id, subjects, semester } = req.body;
