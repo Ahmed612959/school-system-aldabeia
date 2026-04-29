@@ -85,11 +85,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return;
     }
 
-    // التحقق من رقم الجلوس (1-7 أرقام)
-    if (!/^\d{1,4}$/.test(studentId)) {
-        showToast('رقم الجلوس يجب أن يكون من 1 إلى 4 أرقام فقط!', 'error');
-        return;
-    }
+
 
     // التحقق من رقم البطاقة (14 رقم بالظبط)
     if (parentId.length !== 14 || !/^\d{14}$/.test(parentId)) {
