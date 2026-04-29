@@ -134,8 +134,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     } catch (error) {
         console.error('خطأ في إنشاء الحساب:', error);
         const msg = error.message || '';
-        if (msg.includes('رقم الجلوس') || msg.includes('id')) {
-            showToast('رقم الجلوس مستخدم من قبل!', 'error');
+       
         } else if (msg.includes('Username')) {
             showToast('اسم المستخدم مستخدم من قبل!', 'error');
         } else if (msg.includes('parentId')) {
