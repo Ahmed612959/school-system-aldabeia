@@ -1019,7 +1019,11 @@ function renderMonthlyResults(results) {
 }
 
 
+// تأكد من هذا الرابط في <head> أو قبل أي سكريبت: 
+// <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 window.analyzeExcel = async function() {
+    console.log('تم استدعاء دالة تحليل الإكسل');
     const fileInput = document.getElementById('excel-upload');
     if (!fileInput || !fileInput.files.length) {
         showToast('يرجى اختيار ملف Excel!', 'error');
@@ -1032,6 +1036,7 @@ window.analyzeExcel = async function() {
     const reader = new FileReader();
     reader.onload = async function(e) {
         try {
+            console.log('نوع التحميل:', e.target.result.constructor.name);
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -1042,13 +1047,13 @@ window.analyzeExcel = async function() {
                 return;
             }
 
-            let added = 0, updated = 0;
-            for (let i = 1; i < rows.length; i++) { // تخطي رؤوس الأعمدة
+            let added = 0;
+            for (let i = 1; i < rows.length; i++) {
                 let row = rows[i];
                 if (!row[1]) continue; // لازم اسم فقط
-
+                console.log('قراءة صف:', row);
                 let student = {
-                    fullName: row[1], // فقط الاسم
+                    fullName: row[1],
                     subjects: [
                         { name: "اللغة العربية", grade: parseFloat(row[2]) || 0 },
                         { name: "اللغة الإنجليزية", grade: parseFloat(row[3]) || 0 },
@@ -1059,7 +1064,6 @@ window.analyzeExcel = async function() {
                         { name: "الدين", grade: parseFloat(row[8]) || 0 },
                     ]
                 };
-                // الحفظ دائماً إضافة (بدون أي check)، لأن ما عندكش رقم جلوس أو id فالتحديث صعب:
                 await saveToServer('/api/students', {
                     fullName: student.fullName,
                     subjects: student.subjects
@@ -1071,6 +1075,7 @@ window.analyzeExcel = async function() {
             renderStats();
             showToast(`تم تحليل وإضافة ${added} طالب بنجاح!`, 'success');
         } catch (err) {
+            console.error(err);
             showToast("حدث خطأ أثناء تحليل الملف: " + err.message, "error");
         }
     };
@@ -1079,6 +1084,11 @@ window.analyzeExcel = async function() {
     };
     reader.readAsArrayBuffer(file);
 };
+
+// ويجب ربط الزر (مرة واحدة فقط):
+if (document.getElementById('analyze-excel')) {
+  document.getElementById('analyze-excel').addEventListener('click', window.analyzeExcel);
+}
 
 
 
