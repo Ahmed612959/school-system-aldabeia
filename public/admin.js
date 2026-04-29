@@ -1021,7 +1021,6 @@ function renderMonthlyResults(results) {
 
 window.analyzeExcel = async function() {
     const fileInput = document.getElementById('excel-upload');
-    const resultsDisplay = document.getElementById('excel-results-display');
     if (!fileInput || !fileInput.files.length) {
         showToast('يرجى اختيار ملف Excel!', 'error');
         return;
@@ -1036,7 +1035,7 @@ window.analyzeExcel = async function() {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1});
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
             if (rows.length <= 1) {
                 showToast("الملف فارغ أو ناقص!", "error");
@@ -1046,11 +1045,10 @@ window.analyzeExcel = async function() {
             let added = 0, updated = 0;
             for (let i = 1; i < rows.length; i++) { // تخطي رؤوس الأعمدة
                 let row = rows[i];
-                if (!row[0] || !row[1]) continue; // لازم رقم جلوس واسم
+                if (!row[1]) continue; // لازم اسم فقط
 
                 let student = {
-                    fullName: row[1],
-                    id: (row[0] + '').trim(),
+                    fullName: row[1], // فقط الاسم
                     subjects: [
                         { name: "اللغة العربية", grade: parseFloat(row[2]) || 0 },
                         { name: "اللغة الإنجليزية", grade: parseFloat(row[3]) || 0 },
@@ -1061,27 +1059,17 @@ window.analyzeExcel = async function() {
                         { name: "الدين", grade: parseFloat(row[8]) || 0 },
                     ]
                 };
-                // أرسل فقط fullName/id/subjects بدون أي حقول حساب أو كلمة مرور!
-                const exist = students.find(s => s.id == student.id);
-                if (exist) {
-                    await saveToServer(`/api/students/${student.id}`, {
-                        fullName: student.fullName,
-                        subjects: student.subjects
-                    }, 'PUT');
-                    updated++;
-                } else {
-                    await saveToServer('/api/students', {
-                        fullName: student.fullName,
-                        id: student.id,
-                        subjects: student.subjects
-                    });
-                    added++;
-                }
+                // الحفظ دائماً إضافة (بدون أي check)، لأن ما عندكش رقم جلوس أو id فالتحديث صعب:
+                await saveToServer('/api/students', {
+                    fullName: student.fullName,
+                    subjects: student.subjects
+                });
+                added++;
             }
             await loadInitialData();
             renderResults();
             renderStats();
-            showToast(`تم تحليل ${added} طالب وإضافة ${updated} تحديث بنجاح!`, 'success');
+            showToast(`تم تحليل وإضافة ${added} طالب بنجاح!`, 'success');
         } catch (err) {
             showToast("حدث خطأ أثناء تحليل الملف: " + err.message, "error");
         }
