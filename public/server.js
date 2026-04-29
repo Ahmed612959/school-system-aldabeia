@@ -315,9 +315,7 @@ app.post('/api/students', async (req, res) => {
 
 app.put('/api/students/:id', async (req, res) => {
     try {
-        const { subjects, semester } = req.body;
-        const updateData = { subjects };
-        if (semester) updateData.semester = semester;
+        const updateData = req.body; // هذا الآن يسمح بتعديل أي بيانات تبعتها في البودي
         await Student.findOneAndUpdate({ id: req.params.id }, updateData, { new: true });
         res.json({ message: 'تم تحديث الطالب' });
     } catch (error) {
