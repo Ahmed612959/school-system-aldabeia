@@ -62,7 +62,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const fullName = document.getElementById('fullName').value.trim();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    const studentId = document.getElementById('studentId').value.replace(/\s/g, '').trim();
+    
     const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
     const parentId = document.getElementById('parentId').value.replace(/\s/g, '').trim();
@@ -76,7 +76,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         fullName === '' ||
         username === '' ||
         password === '' ||
-        studentId === '' ||
+        
         phone === '' ||
         parentName === '' ||
         parentId === ''
@@ -124,7 +124,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         const response = await saveToServer('/api/register-student', {
             fullName,
             username,
-            id: studentId,
+            
             phone,
             parentName,
             parentId,
