@@ -66,6 +66,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
     const parentId = document.getElementById('parentId').value.replace(/\s/g, '').trim();
+    const classGrade = document.getElementById('classGrade').value.trim();
 
     // إعادة تعيين رسائل الخطأ
     document.getElementById('username-availability').style.display = 'none';
