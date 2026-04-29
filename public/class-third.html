@@ -43,7 +43,7 @@
   </div>
   <script>
     async function fetchStudents() {
-      const res = await fetch('/api/students/by-year/first');
+      const res = await fetch('/api/students/by-year/third');
       const students = await res.json();
       const tbody = document.getElementById('students-body');
       tbody.innerHTML = '';
