@@ -38,11 +38,11 @@ const studentSchema = new mongoose.Schema({
     password: String,
     originalPassword: String,
   year: { 
-        type: String, 
-        enum: ['first', 'second'], 
-        required: true,
-        default: 'first'
-    },
+  type: String, 
+  enum: ['first', 'second', 'third'], 
+  required: true,
+  default: 'first'
+}
     semester: { type: String, enum: ['first', 'second'], default: 'first' },
     subjects: [{ name: String, grade: Number }],
     profile: {
