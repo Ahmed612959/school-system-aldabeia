@@ -133,9 +133,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
     } catch (error) {
         console.error('خطأ في إنشاء الحساب:', error);
-        const msg = error.message || '';
-       
-        } else if (msg.includes('Username')) {
+         } else if (msg.includes('Username')) {
             showToast('اسم المستخدم مستخدم من قبل!', 'error');
         } else if (msg.includes('parentId')) {
             showToast('رقم بطاقة ولي الأمر مستخدم من قبل!', 'error');
