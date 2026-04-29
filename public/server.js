@@ -683,11 +683,12 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
+        const { fullName, username, id, phone, parentName, parentId, password, year } = req.body;
 
         // التحقق من الحقول الجديدة فقط
-        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
-            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+        
++       if (!fullName || !username || !id || !phone || !parentName || !parentId || !password || !year) {
++           return res.status(400).json({ error: 'جميع الحقول مطلوبة مع اختيار الصف الدراسي' });
         }
 
         // التحقق من رقم الجلوس (1-7 أرقام)
@@ -740,6 +741,7 @@ app.post('/api/register-student', async (req, res) => {
             subjects: [],
             profile: {
                 phone,
+              year, // <=== أضف هنا حفظ الصف الدراسي
                 parentName,
                 parentId
             }
