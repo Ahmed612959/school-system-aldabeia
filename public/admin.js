@@ -1019,7 +1019,6 @@ function renderMonthlyResults(results) {
 }
 
 
-
 window.analyzeExcel = async function() {
     const fileInput = document.getElementById('excel-upload');
     const resultsDisplay = document.getElementById('excel-results-display');
@@ -1028,6 +1027,9 @@ window.analyzeExcel = async function() {
         return;
     }
     const file = fileInput.files[0];
+
+    showToast('جاري تحليل الملف...', 'info');
+
     const reader = new FileReader();
     reader.onload = async function(e) {
         try {
@@ -1035,17 +1037,17 @@ window.analyzeExcel = async function() {
             const workbook = XLSX.read(data, { type: 'array' });
             const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
             const rows = XLSX.utils.sheet_to_json(firstSheet, {header:1});
-    
+
             if (rows.length <= 1) {
                 showToast("الملف فارغ أو ناقص!", "error");
                 return;
             }
-    
+
             let added = 0, updated = 0;
             for (let i = 1; i < rows.length; i++) { // تخطي رؤوس الأعمدة
                 let row = rows[i];
-                if(!row[0] || !row[1]) continue; // لازم رقم جلوس واسم
-    
+                if (!row[0] || !row[1]) continue; // لازم رقم جلوس واسم
+
                 let student = {
                     fullName: row[1],
                     id: (row[0] + '').trim(),
@@ -1059,10 +1061,13 @@ window.analyzeExcel = async function() {
                         { name: "الدين", grade: parseFloat(row[8]) || 0 },
                     ]
                 };
-                // رفع/تحديث الطالب في السيرفر بدون عمل أي حساب دخول ولا كلمة مرور
+                // أرسل فقط fullName/id/subjects بدون أي حقول حساب أو كلمة مرور!
                 const exist = students.find(s => s.id == student.id);
                 if (exist) {
-                    await saveToServer(`/api/students/${student.id}`, { subjects: student.subjects }, 'PUT');
+                    await saveToServer(`/api/students/${student.id}`, {
+                        fullName: student.fullName,
+                        subjects: student.subjects
+                    }, 'PUT');
                     updated++;
                 } else {
                     await saveToServer('/api/students', {
@@ -1086,6 +1091,7 @@ window.analyzeExcel = async function() {
     };
     reader.readAsArrayBuffer(file);
 };
+
 
 
 window.deleteAllResults = async function() {
