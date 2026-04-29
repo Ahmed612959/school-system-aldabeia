@@ -1105,7 +1105,7 @@ if (document.getElementById('delete-all-results')) {
     document.getElementById('delete-all-results').addEventListener('click', window.deleteAllResults);
 }
 
-   
+
 
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
