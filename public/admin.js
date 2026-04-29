@@ -1117,17 +1117,7 @@ if (document.getElementById('delete-all-results')) {
     document.getElementById('delete-all-results').addEventListener('click', window.deleteAllResults);
 }
 
-    <script>
-  const btn = document.getElementById('admin-menu-btn');
-  const sidebar = document.getElementById('sidebar-links');
-  btn.onclick = function() {
-    sidebar.style.display = sidebar.style.display === "block" ? "none" : "block";
-  };
-  // إغلق القائمة عند الضغط في أي مكان خارجها
-  document.addEventListener('click', e=>{
-    if (!btn.contains(e.target) && !sidebar.contains(e.target)) sidebar.style.display='none';
-  });
-</script>
+   
 
 // استدعاء دالة إنشاء الواجهة عند التحميل
 renderQuestionInputs();
