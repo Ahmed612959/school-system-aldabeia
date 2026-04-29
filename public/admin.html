@@ -1,24 +1,37 @@
-<!-- أيقونة القائمة الجانبية للهامبرجر -->
-<div style="position:relative;">
-  <span id="admin-menu-btn" style="font-size:2em;cursor:pointer;">&#9776;</span>
-  <!-- القائمة الجانبية -->
-  <nav id="sidebar-links" style="
-      display:none; position: absolute; top: 40px; right: 0;
-      background: #fff; border: 1px solid #ccc; border-radius: 8px;
-      box-shadow: 0 5px 32px #0003; z-index: 50; min-width: 200px;">
-    <ul style="list-style:none;padding:0;margin:0;">
-      <li><a href="class-first.html" style="display:block;padding:12px 18px;color:#0077bb;text-decoration:none;">طلاب الصف الأول</a></li>
-      <li><a href="class-second.html" style="display:block;padding:12px 18px;color:#0077bb;text-decoration:none;">طلاب الصف الثاني</a></li>
-      <li><a href="class-third.html" style="display:block;padding:12px 18px;color:#0077bb;text-decoration:none;">طلاب الصف الثالث</a></li>
-    </ul>
-  </nav>
-</div>
-
-
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+
+  <style>
+  #class-buttons-bar {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+    margin-bottom: 28px;
+  }
+  .class-btn {
+    padding: 12px 28px;
+    background: linear-gradient(90deg, #06B2FB, #0575E6);
+    color: #fff;
+    border: none;
+    border-radius: 22px;
+    font-size: 1.15em;
+    font-weight: bold;
+    text-decoration: none;
+    box-shadow: 0 4px 18px #0575e664;
+    transition: transform .13s, box-shadow .13s, background .22s;
+    cursor: pointer;
+  }
+  .class-btn:hover {
+    background: linear-gradient(90deg,#0575E6,#06B2FB);
+    transform: scale(1.07);
+    color: #fff;
+    box-shadow: 0 8px 32px #0575e666;
+    text-decoration: none;
+  }
+  </style>
+  
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no">
     <title>لوحة تحكم الأدمن - معهد رعاية الضبعية</title>
@@ -33,6 +46,12 @@
   
 </head>
 <body>
+  
+  <div id="class-buttons-bar" style="width:100%; text-align:center; margin: 30px 0 25px 0;">
+  <a href="class-first.html" class="class-btn">الصف الأول</a>
+  <a href="class-second.html" class="class-btn">الصف الثاني</a>
+  <a href="class-third.html" class="class-btn">الصف الثالث</a>
+  </div>
 
 <!-- الخلفية الداكنة -->
 <div class="overlay" id="overlay"></div>
