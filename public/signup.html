@@ -51,6 +51,15 @@
     <input type="text" id="parentId" name="parentId" inputmode="numeric" maxlength="14" placeholder="14 رقم بدون مسافات" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 </div>
 
+                <label for="classGrade">الصف الدراسي:</label>
+<select id="classGrade" name="classGrade" required>
+  <option value="">اختر الصف</option>
+  <option value="الاول">الأول</option>
+  <option value="الثاني">الثاني</option>
+  <option value="الثالث">الثالث</option> 
+  <!-- أضف باقي الصفوف حسب الحاجة -->
+</select>
+
                 <button type="submit" class="submit-btn">إنشاء الحساب</button>
 
                 <p style="text-align: center; margin-top: 15px;">
