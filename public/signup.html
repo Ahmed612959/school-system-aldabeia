@@ -31,7 +31,10 @@
                     <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
                 </div>
 
-                
+                <div class="input-group">
+                    <label for="studentId">رقم الجلوس</label>
+                    <input type="text" id="studentId" name="studentId" inputmode="numeric" maxlength="7" placeholder="من 1 إلى 7 أرقام" required>
+                </div>
 
                 <div class="input-group">
                     <label for="phone">رقم الهاتف</label>
@@ -47,15 +50,6 @@
     <label for="parentId">رقم بطاقة ولي الأمر</label>
     <input type="text" id="parentId" name="parentId" inputmode="numeric" maxlength="14" placeholder="14 رقم بدون مسافات" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 </div>
-
-                <label for="classGrade">الصف الدراسي:</label>
-<select id="classGrade" name="classGrade" required>
-  <option value="">اختر الصف</option>
-  <option value="الاول">الأول</option>
-  <option value="الثاني">الثاني</option>
-  <option value="الثالث">الثالث</option> 
-  <!-- أضف باقي الصفوف حسب الحاجة -->
-</select>
 
                 <button type="submit" class="submit-btn">إنشاء الحساب</button>
 
