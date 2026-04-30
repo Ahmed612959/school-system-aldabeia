@@ -100,20 +100,24 @@ app.post('/api/register-student', async (req, res) => {
         console.log("REQ BODY:", req.body);
 
         // ✅ validation الصحيح
-        if (
-            !fullName?.trim() ||
-            !username?.trim() ||
-            !phone?.trim() ||
-            !parentName?.trim() ||
-            !parentId?.trim() ||
-            !password ||
-            !year
-        ) {
-            return res.status(400).json({
-                error: 'Missing fields',
-                debug: req.body
-            });
-        }
+        const requiredFields = {
+    fullName,
+    username,
+    phone,
+    parentName,
+    parentId,
+    password,
+    year
+};
+
+for (const [key, value] of Object.entries(requiredFields)) {
+    if (value === undefined || value === null || String(value).trim() === "") {
+        return res.status(400).json({
+            error: `Missing field: ${key}`,
+            debug: req.body
+        });
+    }
+}
 
         const exists = await Student.findOne({ username });
         if (exists) {
