@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const crypto = require('crypto');
-const serverless = require('serverless-http');
+
 
 const app = express();
 
@@ -269,4 +269,4 @@ app.delete('/api/violations/:id', async (req, res) => {
 });
 
 // ================= EXPORT =================
-module.exports.handler = serverless(app);
+module.exports = app;
