@@ -89,8 +89,24 @@ app.get('/api/students/:username', async (req, res) => {
 });
 
 // ================= REGISTER =================
+
 app.post('/api/register-student', async (req, res) => {
     try {
+
+        // ✅ الحل السحري
+        let body = req.body;
+
+        // لو جاي string نحوله
+        if (typeof body === "string") {
+            try {
+                body = JSON.parse(body);
+            } catch {
+                return res.status(400).json({ error: "Invalid JSON" });
+            }
+        }
+
+        console.log("🔥 BODY AFTER FIX:", body);
+
         const {
             fullName,
             username,
@@ -99,9 +115,7 @@ app.post('/api/register-student', async (req, res) => {
             parentId,
             password,
             year
-        } = req.body;
-
-        console.log("BODY RECEIVED:", req.body);
+        } = body;
 
         // ================= VALIDATION =================
         const requiredFields = {
@@ -118,7 +132,7 @@ app.post('/api/register-student', async (req, res) => {
             if (value === undefined || value === null || String(value).trim() === "") {
                 return res.status(400).json({
                     error: `Missing field: ${key}`,
-                    debug: req.body
+                    debug: body
                 });
             }
         }
@@ -157,6 +171,7 @@ app.post('/api/register-student', async (req, res) => {
         });
     }
 });
+        
 
 // ================= UPDATE STUDENT (SAFE) =================
 app.put('/api/students/:username', async (req, res) => {
