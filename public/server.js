@@ -87,14 +87,38 @@ app.get('/api/students/:username', async (req, res) => {
 // REGISTER
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, phone, parentName, parentId, password, year } = req.body;
+        const {
+            fullName,
+            username,
+            phone,
+            parentName,
+            parentId,
+            password,
+            year
+        } = req.body;
 
-        if (!fullName || !username || !phone || !parentName || !parentId || !password) {
-            return res.status(400).json({ error: 'Missing fields' });
+        console.log("REQ BODY:", req.body);
+
+        // ✅ validation الصحيح
+        if (
+            !fullName?.trim() ||
+            !username?.trim() ||
+            !phone?.trim() ||
+            !parentName?.trim() ||
+            !parentId?.trim() ||
+            !password ||
+            !year
+        ) {
+            return res.status(400).json({
+                error: 'Missing fields',
+                debug: req.body
+            });
         }
 
         const exists = await Student.findOne({ username });
-        if (exists) return res.status(400).json({ error: 'Username exists' });
+        if (exists) {
+            return res.status(400).json({ error: 'Username exists' });
+        }
 
         const student = new Student({
             fullName,
@@ -102,17 +126,23 @@ app.post('/api/register-student', async (req, res) => {
             phone,
             parentName,
             parentId,
-            year: year || 'first',
+            year,
             password: hash(password),
             originalPassword: password,
             subjects: []
         });
 
         await student.save();
-        res.json({ message: 'Registered successfully' });
+
+        res.json({
+            message: 'Registered successfully',
+            student
+        });
 
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({
+            error: err.message
+        });
     }
 });
 
