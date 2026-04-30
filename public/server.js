@@ -100,7 +100,7 @@ app.post('/api/register-student', async (req, res) => {
             year
         } = req.body;
 
-        console.log("REQ BODY:", req.body);
+        console.log("BODY RECEIVED:", req.body);
 
         // ================= VALIDATION =================
         const requiredFields = {
