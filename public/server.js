@@ -33,7 +33,7 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    id: String,
+    
     username: String,
     password: String,
     originalPassword: String,
@@ -90,26 +90,7 @@ const monthlyResultSchema = new mongoose.Schema({
 const MonthlyResult = mongoose.model('MonthlyResult', monthlyResultSchema);
 
 
-// نموذج السنة الدراسية
-const yearSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true }, // مثل 'first' أو 'second'
-    subjects: [{
-        name: { type: String, required: true },
-        semester: { type: String, enum: ['first_only', 'second_only', 'both'], required: true },
-        maxGrade: { type: Number, required: true, min: 1 }
-    }]
-});
-const Year = mongoose.model('Year', yearSchema);
 
-// Routes لإدارة السنوات
-app.get('/api/years', async (req, res) => {
-    try {
-        const years = await Year.find();
-        res.json(years);
-    } catch (error) {
-        res.status(500).json({ error: 'خطأ في جلب السنوات' });
-    }
-});
 
 
 app.post('/api/get-first-year-result', async (req, res) => {
@@ -300,7 +281,7 @@ app.get('/api/students/by-year/:year', async (req, res) => {
 
 app.post('/api/students', async (req, res) => {
     try {
-        const { fullName, id, subjects, semester } = req.body;
+        const { fullName, subjects, semester } = req.body;
         const existingAdmins = await Admin.find();
         const existingStudents = await Student.find();
         const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
@@ -308,7 +289,7 @@ app.post('/api/students', async (req, res) => {
         const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
         const newStudent = new Student({
             fullName,
-            id,
+            
             username,
             password: hashedPassword,
             originalPassword,
@@ -324,27 +305,7 @@ app.post('/api/students', async (req, res) => {
     }
 });
 
-app.put('/api/students/:id', async (req, res) => {
-    try {
-        const updateData = req.body; // هذا الآن يسمح بتعديل أي بيانات تبعتها في البودي
-        await Student.findOneAndUpdate({ id: req.params.id }, updateData, { new: true });
-        res.json({ message: 'تم تحديث الطالب' });
-    } catch (error) {
-        console.error('خطأ في تحديث الطالب:', error);
-        res.status(500).json({ error: 'خطأ في تحديث الطالب' });
-    }
-});
 
-app.delete('/api/students/:id', async (req, res) => {
-    try {
-        await Student.deleteOne({ id: req.params.id });
-        await Violation.deleteMany({ studentId: req.params.id });
-        res.json({ message: 'تم حذف الطالب' });
-    } catch (error) {
-        console.error('خطأ في حذف الطالب:', error);
-        res.status(500).json({ error: 'خطأ في حذف الطالب' });
-    }
-});
 
 app.get('/api/violations', async (req, res) => {
     try {
@@ -556,7 +517,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
                 const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
                 student = new Student({
                     fullName: currentStudent.fullName,
-                    id: currentStudent.id,
+                
                     username,
                     password: hashedPassword,
                     originalPassword,
