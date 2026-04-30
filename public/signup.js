@@ -1,3 +1,4 @@
+
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
 
@@ -28,7 +29,7 @@ async function saveToServer(endpoint, data) {
     const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        body: JSON.stringify(data || {})
     });
 
     const result = await res.json();
@@ -52,18 +53,18 @@ async function checkUsernameAvailability(username) {
 }
 
 // ================= SIGNUP =================
-
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fullName = document.getElementById('fullName').value.trim();
-    const username = document.getElementById('username').value.trim().toLowerCase();
-    const password = document.getElementById('password').value;
-    const phone = document.getElementById('phone').value.trim();
-    const parentName = document.getElementById('parentName').value.trim();
-    const parentId = document.getElementById('parentId').value.trim();
-    const year = document.getElementById('year').value;
+    const fullName = document.getElementById('fullName')?.value?.trim() || "";
+    const username = document.getElementById('username')?.value?.trim().toLowerCase() || "";
+    const password = document.getElementById('password')?.value || "";
+    const phone = document.getElementById('phone')?.value?.trim() || "";
+    const parentName = document.getElementById('parentName')?.value?.trim() || "";
+    const parentId = document.getElementById('parentId')?.value?.trim() || "";
+    const year = document.getElementById('year')?.value || "";
 
+    // ================= VALIDATION =================
     if (!fullName || !username || !password || !phone || !parentName || !parentId || !year) {
         return showToast('يرجى ملء جميع الحقول!', 'error');
     }
@@ -71,18 +72,22 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     try {
         showToast('جاري إنشاء الحساب...', 'info');
 
+        const payload = {
+            fullName,
+            username,
+            password,
+            phone,
+            parentName,
+            parentId,
+            year
+        };
+
+        console.log("SENDING:", payload);
+
         const res = await fetch('/api/register-student', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                fullName,
-                username,
-                password,
-                phone,
-                parentName,
-                parentId,
-                year
-            })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();
@@ -98,18 +103,21 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         }, 1500);
 
     } catch (err) {
+        console.error(err);
         showToast(err.message, 'error');
     }
 });
 
-// ================= LIVE CHECK =================
+// ================= LIVE USERNAME CHECK =================
 let timer;
 
 document.getElementById('username')?.addEventListener('input', (e) => {
-    const username = e.target.value.trim();
+    const username = e.target.value.trim().toLowerCase();
     const span = document.getElementById('username-availability');
 
     clearTimeout(timer);
+
+    if (!span) return;
 
     if (username.length < 3) {
         span.style.display = 'block';
@@ -123,9 +131,15 @@ document.getElementById('username')?.addEventListener('input', (e) => {
     span.textContent = 'جاري التحقق...';
 
     timer = setTimeout(async () => {
-        const ok = await checkUsernameAvailability(username);
+        try {
+            const ok = await checkUsernameAvailability(username);
 
-        span.style.color = ok ? 'green' : 'red';
-        span.textContent = ok ? 'متاح ✓' : 'غير متاح ✗';
+            span.style.color = ok ? 'green' : 'red';
+            span.textContent = ok ? 'متاح ✓' : 'غير متاح ✗';
+
+        } catch (err) {
+            span.style.color = 'red';
+            span.textContent = 'خطأ في التحقق';
+        }
     }, 400);
 });
