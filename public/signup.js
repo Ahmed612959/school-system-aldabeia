@@ -1,4 +1,3 @@
-
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
 
@@ -25,76 +24,68 @@ function showToast(message, type = 'error') {
 }
 
 // ================= API =================
-async function saveToServer(endpoint, data) {
-    const res = await fetch(endpoint, {
+async function registerStudent(data) {
+    console.log("📦 DATA SENT:", data);
+
+    const res = await fetch('/api/register-student', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data || {})
+        headers: { 
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
     });
 
-    const result = await res.json();
+    const text = await res.text(); // مهم جدًا للتشخيص
+
+    let result;
+    try {
+        result = JSON.parse(text);
+    } catch {
+        console.error("❌ Invalid JSON:", text);
+        throw new Error("Server returned invalid response");
+    }
 
     if (!res.ok) {
+        console.error("❌ SERVER ERROR:", result);
         throw new Error(result.error || 'Server Error');
     }
 
     return result;
 }
 
-async function checkUsernameAvailability(username) {
-    const res = await fetch('/api/check-username', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-    });
-
-    const data = await res.json();
-    return data.available;
-}
-
 // ================= SIGNUP =================
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fullName = document.getElementById('fullName')?.value?.trim() || "";
-    const username = document.getElementById('username')?.value?.trim().toLowerCase() || "";
-    const password = document.getElementById('password')?.value || "";
-    const phone = document.getElementById('phone')?.value?.trim() || "";
-    const parentName = document.getElementById('parentName')?.value?.trim() || "";
-    const parentId = document.getElementById('parentId')?.value?.trim() || "";
-    const year = document.getElementById('year')?.value || "";
+    const fullName = document.getElementById('fullName').value.trim();
+    const username = document.getElementById('username').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+    const phone = document.getElementById('phone').value.trim();
+    const parentName = document.getElementById('parentName').value.trim();
+    const parentId = document.getElementById('parentId').value.trim();
+    const year = document.getElementById('year').value;
 
-    // ================= VALIDATION =================
-    if (!fullName || !username || !password || !phone || !parentName || !parentId || !year) {
+    const data = {
+        fullName,
+        username,
+        password,
+        phone,
+        parentName,
+        parentId,
+        year
+    };
+
+    console.log("🧾 FORM DATA:", data);
+
+    // validation قوي
+    if (Object.values(data).some(v => !v)) {
         return showToast('يرجى ملء جميع الحقول!', 'error');
     }
 
     try {
         showToast('جاري إنشاء الحساب...', 'info');
 
-        const payload = {
-            fullName,
-            username,
-            password,
-            phone,
-            parentName,
-            parentId,
-            year
-        };
-
-        console.log("SENDING:", payload);
-
-        const res = await fetch('/api/register-student', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-            throw new Error(data.error || 'خطأ في التسجيل');
-        }
+        await registerStudent(data);
 
         showToast('تم إنشاء الحساب بنجاح!', 'success');
 
@@ -103,43 +94,6 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         }, 1500);
 
     } catch (err) {
-        console.error(err);
         showToast(err.message, 'error');
     }
-});
-
-// ================= LIVE USERNAME CHECK =================
-let timer;
-
-document.getElementById('username')?.addEventListener('input', (e) => {
-    const username = e.target.value.trim().toLowerCase();
-    const span = document.getElementById('username-availability');
-
-    clearTimeout(timer);
-
-    if (!span) return;
-
-    if (username.length < 3) {
-        span.style.display = 'block';
-        span.style.color = 'red';
-        span.textContent = 'قصير جدًا';
-        return;
-    }
-
-    span.style.display = 'block';
-    span.style.color = 'orange';
-    span.textContent = 'جاري التحقق...';
-
-    timer = setTimeout(async () => {
-        try {
-            const ok = await checkUsernameAvailability(username);
-
-            span.style.color = ok ? 'green' : 'red';
-            span.textContent = ok ? 'متاح ✓' : 'غير متاح ✗';
-
-        } catch (err) {
-            span.style.color = 'red';
-            span.textContent = 'خطأ في التحقق';
-        }
-    }, 400);
 });
