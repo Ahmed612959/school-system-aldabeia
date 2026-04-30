@@ -2,27 +2,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const pdfParse = require('pdf-parse');
 const crypto = require('crypto');
 const serverless = require('serverless-http');
-const fileUpload = require('express-fileupload');
 
 const app = express();
 
 // ================= MIDDLEWARE =================
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
-app.use(fileUpload());
-app.use(express.static('public'));
 
 // ================= DB =================
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-    console.error('MONGODB_URI missing');
-    process.exit(1);
-}
-
-mongoose.connect(uri)
+mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))
     .catch(err => console.error(err));
 
@@ -35,42 +25,23 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    username: String,
+    username: { type: String, unique: true },
     password: String,
     originalPassword: String,
 
-    year: {
-        type: String,
-        enum: ['first', 'second', 'third'],
-        default: 'first'
-    },
+    phone: String,
+    parentName: String,
+    parentId: String,
 
-    semester: {
-        type: String,
-        default: 'first'
-    },
+    year: String,
+    semester: String,
 
-    subjects: [{ name: String, grade: Number }],
-
-    profile: {
-        phone: String,
-        parentName: String,
-        parentId: String
-    }
-});
-
-const monthlyResultSchema = new mongoose.Schema({
-    studentName: String,
-    studentCode: String,
-    subject: String,
-    grade: Number,
-    month: String,
-    uploadDate: { type: Date, default: Date.now }
-});
-
-const yearSchema = new mongoose.Schema({
-    name: String,
-    subjects: [String]
+    subjects: [
+        {
+            name: String,
+            grade: Number
+        }
+    ]
 });
 
 const notificationSchema = new mongoose.Schema({
@@ -79,7 +50,7 @@ const notificationSchema = new mongoose.Schema({
 });
 
 const violationSchema = new mongoose.Schema({
-    studentId: String,
+    studentUsername: String,
     type: String,
     reason: String,
     penalty: String,
@@ -90,72 +61,35 @@ const violationSchema = new mongoose.Schema({
 // ================= MODELS =================
 const Admin = mongoose.model('Admin', adminSchema);
 const Student = mongoose.model('Student', studentSchema);
-const MonthlyResult = mongoose.model('MonthlyResult', monthlyResultSchema);
-const Year = mongoose.model('Year', yearSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 const Violation = mongoose.model('Violation', violationSchema);
 
 // ================= HELPERS =================
-function generateUsername(name) {
-    return name.toLowerCase().replace(/\s+/g, '').slice(0, 12);
-}
-
-function generatePassword(name) {
-    const first = name.split(' ')[0];
-    return first.charAt(0).toUpperCase() + first.slice(1) + "1234@";
+function hash(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
 }
 
 // ================= STUDENTS =================
+
+// GET ALL
 app.get('/api/students', async (req, res) => {
-    res.json(await Student.find());
+    const data = await Student.find();
+    res.json(data);
 });
 
+// GET ONE
 app.get('/api/students/:username', async (req, res) => {
     const student = await Student.findOne({ username: req.params.username });
     if (!student) return res.status(404).json({ error: 'Not found' });
     res.json(student);
 });
 
-app.post('/api/students', async (req, res) => {
-    try {
-        const { fullName, year, semester, subjects } = req.body;
-
-        const username = generateUsername(fullName);
-        const password = generatePassword(fullName);
-
-        const student = new Student({
-            fullName,
-            username,
-            password: crypto.createHash('sha256').update(password).digest('hex'),
-            originalPassword: password,
-            year,
-            semester,
-            subjects: subjects || [],
-            profile: {}
-        });
-
-        await student.save();
-        res.json({ message: 'Student created', student });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
-
-// ================= REGISTER =================
+// REGISTER
 app.post('/api/register-student', async (req, res) => {
     try {
-        const {
-            fullName,
-            username,
-            phone,
-            parentName,
-            parentId,
-            password,
-            year
-        } = req.body;
+        const { fullName, username, phone, parentName, parentId, password, year } = req.body;
 
-        if (!fullName || !username || !phone || !parentName || !parentId || !password || !year) {
+        if (!fullName || !username || !phone || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'Missing fields' });
         }
 
@@ -165,15 +99,13 @@ app.post('/api/register-student', async (req, res) => {
         const student = new Student({
             fullName,
             username,
-            year,
-            password: crypto.createHash('sha256').update(password).digest('hex'),
+            phone,
+            parentName,
+            parentId,
+            year: year || 'first',
+            password: hash(password),
             originalPassword: password,
-            subjects: [],
-            profile: {
-                phone,
-                parentName,
-                parentId
-            }
+            subjects: []
         });
 
         await student.save();
@@ -184,24 +116,44 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
-// ================= CHECK USERNAME =================
+// UPDATE STUDENT (بدون ID)
+app.put('/api/students/:username', async (req, res) => {
+    const student = await Student.findOneAndUpdate(
+        { username: req.params.username },
+        { $set: req.body },
+        { new: true }
+    );
+
+    res.json(student);
+});
+
+// DELETE STUDENT
+app.delete('/api/students/:username', async (req, res) => {
+    await Student.findOneAndDelete({ username: req.params.username });
+    res.json({ success: true });
+});
+
+// ================= USERNAME CHECK =================
 app.post('/api/check-username', async (req, res) => {
     const { username } = req.body;
-
-    const exists = await Student.findOne({ username }) || await Admin.findOne({ username });
-
+    const exists = await Student.findOne({ username });
     res.json({ available: !exists });
 });
 
-// ================= YEARS =================
-app.post('/api/years', async (req, res) => {
-    const y = new Year(req.body);
-    await y.save();
-    res.json(y);
+// ================= ADMIN =================
+app.post('/api/admins', async (req, res) => {
+    const admin = new Admin(req.body);
+    await admin.save();
+    res.json(admin);
 });
 
-app.get('/api/years', async (req, res) => {
-    res.json(await Year.find());
+app.get('/api/admins', async (req, res) => {
+    res.json(await Admin.find());
+});
+
+app.delete('/api/admins/:username', async (req, res) => {
+    await Admin.findOneAndDelete({ username: req.params.username });
+    res.json({ success: true });
 });
 
 // ================= NOTIFICATIONS =================
@@ -215,6 +167,11 @@ app.get('/api/notifications', async (req, res) => {
     res.json(await Notification.find());
 });
 
+app.delete('/api/notifications/:id', async (req, res) => {
+    await Notification.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+});
+
 // ================= VIOLATIONS =================
 app.post('/api/violations', async (req, res) => {
     const v = new Violation(req.body);
@@ -222,41 +179,13 @@ app.post('/api/violations', async (req, res) => {
     res.json(v);
 });
 
-// ================= MONTHLY RESULTS =================
-app.post('/api/analyze-monthly', async (req, res) => {
-    try {
-        const file = req.files?.file;
-        const { month } = req.body;
+app.get('/api/violations', async (req, res) => {
+    res.json(await Violation.find());
+});
 
-        if (!file) return res.status(400).json({ error: 'No file' });
-
-        const pdf = await pdfParse(file.data);
-        const lines = pdf.text.split('\n');
-
-        const results = [];
-
-        for (let line of lines) {
-            const match = line.match(/(.+):\s*(\d+)/);
-
-            if (match) {
-                const data = {
-                    studentName: "Unknown",
-                    studentCode: "N/A",
-                    subject: match[1].trim(),
-                    grade: parseInt(match[2]),
-                    month
-                };
-
-                await MonthlyResult.create(data);
-                results.push(data);
-            }
-        }
-
-        res.json({ success: true, results });
-
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+app.delete('/api/violations/:id', async (req, res) => {
+    await Violation.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
 });
 
 // ================= EXPORT =================
