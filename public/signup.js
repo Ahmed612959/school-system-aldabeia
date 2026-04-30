@@ -23,30 +23,23 @@ function showToast(message, type = 'error') {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ================= API =================
+// ================= REGISTER API =================
 async function registerStudent(data) {
-    console.log("📦 DATA SENT:", data);
+    console.log("📦 FINAL DATA SENT:", data);
 
     const res = await fetch('/api/register-student', {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(data)
     });
 
-    const text = await res.text(); // مهم جدًا للتشخيص
+    const result = await res.json();
 
-    let result;
-    try {
-        result = JSON.parse(text);
-    } catch {
-        console.error("❌ Invalid JSON:", text);
-        throw new Error("Server returned invalid response");
-    }
+    console.log("📩 SERVER RESPONSE:", result);
 
     if (!res.ok) {
-        console.error("❌ SERVER ERROR:", result);
         throw new Error(result.error || 'Server Error');
     }
 
@@ -65,6 +58,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const parentId = document.getElementById('parentId').value.trim();
     const year = document.getElementById('year').value;
 
+    // 🔥 مهم جدًا: لازم كل الحقول تبقى موجودة
     const data = {
         fullName,
         username,
@@ -78,7 +72,15 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     console.log("🧾 FORM DATA:", data);
 
     // validation قوي
-    if (Object.values(data).some(v => !v)) {
+    if (
+        !fullName ||
+        !username ||
+        !password ||
+        !phone ||
+        !parentName ||
+        !parentId ||
+        !year
+    ) {
         return showToast('يرجى ملء جميع الحقول!', 'error');
     }
 
@@ -96,4 +98,53 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     } catch (err) {
         showToast(err.message, 'error');
     }
+});
+
+// ================= LIVE USERNAME CHECK =================
+let timer;
+
+document.getElementById('username')?.addEventListener('input', (e) => {
+    const username = e.target.value.trim();
+    const span = document.getElementById('username-availability');
+
+    clearTimeout(timer);
+
+    if (!username) {
+        span.style.display = 'none';
+        return;
+    }
+
+    if (username.length < 3) {
+        span.style.display = 'block';
+        span.style.color = 'red';
+        span.textContent = 'قصير جدًا';
+        return;
+    }
+
+    span.style.display = 'block';
+    span.style.color = 'orange';
+    span.textContent = 'جاري التحقق...';
+
+    timer = setTimeout(async () => {
+        try {
+            const res = await fetch('/api/check-username', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await res.json();
+
+            const ok = data.available;
+
+            span.style.color = ok ? 'green' : 'red';
+            span.textContent = ok ? 'متاح ✓' : 'غير متاح ✗';
+
+        } catch (err) {
+            span.style.color = 'red';
+            span.textContent = 'خطأ في التحقق';
+        }
+    }, 400);
 });
