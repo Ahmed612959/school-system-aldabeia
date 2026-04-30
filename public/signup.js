@@ -52,63 +52,46 @@ async function checkUsernameAvailability(username) {
 }
 
 // ================= SIGNUP =================
+
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const fullName = document.getElementById('fullName').value.trim();
-    const username = document.getElementById('username').value.trim();
+    const username = document.getElementById('username').value.trim().toLowerCase();
     const password = document.getElementById('password').value;
     const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
     const parentId = document.getElementById('parentId').value.trim();
     const year = document.getElementById('year').value;
 
-    const span = document.getElementById('username-availability');
-
-    // ===== validation =====
-    if (
-        !fullName ||
-        !username ||
-        !password ||
-        !phone ||
-        !parentName ||
-        !parentId ||
-        !year
-    ) {
-        return showToast('من فضلك املأ جميع الحقول', 'error');
-    }
-
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        return showToast('اسم المستخدم 3-20 حرف وأرقام فقط', 'error');
-    }
-
-    if (!/^\d{14}$/.test(parentId)) {
-        return showToast('رقم البطاقة يجب أن يكون 14 رقم', 'error');
+    if (!fullName || !username || !password || !phone || !parentName || !parentId || !year) {
+        return showToast('يرجى ملء جميع الحقول!', 'error');
     }
 
     try {
-        showToast('جاري التحقق...', 'info');
+        showToast('جاري إنشاء الحساب...', 'info');
 
-        const available = await checkUsernameAvailability(username);
-
-        if (!available) {
-            span.style.display = 'block';
-            span.style.color = 'red';
-            span.textContent = 'اسم المستخدم مستخدم';
-            return showToast('اسم المستخدم غير متاح', 'error');
-        }
-
-        const result = await saveToServer('/api/register-student', {
-            fullName,
-            username,
-            password,
-            phone,
-            parentName,
-            parentId,
-            year
+        const res = await fetch('/api/register-student', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fullName,
+                username,
+                password,
+                phone,
+                parentName,
+                parentId,
+                year
+            })
         });
 
-        showToast('تم إنشاء الحساب بنجاح 🎉', 'success');
+        const data = await res.json();
+
+        if (!res.ok) {
+            throw new Error(data.error || 'خطأ في التسجيل');
+        }
+
+        showToast('تم إنشاء الحساب بنجاح!', 'success');
 
         setTimeout(() => {
             window.location.href = 'login.html';
