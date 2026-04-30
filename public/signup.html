@@ -48,6 +48,15 @@
     <input type="text" id="parentId" name="parentId" inputmode="numeric" maxlength="14" placeholder="14 رقم بدون مسافات" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 </div>
 
+                <div class="input-group">
+    <label for="year">الصف الدراسي</label>
+    <select id="year" name="year" required>
+        <option value="first">الصف الأول</option>
+        <option value="second">الصف الثاني</option>
+        <option value="third">الصف الثالث</option>
+    </select>
+                </div>
+
                 <button type="submit" class="submit-btn">إنشاء الحساب</button>
 
                 <p style="text-align: center; margin-top: 15px;">
