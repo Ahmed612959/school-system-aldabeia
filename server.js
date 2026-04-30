@@ -29,7 +29,7 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    id: String,
+    
     username: String,
     password: String,
     originalPassword: String,
@@ -133,7 +133,7 @@ app.get('/api/students', async (req, res) => {
 
 app.post('/api/students', async (req, res) => {
     try {
-        const { fullName, id, subjects, semester } = req.body;
+        const { fullName, subjects, semester } = req.body;
         const existingAdmins = await Admin.find();
         const existingStudents = await Student.find();
         const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
@@ -141,7 +141,7 @@ app.post('/api/students', async (req, res) => {
         const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
         const newStudent = new Student({
             fullName,
-            id,
+            
             username,
             password: hashedPassword,
             originalPassword,
