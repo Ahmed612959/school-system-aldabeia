@@ -8,8 +8,10 @@ const serverless = require('serverless-http');
 const app = express();
 
 // ================= MIDDLEWARE =================
+// ================= MIDDLEWARE =================
 app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' }));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // ================= DB =================
 mongoose.connect(process.env.MONGODB_URI)
