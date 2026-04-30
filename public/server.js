@@ -14,7 +14,10 @@ app.use(bodyParser.json({ limit: '10mb' }));
 // ================= DB =================
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('MongoDB Connected'))
-    .catch(err => console.error(err));
+    .catch(err => {
+        console.error('MongoDB Connection Error:', err);
+        process.exit(1);
+    });
 
 // ================= SCHEMAS =================
 const adminSchema = new mongoose.Schema({
@@ -84,7 +87,7 @@ app.get('/api/students/:username', async (req, res) => {
     res.json(student);
 });
 
-// REGISTER
+// ================= REGISTER =================
 app.post('/api/register-student', async (req, res) => {
     try {
         const {
@@ -99,37 +102,41 @@ app.post('/api/register-student', async (req, res) => {
 
         console.log("REQ BODY:", req.body);
 
-        // ✅ validation الصحيح
+        // ================= VALIDATION =================
         const requiredFields = {
-    fullName,
-    username,
-    phone,
-    parentName,
-    parentId,
-    password,
-    year
-};
-
-for (const [key, value] of Object.entries(requiredFields)) {
-    if (value === undefined || value === null || String(value).trim() === "") {
-        return res.status(400).json({
-            error: `Missing field: ${key}`,
-            debug: req.body
-        });
-    }
-}
-
-        const exists = await Student.findOne({ username });
-        if (exists) {
-            return res.status(400).json({ error: 'Username exists' });
-        }
-
-        const student = new Student({
             fullName,
             username,
             phone,
             parentName,
             parentId,
+            password,
+            year
+        };
+
+        for (const [key, value] of Object.entries(requiredFields)) {
+            if (value === undefined || value === null || String(value).trim() === "") {
+                return res.status(400).json({
+                    error: `Missing field: ${key}`,
+                    debug: req.body
+                });
+            }
+        }
+
+        // ================= CLEAN USERNAME =================
+        const cleanUsername = username.trim().toLowerCase();
+
+        const exists = await Student.findOne({ username: cleanUsername });
+        if (exists) {
+            return res.status(400).json({ error: 'Username exists' });
+        }
+
+        // ================= CREATE STUDENT =================
+        const student = new Student({
+            fullName: fullName.trim(),
+            username: cleanUsername,
+            phone: phone.trim(),
+            parentName: parentName.trim(),
+            parentId: parentId.trim(),
             year,
             password: hash(password),
             originalPassword: password,
@@ -150,18 +157,41 @@ for (const [key, value] of Object.entries(requiredFields)) {
     }
 });
 
-// UPDATE STUDENT (بدون ID)
+// ================= UPDATE STUDENT (SAFE) =================
 app.put('/api/students/:username', async (req, res) => {
-    const student = await Student.findOneAndUpdate(
-        { username: req.params.username },
-        { $set: req.body },
-        { new: true }
-    );
+    try {
+        const allowedFields = [
+            'fullName',
+            'phone',
+            'parentName',
+            'parentId',
+            'year',
+            'semester',
+            'subjects'
+        ];
 
-    res.json(student);
+        const updateData = {};
+
+        allowedFields.forEach(field => {
+            if (req.body[field] !== undefined) {
+                updateData[field] = req.body[field];
+            }
+        });
+
+        const student = await Student.findOneAndUpdate(
+            { username: req.params.username },
+            { $set: updateData },
+            { new: true }
+        );
+
+        res.json(student);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
 });
 
-// DELETE STUDENT
+// ================= DELETE =================
 app.delete('/api/students/:username', async (req, res) => {
     await Student.findOneAndDelete({ username: req.params.username });
     res.json({ success: true });
@@ -169,7 +199,7 @@ app.delete('/api/students/:username', async (req, res) => {
 
 // ================= USERNAME CHECK =================
 app.post('/api/check-username', async (req, res) => {
-    const { username } = req.body;
+    const username = req.body.username?.trim().toLowerCase();
     const exists = await Student.findOne({ username });
     res.json({ available: !exists });
 });
