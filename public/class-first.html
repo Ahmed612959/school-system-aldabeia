@@ -1,98 +1,275 @@
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-  <meta charset="UTF-8">
-  <title>طلاب الصف الأول</title>
-  <style>
-    table { width: 90%; margin: 2em auto; border-collapse: collapse; }
-    th, td { border: 1px solid #aaa; padding: 0.6em; text-align: center; }
-    th { background: #f2f2f2; }
-    caption { font-size: 1.2em; margin-bottom: 1em;}
-    .edit-btn { background:#0077bb; color:#fff; border:none; padding:5px 12px; cursor:pointer; border-radius:4px;}
-  </style>
+<meta charset="UTF-8">
+<title>لوحة التحكم</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Cairo', sans-serif;
+}
+
+body {
+    display: flex;
+    background: #f4f6f9;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: #1e293b;
+    color: white;
+    height: 100vh;
+    padding: 20px;
+}
+
+.sidebar h2 {
+    margin-bottom: 20px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 10px;
+    margin: 10px 0;
+    color: #ccc;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+.sidebar a:hover {
+    background: #334155;
+    color: white;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 20px;
+}
+
+/* Header */
+.header {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+/* Cards */
+.cards {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.card {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Search */
+.search {
+    margin-bottom: 15px;
+}
+
+.search input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* Table */
+.table-container {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #1e293b;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+input {
+    width: 100%;
+    padding: 5px;
+}
+
+/* Buttons */
+button {
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.save {
+    background: #22c55e;
+    color: white;
+}
+
+.delete {
+    background: #ef4444;
+    color: white;
+}
+
+</style>
 </head>
+
 <body>
-  <h2 style="text-align: center;">طلاب الصف الأول</h2>
-  <table>
-    <caption>قائمة الطلاب</caption>
-    <thead>
-      <tr>
-        <th>الاسم الكامل</th>
-        <th>اسم المستخدم</th>
-        <th>رقم الجلوس</th>
-        <th>الهاتف</th>
-        <th>ولي الأمر</th>
-        <th>رقم البطاقة</th>
-        <th>تعديل</th>
-      </tr>
-    </thead>
-    <tbody id="students-body"></tbody>
-  </table>
-  <!-- نافذة التعديل -->
-  <div id="edit-modal" style="display:none; position:fixed;top:0;left:0;right:0;bottom:0; background:#0005;align-items:center;justify-content:center">
-    <form id="edit-form" style="background:#fff;padding:30px;max-width:450px;margin:auto;border-radius:10px;">
-      <h3>تعديل بيانات الطالب</h3>
-      <input type="hidden" id="edit-id">
-      <label>الاسم الكامل: <input id="edit-fullName" required></label><br><br>
-      <label>الهاتف: <input id="edit-phone"></label><br><br>
-      <label>اسم ولي الأمر: <input id="edit-parentName"></label><br><br>
-      <label>رقم بطاقة ولي الأمر: <input id="edit-parentId"></label><br><br>
-      <button type="submit">حفظ التعديل</button>
-      <button type="button" onclick="closeEdit()">إلغاء</button>
-    </form>
-  </div>
-  <script>
-    async function fetchStudents() {
-      const res = await fetch('/api/students/by-year/first');
-      const students = await res.json();
-      const tbody = document.getElementById('students-body');
-      tbody.innerHTML = '';
-      students.forEach(st => {
-        tbody.innerHTML += `<tr>
-          <td>${st.fullName}</td>
-          <td>${st.username}</td>
-          <td>${st.id}</td>
-          <td>${st.profile?.phone||''}</td>
-          <td>${st.profile?.parentName||''}</td>
-          <td>${st.profile?.parentId||''}</td>
-          <td><button class="edit-btn" onclick='startEdit(${JSON.stringify(st)})'>تعديل</button></td>
-        </tr>`;
-      });
-    }
-    fetchStudents();
 
-    // نافذة التعديل
-    function startEdit(st) {
-      document.getElementById('edit-id').value = st.id;
-      document.getElementById('edit-fullName').value = st.fullName;
-      document.getElementById('edit-phone').value = st.profile?.phone||'';
-      document.getElementById('edit-parentName').value = st.profile?.parentName||'';
-      document.getElementById('edit-parentId').value = st.profile?.parentId||'';
-      document.getElementById('edit-modal').style.display = 'flex';
-    }
-    function closeEdit() {
-      document.getElementById('edit-modal').style.display = 'none';
-    }
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2>📊 Dashboard</h2>
+    <a href="#">👨‍🎓 الطلاب</a>
+    <a href="#">📚 المواد</a>
+    <a href="#">📈 النتائج</a>
+</div>
 
-    document.getElementById('edit-form').onsubmit = async function(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-id').value;
-      const body = {
-        fullName: document.getElementById('edit-fullName').value,
-        profile: {
-          phone: document.getElementById('edit-phone').value,
-          parentName: document.getElementById('edit-parentName').value,
-          parentId: document.getElementById('edit-parentId').value
-        }
-      };
-      await fetch('/api/students/' + id, {
+<!-- Main -->
+<div class="main">
+
+    <div class="header">
+        <h2>إدارة الطلاب</h2>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards">
+        <div class="card">عدد الطلاب: <span id="totalStudents">0</span></div>
+        <div class="card">عدد النتائج: —</div>
+        <div class="card">عدد المخالفات: —</div>
+    </div>
+
+    <!-- Search -->
+    <div class="search">
+        <input type="text" id="searchInput" placeholder="🔍 ابحث عن طالب..." oninput="filterStudents()">
+    </div>
+
+    <!-- Table -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>الاسم</th>
+                    <th>Username</th>
+                    <th>رقم الجلوس</th>
+                    <th>الموبايل</th>
+                    <th>ولي الأمر</th>
+                    <th>تحكم</th>
+                </tr>
+            </thead>
+            <tbody id="studentsTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+
+let allStudents = [];
+
+// تحميل الطلاب
+async function loadStudents() {
+    const res = await fetch('/api/students');
+    const students = await res.json();
+
+    allStudents = students;
+
+    document.getElementById('totalStudents').textContent = students.length;
+
+    renderStudents(students);
+}
+
+// عرض الطلاب
+function renderStudents(students) {
+    const table = document.getElementById('studentsTable');
+    table.innerHTML = '';
+
+    students.forEach(s => {
+        const row = `
+        <tr>
+            <td><input id="name-${s.id}" value="${s.fullName}"></td>
+            <td>${s.username}</td>
+            <td>${s.id}</td>
+            <td><input id="phone-${s.id}" value="${s.profile?.phone || ''}"></td>
+            <td><input id="parent-${s.id}" value="${s.profile?.parentName || ''}"></td>
+            <td>
+                <button class="save" onclick="updateStudent('${s.id}')">💾</button>
+                <button class="delete" onclick="deleteStudent('${s.id}')">🗑</button>
+            </td>
+        </tr>
+        `;
+        table.innerHTML += row;
+    });
+}
+
+// البحث
+function filterStudents() {
+    const value = document.getElementById('searchInput').value.toLowerCase();
+
+    const filtered = allStudents.filter(s =>
+        s.fullName.toLowerCase().includes(value) ||
+        s.username.toLowerCase().includes(value) ||
+        s.id.includes(value)
+    );
+
+    renderStudents(filtered);
+}
+
+// تعديل
+async function updateStudent(id) {
+    const fullName = document.getElementById(`name-${id}`).value;
+    const phone = document.getElementById(`phone-${id}`).value;
+    const parentName = document.getElementById(`parent-${id}`).value;
+
+    await fetch('/api/students/' + id, {
         method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(body)
-      });
-      closeEdit();
-      fetchStudents();
-    }
-  </script>
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            fullName,
+            profile: { phone, parentName }
+        })
+    });
+
+    alert('تم التعديل');
+}
+
+// حذف
+async function deleteStudent(id) {
+    if (!confirm('متأكد؟')) return;
+
+    await fetch('/api/students/' + id, {
+        method: 'DELETE'
+    });
+
+    loadStudents();
+}
+
+// تشغيل
+loadStudents();
+
+</script>
+
 </body>
 </html>
