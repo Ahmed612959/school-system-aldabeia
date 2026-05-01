@@ -7,8 +7,34 @@ const app = express();
 
 // ================= MIDDLEWARE =================
 app.use(cors());
+
+// مهم جدًا
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// 🔥 حل نهائي لقراءة body في Vercel
+app.use((req, res, next) => {
+    if (req.body && Object.keys(req.body).length > 0) {
+        return next();
+    }
+
+    let data = '';
+
+    req.on('data', chunk => {
+        data += chunk;
+    });
+
+    req.on('end', () => {
+        if (data) {
+            try {
+                req.body = JSON.parse(data);
+            } catch {
+                req.body = {};
+            }
+        }
+        next();
+    });
+});
 
 // ================= DB =================
 mongoose.connect(process.env.MONGODB_URI)
@@ -47,27 +73,6 @@ app.get('/api/test', (req, res) => {
 app.post('/api/register-student', async (req, res) => {
     try {
 
-        // 🔥 حل مشكلة Vercel (قراءة البودي يدوي)
-        let body = req.body;
-
-        if (!body || Object.keys(body).length === 0) {
-            body = await new Promise((resolve) => {
-                let data = '';
-
-                req.on('data', chunk => data += chunk);
-
-                req.on('end', () => {
-                    try {
-                        resolve(JSON.parse(data));
-                    } catch {
-                        resolve({});
-                    }
-                });
-            });
-        }
-
-        console.log("🔥 FINAL BODY:", body);
-
         const {
             fullName,
             username,
@@ -76,7 +81,9 @@ app.post('/api/register-student', async (req, res) => {
             parentName,
             parentId,
             year
-        } = body;
+        } = req.body;
+
+        console.log("🔥 BODY:", req.body);
 
         // ================= VALIDATION =================
         const fields = { fullName, username, password, phone, parentName, parentId, year };
@@ -93,6 +100,7 @@ app.post('/api/register-student', async (req, res) => {
 
         // ================= CHECK USER =================
         const exists = await Student.findOne({ username: cleanUsername });
+
         if (exists) {
             return res.status(400).json({ error: 'Username exists' });
         }
@@ -126,27 +134,16 @@ app.post('/api/register-student', async (req, res) => {
 // ================= USERNAME CHECK =================
 app.post('/api/check-username', async (req, res) => {
 
-    let body = req.body;
+    const username = req.body.username?.trim().toLowerCase();
 
-    if (!body || Object.keys(body).length === 0) {
-        body = await new Promise((resolve) => {
-            let data = '';
-            req.on('data', chunk => data += chunk);
-            req.on('end', () => {
-                try {
-                    resolve(JSON.parse(data));
-                } catch {
-                    resolve({});
-                }
-            });
-        });
+    if (!username) {
+        return res.json({ available: false });
     }
 
-    const username = body.username?.trim().toLowerCase();
-
     const exists = await Student.findOne({ username });
+
     res.json({ available: !exists });
 });
 
-// ================= EXPORT =================
-module.exports = (req, res) => app(req, res);
+// ================= EXPORT (Vercel) =================
+module.exports = app;
