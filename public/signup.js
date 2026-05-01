@@ -1,4 +1,3 @@
-// ================= TOAST =================
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
 
@@ -18,50 +17,35 @@ function showToast(message, type = 'error') {
             type === 'info' ? '#17a2b8' :
             '#dc3545'
         };
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     `;
 
     document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = '0.3s';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-// ================= REGISTER API =================
+// ================= REGISTER =================
 async function registerStudent(data) {
-    console.log("📦 SENDING DATA:", data);
+
+    console.log("📤 SENDING:", data);
 
     const res = await fetch('/api/register-student', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
 
-    // 🔥 قراءة آمنة للرد
-    let result;
-    const text = await res.text();
+    const result = await res.json();
 
-    try {
-        result = JSON.parse(text);
-    } catch {
-        result = { error: text };
-    }
-
-    console.log("📩 SERVER RESPONSE:", result);
+    console.log("📥 RESPONSE:", result);
 
     if (!res.ok) {
-        throw new Error(result.error || 'Server Error');
+        throw new Error(result.error);
     }
 
     return result;
 }
 
-// ================= SIGNUP FORM =================
+// ================= SUBMIT =================
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -77,11 +61,11 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
     console.log("🧾 FORM DATA:", data);
 
-    // ================= VALIDATION =================
-    const hasEmpty = Object.values(data).some(v => !v);
-
-    if (hasEmpty) {
-        return showToast('يرجى ملء جميع الحقول!', 'error');
+    // validation
+    for (const key in data) {
+        if (!data[key]) {
+            return showToast(`الحقل ${key} فارغ ❌`);
+        }
     }
 
     try {
@@ -89,22 +73,22 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
         await registerStudent(data);
 
-        showToast('تم إنشاء الحساب بنجاح!', 'success');
+        showToast('تم إنشاء الحساب بنجاح ✅', 'success');
 
         setTimeout(() => {
             window.location.href = 'login.html';
-        }, 1200);
+        }, 1500);
 
     } catch (err) {
-        showToast(err.message, 'error');
+        showToast(err.message);
     }
 });
 
-// ================= USERNAME CHECK =================
+// ================= LIVE CHECK =================
 let timer;
 
 document.getElementById('username')?.addEventListener('input', (e) => {
-    const username = e.target.value.trim().toLowerCase();
+    const username = e.target.value.trim();
     const span = document.getElementById('username-availability');
 
     clearTimeout(timer);
@@ -114,35 +98,26 @@ document.getElementById('username')?.addEventListener('input', (e) => {
         return;
     }
 
-    if (username.length < 3) {
-        span.style.display = 'block';
-        span.style.color = 'red';
-        span.textContent = 'قصير جدًا';
-        return;
-    }
-
     span.style.display = 'block';
-    span.style.color = 'orange';
     span.textContent = 'جاري التحقق...';
+    span.style.color = 'orange';
 
     timer = setTimeout(async () => {
         try {
             const res = await fetch('/api/check-username', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ username })
             });
 
             const data = await res.json();
 
-            span.style.color = data.available ? 'green' : 'red';
             span.textContent = data.available ? 'متاح ✓' : 'غير متاح ✗';
+            span.style.color = data.available ? 'green' : 'red';
 
         } catch {
+            span.textContent = 'خطأ';
             span.style.color = 'red';
-            span.textContent = 'خطأ في التحقق';
         }
     }, 400);
 });
