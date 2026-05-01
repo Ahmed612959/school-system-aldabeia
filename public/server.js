@@ -149,4 +149,4 @@ app.post('/api/check-username', async (req, res) => {
 });
 
 // ================= EXPORT =================
-module.exports = app;
+module.exports = (req, res) => app(req, res);
