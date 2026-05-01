@@ -1,9 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const crypto = require('crypto');
-
 
 const app = express();
 
@@ -73,51 +71,13 @@ function hash(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// ================= STUDENTS =================
-
-// GET ALL
-app.get('/api/students', async (req, res) => {
-    const data = await Student.find();
-    res.json(data);
-});
-
-// GET ONE
-app.get('/api/students/:username', async (req, res) => {
-    const student = await Student.findOne({ username: req.params.username });
-    if (!student) return res.status(404).json({ error: 'Not found' });
-    res.json(student);
-});
-
-// ================= REGISTER =================
-
+// ================= REGISTER STUDENT =================
 app.post('/api/register-student', async (req, res) => {
     try {
+        const body = req.body || {};
 
-        // ================= 🔥 READ BODY SAFELY =================
-        let body = req.body;
+        console.log("🔥 REGISTER BODY:", body);
 
-        // لو Vercel مبعتش body صح
-        if (!body || Object.keys(body).length === 0) {
-            body = await new Promise((resolve) => {
-                let data = '';
-
-                req.on('data', chunk => {
-                    data += chunk;
-                });
-
-                req.on('end', () => {
-                    try {
-                        resolve(JSON.parse(data));
-                    } catch (e) {
-                        resolve({});
-                    }
-                });
-            });
-        }
-
-        console.log("🔥 FINAL BODY:", body);
-
-        // ================= EXTRACT =================
         const {
             fullName,
             username,
@@ -128,35 +88,30 @@ app.post('/api/register-student', async (req, res) => {
             year
         } = body;
 
-        // ================= VALIDATION =================
-        const requiredFields = {
-            fullName,
-            username,
-            phone,
-            parentName,
-            parentId,
-            password,
-            year
-        };
+        const missing = [];
 
-        for (const [key, value] of Object.entries(requiredFields)) {
-            if (!value || String(value).trim() === "") {
-                return res.status(400).json({
-                    error: `Missing field: ${key}`
-                });
-            }
+        if (!fullName) missing.push("fullName");
+        if (!username) missing.push("username");
+        if (!phone) missing.push("phone");
+        if (!parentName) missing.push("parentName");
+        if (!parentId) missing.push("parentId");
+        if (!password) missing.push("password");
+        if (!year) missing.push("year");
+
+        if (missing.length > 0) {
+            return res.status(400).json({
+                error: "جميع الحقول مطلوبة",
+                missing
+            });
         }
 
-        // ================= CLEAN =================
         const cleanUsername = username.trim().toLowerCase();
 
-        // ================= CHECK EXISTS =================
         const exists = await Student.findOne({ username: cleanUsername });
         if (exists) {
-            return res.status(400).json({ error: 'Username exists' });
+            return res.status(400).json({ error: "اسم المستخدم مستخدم بالفعل" });
         }
 
-        // ================= SAVE =================
         const student = new Student({
             fullName: fullName.trim(),
             username: cleanUsername,
@@ -172,98 +127,65 @@ app.post('/api/register-student', async (req, res) => {
         await student.save();
 
         return res.json({
-            message: 'Registered successfully',
+            message: "Registered successfully",
             student
         });
 
     } catch (err) {
-        console.error("❌ ERROR:", err);
-        res.status(500).json({
+        console.error("❌ REGISTER ERROR:", err);
+        return res.status(500).json({
             error: err.message
         });
     }
 });
 
-        // ================= VALIDATION =================
-        const requiredFields = {
-            fullName,
-            username,
-            phone,
-            parentName,
-            parentId,
-            password,
-            year
-        };
+// ================= CHECK USERNAME =================
+app.post('/api/check-username', async (req, res) => {
+    try {
+        const username = req.body.username?.trim().toLowerCase();
 
-        for (const [key, value] of Object.entries(requiredFields)) {
-            if (value === undefined || value === null || String(value).trim() === "") {
-                return res.status(400).json({
-                    error: `Missing field: ${key}`,
-                    debug: body
-                });
-            }
+        if (!username) {
+            return res.status(400).json({ error: "username required" });
         }
 
-        // ================= CLEAN USERNAME =================
-        const cleanUsername = username.trim().toLowerCase();
+        const exists = await Student.findOne({ username });
 
-        const exists = await Student.findOne({ username: cleanUsername });
-        if (exists) {
-            return res.status(400).json({ error: 'Username exists' });
-        }
-
-        // ================= CREATE STUDENT =================
-        const student = new Student({
-            fullName: fullName.trim(),
-            username: cleanUsername,
-            phone: phone.trim(),
-            parentName: parentName.trim(),
-            parentId: parentId.trim(),
-            year,
-            password: hash(password),
-            originalPassword: password,
-            subjects: []
-        });
-
-        await student.save();
-
-        res.json({
-            message: 'Registered successfully',
-            student
-        });
+        res.json({ available: !exists });
 
     } catch (err) {
-        res.status(500).json({
-            error: err.message
-        });
+        res.status(500).json({ error: err.message });
     }
 });
-        
 
-// ================= UPDATE STUDENT (SAFE) =================
+// ================= GET STUDENTS =================
+app.get('/api/students', async (req, res) => {
+    const data = await Student.find();
+    res.json(data);
+});
+
+// ================= GET ONE STUDENT =================
+app.get('/api/students/:username', async (req, res) => {
+    const student = await Student.findOne({ username: req.params.username });
+    if (!student) return res.status(404).json({ error: 'Not found' });
+    res.json(student);
+});
+
+// ================= UPDATE STUDENT =================
 app.put('/api/students/:username', async (req, res) => {
     try {
-        const allowedFields = [
-            'fullName',
-            'phone',
-            'parentName',
-            'parentId',
-            'year',
-            'semester',
-            'subjects'
-        ];
+        const allowed = ['fullName', 'phone', 'parentName', 'parentId', 'year', 'semester', 'subjects'];
 
-        const updateData = {};
+        const update = {};
 
-        allowedFields.forEach(field => {
-            if (req.body[field] !== undefined) {
-                updateData[field] = req.body[field];
+        allowed.forEach(f => {
+            if (req.body[f] !== undefined) {
+                update[f] = req.body[f];
             }
         });
 
         const student = await Student.findOneAndUpdate(
             { username: req.params.username },
-            { $set: updateData },
+            { $set: update },
             { new: true }
         );
 
@@ -274,17 +196,10 @@ app.put('/api/students/:username', async (req, res) => {
     }
 });
 
-// ================= DELETE =================
+// ================= DELETE STUDENT =================
 app.delete('/api/students/:username', async (req, res) => {
     await Student.findOneAndDelete({ username: req.params.username });
     res.json({ success: true });
-});
-
-// ================= USERNAME CHECK =================
-app.post('/api/check-username', async (req, res) => {
-    const username = req.body.username?.trim().toLowerCase();
-    const exists = await Student.findOne({ username });
-    res.json({ available: !exists });
 });
 
 // ================= ADMIN =================
