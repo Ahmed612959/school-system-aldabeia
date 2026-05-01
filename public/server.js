@@ -93,19 +93,25 @@ app.get('/api/students/:username', async (req, res) => {
 app.post('/api/register-student', async (req, res) => {
     try {
 
-        // ✅ الحل السحري
+        // 🔥 الحل الحقيقي لمشكلة Vercel
         let body = req.body;
 
-        // لو جاي string نحوله
-        if (typeof body === "string") {
-            try {
-                body = JSON.parse(body);
-            } catch {
-                return res.status(400).json({ error: "Invalid JSON" });
-            }
+        if (!body || Object.keys(body).length === 0) {
+            // نحاول نقرأ body يدوي
+            body = await new Promise((resolve) => {
+                let data = '';
+                req.on('data', chunk => data += chunk);
+                req.on('end', () => {
+                    try {
+                        resolve(JSON.parse(data));
+                    } catch {
+                        resolve({});
+                    }
+                });
+            });
         }
 
-        console.log("🔥 BODY AFTER FIX:", body);
+        console.log("🔥 FINAL BODY:", body);
 
         const {
             fullName,
