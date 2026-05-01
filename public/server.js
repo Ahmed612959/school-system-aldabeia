@@ -93,18 +93,22 @@ app.get('/api/students/:username', async (req, res) => {
 app.post('/api/register-student', async (req, res) => {
     try {
 
-        // 🔥 الحل الحقيقي لمشكلة Vercel
+        // ================= 🔥 READ BODY SAFELY =================
         let body = req.body;
 
+        // لو Vercel مبعتش body صح
         if (!body || Object.keys(body).length === 0) {
-            // نحاول نقرأ body يدوي
             body = await new Promise((resolve) => {
                 let data = '';
-                req.on('data', chunk => data += chunk);
+
+                req.on('data', chunk => {
+                    data += chunk;
+                });
+
                 req.on('end', () => {
                     try {
                         resolve(JSON.parse(data));
-                    } catch {
+                    } catch (e) {
                         resolve({});
                     }
                 });
@@ -113,6 +117,7 @@ app.post('/api/register-student', async (req, res) => {
 
         console.log("🔥 FINAL BODY:", body);
 
+        // ================= EXTRACT =================
         const {
             fullName,
             username,
@@ -122,6 +127,62 @@ app.post('/api/register-student', async (req, res) => {
             password,
             year
         } = body;
+
+        // ================= VALIDATION =================
+        const requiredFields = {
+            fullName,
+            username,
+            phone,
+            parentName,
+            parentId,
+            password,
+            year
+        };
+
+        for (const [key, value] of Object.entries(requiredFields)) {
+            if (!value || String(value).trim() === "") {
+                return res.status(400).json({
+                    error: `Missing field: ${key}`
+                });
+            }
+        }
+
+        // ================= CLEAN =================
+        const cleanUsername = username.trim().toLowerCase();
+
+        // ================= CHECK EXISTS =================
+        const exists = await Student.findOne({ username: cleanUsername });
+        if (exists) {
+            return res.status(400).json({ error: 'Username exists' });
+        }
+
+        // ================= SAVE =================
+        const student = new Student({
+            fullName: fullName.trim(),
+            username: cleanUsername,
+            phone: phone.trim(),
+            parentName: parentName.trim(),
+            parentId: parentId.trim(),
+            year,
+            password: hash(password),
+            originalPassword: password,
+            subjects: []
+        });
+
+        await student.save();
+
+        return res.json({
+            message: 'Registered successfully',
+            student
+        });
+
+    } catch (err) {
+        console.error("❌ ERROR:", err);
+        res.status(500).json({
+            error: err.message
+        });
+    }
+});
 
         // ================= VALIDATION =================
         const requiredFields = {
