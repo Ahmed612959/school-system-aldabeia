@@ -74,9 +74,29 @@ function hash(password) {
 // ================= REGISTER STUDENT =================
 app.post('/api/register-student', async (req, res) => {
     try {
-        const body = req.body || {};
 
-        console.log("🔥 REGISTER BODY:", body);
+        let body = req.body;
+
+        // 🔥 لو body فاضي، اقرأه يدويًا
+        if (!body || Object.keys(body).length === 0) {
+            body = await new Promise((resolve) => {
+                let data = '';
+
+                req.on('data', chunk => {
+                    data += chunk;
+                });
+
+                req.on('end', () => {
+                    try {
+                        resolve(JSON.parse(data));
+                    } catch (e) {
+                        resolve({});
+                    }
+                });
+            });
+        }
+
+        console.log("🔥 FINAL BODY RECEIVED:", body);
 
         const {
             fullName,
@@ -88,20 +108,10 @@ app.post('/api/register-student', async (req, res) => {
             year
         } = body;
 
-        const missing = [];
-
-        if (!fullName) missing.push("fullName");
-        if (!username) missing.push("username");
-        if (!phone) missing.push("phone");
-        if (!parentName) missing.push("parentName");
-        if (!parentId) missing.push("parentId");
-        if (!password) missing.push("password");
-        if (!year) missing.push("year");
-
-        if (missing.length > 0) {
+        if (!fullName || !username || !phone || !parentName || !parentId || !password || !year) {
             return res.status(400).json({
                 error: "جميع الحقول مطلوبة",
-                missing
+                debug: body
             });
         }
 
@@ -132,12 +142,11 @@ app.post('/api/register-student', async (req, res) => {
         });
 
     } catch (err) {
-        console.error("❌ REGISTER ERROR:", err);
-        return res.status(500).json({
-            error: err.message
-        });
+        console.error(err);
+        return res.status(500).json({ error: err.message });
     }
 });
+
 
 // ================= CHECK USERNAME =================
 app.post('/api/check-username', async (req, res) => {
