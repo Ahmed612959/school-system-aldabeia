@@ -28,11 +28,13 @@ async function registerStudent(data) {
 
     console.log("📤 SENDING:", data);
 
-    const res = await fetch('/api/register-student', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
+    const BASE_URL = window.location.origin;
+
+const res = await fetch(`${BASE_URL}/api/register-student`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+});
 
     const result = await res.json();
 
