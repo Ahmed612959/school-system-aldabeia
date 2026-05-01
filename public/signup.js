@@ -1,3 +1,4 @@
+// ================= TOAST =================
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
 
@@ -17,15 +18,21 @@ function showToast(message, type = 'error') {
             type === 'info' ? '#17a2b8' :
             '#dc3545'
         };
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     `;
 
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = '0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 // ================= REGISTER API =================
 async function registerStudent(data) {
-    console.log("📦 FINAL DATA SENT:", data);
+    console.log("📦 SENDING DATA:", data);
 
     const res = await fetch('/api/register-student', {
         method: 'POST',
@@ -35,7 +42,15 @@ async function registerStudent(data) {
         body: JSON.stringify(data)
     });
 
-    const result = await res.json();
+    // 🔥 قراءة آمنة للرد
+    let result;
+    const text = await res.text();
+
+    try {
+        result = JSON.parse(text);
+    } catch {
+        result = { error: text };
+    }
 
     console.log("📩 SERVER RESPONSE:", result);
 
@@ -46,41 +61,26 @@ async function registerStudent(data) {
     return result;
 }
 
-// ================= SIGNUP =================
+// ================= SIGNUP FORM =================
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fullName = document.getElementById('fullName').value.trim();
-    const username = document.getElementById('username').value.trim().toLowerCase();
-    const password = document.getElementById('password').value;
-    const phone = document.getElementById('phone').value.trim();
-    const parentName = document.getElementById('parentName').value.trim();
-    const parentId = document.getElementById('parentId').value.trim();
-    const year = document.getElementById('year').value;
-
-    // 🔥 مهم جدًا: لازم كل الحقول تبقى موجودة
     const data = {
-        fullName,
-        username,
-        password,
-        phone,
-        parentName,
-        parentId,
-        year
+        fullName: document.getElementById('fullName').value.trim(),
+        username: document.getElementById('username').value.trim().toLowerCase(),
+        password: document.getElementById('password').value,
+        phone: document.getElementById('phone').value.trim(),
+        parentName: document.getElementById('parentName').value.trim(),
+        parentId: document.getElementById('parentId').value.trim(),
+        year: document.getElementById('year').value
     };
 
     console.log("🧾 FORM DATA:", data);
 
-    // validation قوي
-    if (
-        !fullName ||
-        !username ||
-        !password ||
-        !phone ||
-        !parentName ||
-        !parentId ||
-        !year
-    ) {
+    // ================= VALIDATION =================
+    const hasEmpty = Object.values(data).some(v => !v);
+
+    if (hasEmpty) {
         return showToast('يرجى ملء جميع الحقول!', 'error');
     }
 
@@ -93,18 +93,18 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
         setTimeout(() => {
             window.location.href = 'login.html';
-        }, 1500);
+        }, 1200);
 
     } catch (err) {
         showToast(err.message, 'error');
     }
 });
 
-// ================= LIVE USERNAME CHECK =================
+// ================= USERNAME CHECK =================
 let timer;
 
 document.getElementById('username')?.addEventListener('input', (e) => {
-    const username = e.target.value.trim();
+    const username = e.target.value.trim().toLowerCase();
     const span = document.getElementById('username-availability');
 
     clearTimeout(timer);
@@ -137,12 +137,10 @@ document.getElementById('username')?.addEventListener('input', (e) => {
 
             const data = await res.json();
 
-            const ok = data.available;
+            span.style.color = data.available ? 'green' : 'red';
+            span.textContent = data.available ? 'متاح ✓' : 'غير متاح ✗';
 
-            span.style.color = ok ? 'green' : 'red';
-            span.textContent = ok ? 'متاح ✓' : 'غير متاح ✗';
-
-        } catch (err) {
+        } catch {
             span.style.color = 'red';
             span.textContent = 'خطأ في التحقق';
         }
