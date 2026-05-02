@@ -5,44 +5,14 @@ const crypto = require('crypto');
 
 const app = express();
 
-// ================= MIDDLEWARE =================
+// ✅ مهم جداً لـ Vercel
 app.use(cors());
-
-// مهم جدًا
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// 🔥 حل نهائي لقراءة body في Vercel
-app.use((req, res, next) => {
-    if (req.body && Object.keys(req.body).length > 0) {
-        return next();
-    }
-
-    let data = '';
-
-    req.on('data', chunk => {
-        data += chunk;
-    });
-
-    req.on('end', () => {
-        if (data) {
-            try {
-                req.body = JSON.parse(data);
-            } catch {
-                req.body = {};
-            }
-        }
-        next();
-    });
-});
 
 // ================= DB =================
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
-    .catch(err => {
-        console.error('❌ MongoDB Error:', err);
-        process.exit(1);
-    });
+    .catch(err => console.error('❌ DB Error:', err));
 
 // ================= SCHEMA =================
 const studentSchema = new mongoose.Schema({
@@ -60,18 +30,18 @@ const studentSchema = new mongoose.Schema({
 const Student = mongoose.model('Student', studentSchema);
 
 // ================= HASH =================
-function hash(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
-}
+const hash = (password) =>
+    crypto.createHash('sha256').update(password).digest('hex');
 
 // ================= TEST =================
 app.get('/api/test', (req, res) => {
-    res.json({ status: 'Server Working ✅' });
+    res.json({ message: "Server working ✅" });
 });
 
 // ================= REGISTER =================
 app.post('/api/register-student', async (req, res) => {
     try {
+        console.log("📥 BODY:", req.body);
 
         const {
             fullName,
@@ -83,29 +53,20 @@ app.post('/api/register-student', async (req, res) => {
             year
         } = req.body;
 
-        console.log("🔥 BODY:", req.body);
-
-        // ================= VALIDATION =================
-        const fields = { fullName, username, password, phone, parentName, parentId, year };
-
-        for (const [key, value] of Object.entries(fields)) {
-            if (!value || String(value).trim() === '') {
-                return res.status(400).json({
-                    error: `Missing field: ${key}`
-                });
-            }
+        // ✅ VALIDATION
+        if (!fullName || !username || !password || !phone || !parentName || !parentId || !year) {
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
         const cleanUsername = username.trim().toLowerCase();
 
-        // ================= CHECK USER =================
+        // ✅ CHECK USER
         const exists = await Student.findOne({ username: cleanUsername });
-
         if (exists) {
-            return res.status(400).json({ error: 'Username exists' });
+            return res.status(400).json({ error: 'اسم المستخدم موجود' });
         }
 
-        // ================= SAVE =================
+        // ✅ SAVE
         const student = new Student({
             fullName: fullName.trim(),
             username: cleanUsername,
@@ -120,10 +81,7 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        res.json({
-            message: 'Registered successfully ✅',
-            student
-        });
+        res.json({ message: 'تم التسجيل بنجاح ✅' });
 
     } catch (err) {
         console.error("❌ ERROR:", err);
@@ -131,19 +89,13 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
-// ================= USERNAME CHECK =================
+// ================= CHECK USERNAME =================
 app.post('/api/check-username', async (req, res) => {
-
-    const username = req.body.username?.trim().toLowerCase();
-
-    if (!username) {
-        return res.json({ available: false });
-    }
+    const username = req.body.username?.toLowerCase();
 
     const exists = await Student.findOne({ username });
-
     res.json({ available: !exists });
 });
 
-// ================= EXPORT (Vercel) =================
-module.exports = app;
+// ================= EXPORT =================
+module.exports = (req, res) => app(req, res);
