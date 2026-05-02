@@ -4,6 +4,10 @@
     {
       "src": "server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -16,5 +20,7 @@
       "dest": "/public/$1"
     }
   ],
-  "outputDirectory": "public"
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
