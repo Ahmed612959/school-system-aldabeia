@@ -1,69 +1,186 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء حساب طالب</title>
-    <link rel="stylesheet" href="login.css">
+  <meta charset="UTF-8">
+  <title>إنشاء حساب</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from {opacity:0; transform: translateY(20px);}
+      to {opacity:1; transform: translateY(0);}
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      border-color: #2a5298;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2a5298;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1e3c72;
+    }
+
+    .message {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+  </style>
 </head>
+
 <body>
-    <header class="main-header">
-        <img src="logo.png" alt="شعار المدرسة" class="logo">
-        <h1>نظام إدارة المدرسة</h1>
-    </header>
-    <div class="main-container">
-        <div class="login-form-container">
-            <h2>إنشاء حساب طالب</h2>
-            <form id="student-signup-form">
-                <div class="input-group">
-                    <label for="fullName">اسم الطالب رباعي</label>
-                    <input type="text" id="fullName" name="fullName" placeholder="مثال: أحمد محمد علي السيد" required>
-                </div>
 
-                <div class="input-group">
-                    <label for="username">اسم المستخدم</label>
-                    <input type="text" id="username" name="username" placeholder="3-20 حرف (أحرف وأرقام)" required>
-                    <span id="username-availability" style="font-size: 0.8em; display: none; margin-top: 5px;"></span>
-                </div>
+<div class="container">
+  <h2>إنشاء حساب طالب</h2>
 
-                <div class="input-group">
-                    <label for="password">كلمة المرور</label>
-                    <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
-                </div>
+  <input type="text" id="fullName" placeholder="الاسم بالكامل">
+  <input type="text" id="username" placeholder="اسم المستخدم">
+  <input type="text" id="id" placeholder="رقم الجلوس">
+  <input type="text" id="phone" placeholder="رقم الهاتف">
+  <input type="text" id="parentName" placeholder="اسم ولي الأمر">
+  <input type="text" id="parentId" placeholder="رقم بطاقة ولي الأمر">
+  <input type="password" id="password" placeholder="كلمة المرور">
 
-                <div class="input-group">
-                    <label for="studentId">رقم الجلوس</label>
-                    <input type="text" id="studentId" name="studentId" inputmode="numeric" maxlength="7" placeholder="من 1 إلى 7 أرقام" required>
-                </div>
+  <button onclick="register()" id="btn">إنشاء حساب</button>
 
-                <div class="input-group">
-                    <label for="phone">رقم الهاتف</label>
-                    <input type="tel" id="phone" name="phone" placeholder="01012345678" required>
-                </div>
-
-                <div class="input-group">
-                    <label for="parentName">اسم الأب أو الأم رباعي</label>
-                    <input type="text" id="parentName" name="parentName" placeholder="مثال: محمد علي أحمد السيد" required>
-                </div>
-
-                <div class="input-group">
-    <label for="parentId">رقم بطاقة ولي الأمر</label>
-    <input type="text" id="parentId" name="parentId" inputmode="numeric" maxlength="14" placeholder="14 رقم بدون مسافات" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+  <div class="message" id="msg"></div>
 </div>
 
-                <button type="submit" class="submit-btn">إنشاء الحساب</button>
+<script>
+async function register() {
+  const btn = document.getElementById('btn');
+  const msg = document.getElementById('msg');
 
-                <p style="text-align: center; margin-top: 15px;">
-                    لديك حساب؟ <a href="login.html" class="signup-link">تسجيل الدخول</a>
-                </p>
-            </form>
-        </div>
-    </div>
+  const data = {
+    fullName: document.getElementById('fullName').value.trim(),
+    username: document.getElementById('username').value.trim(),
+    id: document.getElementById('id').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    parentName: document.getElementById('parentName').value.trim(),
+    parentId: document.getElementById('parentId').value.trim(),
+    password: document.getElementById('password').value.trim()
+  };
 
-    <footer>
-        <p>Developed by Ahmed Mousa <span class="heart">♥</span></p>
-    </footer>
+  // Validation
+  if (Object.values(data).some(v => v === "")) {
+    return showMsg("كل الحقول مطلوبة", "error");
+  }
 
-    <script src="signup.js" defer></script>
+  if (!/^\d{1,7}$/.test(data.id)) {
+    return showMsg("رقم الجلوس غير صحيح", "error");
+  }
+
+  if (!/^\d{14}$/.test(data.parentId)) {
+    return showMsg("رقم بطاقة ولي الأمر لازم 14 رقم", "error");
+  }
+
+  if (!/^[a-zA-Z0-9]{3,20}$/.test(data.username)) {
+    return showMsg("اسم المستخدم 3-20 حرف (أرقام/حروف فقط)", "error");
+  }
+
+  try {
+    btn.classList.add("loading");
+    btn.innerText = "جاري الإنشاء...";
+
+    const res = await fetch("https://schoolx-five.vercel.app/api/register-student", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (res.ok) {
+      showMsg("✅ تم إنشاء الحساب بنجاح", "success");
+      clearForm();
+    } else {
+      showMsg(result.error || "حدث خطأ", "error");
+    }
+
+  } catch (err) {
+    showMsg("السيرفر مش شغال 😅", "error");
+  }
+
+  btn.classList.remove("loading");
+  btn.innerText = "إنشاء حساب";
+}
+
+function showMsg(text, type) {
+  const msg = document.getElementById('msg');
+  msg.innerText = text;
+  msg.className = "message " + type;
+}
+
+function clearForm() {
+  document.querySelectorAll("input").forEach(input => input.value = "");
+}
+</script>
+
 </body>
 </html>
