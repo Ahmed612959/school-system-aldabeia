@@ -1,3 +1,4 @@
+// ================= TOAST =================
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
 
@@ -38,10 +39,10 @@ async function registerStudent() {
 
     console.log("🚀 SENDING:", data);
 
-    // ✅ VALIDATION FRONT
+    // ✅ VALIDATION
     for (let key in data) {
         if (!data[key]) {
-            alert("كل الحقول مطلوبة");
+            showToast("كل الحقول مطلوبة", "error");
             return;
         }
     }
@@ -59,16 +60,30 @@ async function registerStudent() {
         console.log("📥 RESPONSE:", result);
 
         if (!res.ok) {
-            throw new Error(result.error);
+            throw new Error(result.error || "خطأ في السيرفر");
         }
 
-        alert("تم التسجيل بنجاح ✅");
+        showToast("تم التسجيل بنجاح ✅", "success");
+
+        // ✅ تفريغ الفورم بدل ما الصفحة تعمل reload
+        document.getElementById('signup-form').reset();
+
+        // ✅ تحويل بعد ثانيتين (اختياري)
+        setTimeout(() => {
+            window.location.href = "login.html";
+        }, 2000);
 
     } catch (err) {
         console.error(err);
-        alert(err.message);
+        showToast(err.message, "error");
     }
-                    }
+}
+
+// ================= منع الريلود =================
+document.getElementById('signup-form')?.addEventListener('submit', function (e) {
+    e.preventDefault(); // 🚀 أهم سطر
+    registerStudent();
+});
 
 // ================= LIVE CHECK =================
 let timer;
