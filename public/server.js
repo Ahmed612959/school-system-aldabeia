@@ -547,79 +547,110 @@ app.get('/api/exams/:code/results', async (req, res) => {
     }
 });
 
+const bcrypt = require('bcrypt');
+
 app.post('/api/register-student', async (req, res) => {
-    try {
-        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
+  try {
+    // ❌ منع أي _id جاي من الفرونت
+    delete req.body._id;
 
-        // التحقق من الحقول الجديدة فقط
-        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
-            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
-        }
+    const {
+      fullName,
+      username,
+      nationalId, // 👈 البطاقة كاملة (اختياري)
+      studentId,  // 👈 آخر 7 أرقام
+      phone,
+      parentName,
+      parentId,
+      password
+    } = req.body;
 
-        // التحقق من رقم الجلوس (1-7 أرقام)
-        if (!/^\d{1,7}$/.test(id)) {
-            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط' });
-        }
-
-        // التحقق من رقم بطاقة ولي الأمر (14 رقم بالظبط)
-        if (!/^\d{14}$/.test(parentId)) {
-            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
-        }
-
-        // التحقق من صيغة اسم المستخدم
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
-        }
-
-        // التحقق من التكرار
-        const [existingId, existingUsername, existingParentId] = await Promise.all([
-            Student.findOne({ id }).lean(),
-            Promise.all([
-                Admin.findOne({ username }).lean(),
-                Student.findOne({ username }).lean()
-            ]),
-            Student.findOne({ 'profile.parentId': parentId }).lean()
-        ]);
-
-        if (existingId) {
-            return res.status(400).json({ error: 'رقم الجلوس مستخدم من قبل' });
-        }
-
-        if (existingUsername.some(u => u)) {
-            return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
-        }
-
-        if (existingParentId) {
-            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
-        }
-
-        // تشفير كلمة المرور
-        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-        // إنشاء الطالب (profile يحتوي على الحقول الجديدة فقط)
-        const student = new Student({
-            fullName,
-            id,
-            username,
-            password: hashedPassword,
-            originalPassword: password,
-            subjects: [],
-            profile: {
-                phone,
-                parentName,
-                parentId
-            }
-        });
-
-        await student.save();
-
-        console.log(`Student registered: \( {username} ( \){id})`);
-        res.json({ message: 'تم إنشاء الحساب بنجاح', username });
-
-    } catch (error) {
-        console.error('Error in register-student:', error);
-        res.status(500).json({ error: 'خطأ في إنشاء الحساب: ' + error.message });
+    // ✅ تحقق من البيانات
+    if (!fullName || !username || !studentId || !phone || !parentName || !parentId || !password) {
+      return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
     }
+
+    // ✅ التحقق من آخر 7 أرقام
+    if (!/^\d{7}$/.test(studentId)) {
+      return res.status(400).json({ error: 'يجب إدخال آخر 7 أرقام من البطاقة فقط' });
+    }
+
+    // ✅ رقم ولي الأمر
+    if (!/^\d{14}$/.test(parentId)) {
+      return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم' });
+    }
+
+    // ✅ username
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+      return res.status(400).json({ error: 'اسم المستخدم 3-20 حرف (أحرف وأرقام فقط)' });
+    }
+
+    // ✅ password
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'كلمة المرور لازم تكون 6 حروف على الأقل' });
+    }
+
+    // ⚡ تحقق من التكرار
+    const [existingId, existingUsername, existingParentId] = await Promise.all([
+      Student.findOne({ id: studentId }).lean(),
+      Promise.all([
+        Admin.findOne({ username }).lean(),
+        Student.findOne({ username }).lean()
+      ]),
+      Student.findOne({ 'profile.parentId': parentId }).lean()
+    ]);
+
+    if (existingId) {
+      return res.status(400).json({ error: 'هذا الرقم مستخدم بالفعل' });
+    }
+
+    if (existingUsername.some(u => u)) {
+      return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
+    }
+
+    if (existingParentId) {
+      return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم بالفعل' });
+    }
+
+    // 🔐 تشفير
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // ✅ إنشاء الطالب
+    const student = new Student({
+      fullName,
+      id: studentId, // 👈 هنا التخزين الحقيقي
+      username,
+      password: hashedPassword,
+      semester: 'first',
+      subjects: [],
+      profile: {
+        phone,
+        parentName,
+        parentId
+      }
+    });
+
+    await student.save();
+
+    console.log(`✅ New student: ${username} (${studentId})`);
+
+    res.status(201).json({
+      message: 'تم إنشاء الحساب بنجاح 🎉',
+      username
+    });
+
+  } catch (error) {
+    console.error('❌ Register Error:', error);
+
+    if (error.code === 11000) {
+      return res.status(400).json({ error: 'بيانات مكررة' });
+    }
+
+    res.status(500).json({
+      error: 'خطأ في إنشاء الحساب',
+      details: error.message
+    });
+  }
 });
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
