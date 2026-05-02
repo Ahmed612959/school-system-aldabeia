@@ -80,8 +80,8 @@ async function registerStudent() {
 }
 
 // ================= منع الريلود =================
-document.getElementById('signup-form')?.addEventListener('submit', function (e) {
-    e.preventDefault(); // 🚀 أهم سطر
+document.getElementById('student-signup-form')?.addEventListener('submit', function (e) {
+    e.preventDefault(); // 🔥 يمنع الريلود
     registerStudent();
 });
 
