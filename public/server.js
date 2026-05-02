@@ -740,7 +740,6 @@ app.post('/api/nour', async (req, res) => {
         res.json({ reply: "النت وقع يا أسطورة… جرب تاني بعد شوية" });
     }
 });
-
 // === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
 
