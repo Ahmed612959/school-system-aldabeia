@@ -1,20 +1,20 @@
-const express = require('express'); 
+const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const pdfParse = require('pdf-parse');
 const crypto = require('crypto');
-const serverless = require('serverless-http');
+const serverless = require('serverless-http'); // مهم جدًا
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
-// MongoDB
+// ربط MongoDB من Environment Variables
 const uri = process.env.MONGODB_URI;
-
 if (!uri) {
   console.error('MONGODB_URI is missing!');
   process.exit(1);
@@ -24,9 +24,7 @@ mongoose.connect(uri)
   .then(() => console.log('تم الاتصال بـ MongoDB'))
   .catch(err => console.error('خطأ في الاتصال:', err));
 
-
-// ===================== SCHEMAS =====================
-
+// === النماذج (Schemas) ===
 const adminSchema = new mongoose.Schema({
     fullName: String,
     username: String,
@@ -35,7 +33,7 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    studentCardId: { type: String, required: true, unique: true },
+    id: String,
     username: String,
     password: String,
     originalPassword: String,
@@ -67,19 +65,15 @@ const Student = mongoose.model('Student', studentSchema);
 const Violation = mongoose.model('Violation', violationSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 
-
-// ===================== HELPERS =====================
-
-function generateUniqueUsername(fullName, studentCardId, existingUsers) {
-    let baseUsername = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 10) + studentCardId.slice(-2);
+// === دوال مساعدة ===
+function generateUniqueUsername(fullName, id, existingUsers) {
+    let baseUsername = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 10) + id.slice(-2);
     let username = baseUsername;
     let counter = 1;
-
     while (existingUsers.some(user => user.username === username)) {
         username = `${baseUsername}${counter}`;
         counter++;
     }
-
     return username;
 }
 
@@ -88,55 +82,524 @@ function generatePassword(fullName) {
     return `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}1234@`;
 }
 
+// === نموذج مسابقة الأسبوع ===
+const weeklyQuizSchema = new mongoose.Schema({
+    weekNumber: { type: Number, required: true },  // رقم الأسبوع في السنة
+    question: { type: String, required: true },
+    options: [{ type: String, required: true }],   // 4 إجابات
+    correctIndex: { type: Number, required: true }, // رقم الإجابة الصح (0-3)
+    winners: [{                                    // أول 5 يجاوبوا صح
+        studentId: String,
+        username: String,
+        fullName: String,
+        answeredAt: { type: Date, default: Date.now }
+    }],
+    isActive: { type: Boolean, default: true }
+});
 
-// ===================== REGISTER STUDENT (FIXED) =====================
+const WeeklyQuiz = mongoose.model('WeeklyQuiz', weeklyQuizSchema);
+
+// === كل الـ API Routes ===
+app.get('/api/admins', async (req, res) => {
+    try {
+        const admins = await Admin.find();
+        res.json(admins);
+    } catch (error) {
+        console.error('خطأ في جلب الأدمنز:', error);
+        res.status(500).json({ error: 'خطأ في جلب الأدمنز' });
+    }
+});
+
+
+app.post('/api/admins', async (req, res) => {
+    try {
+        const { fullName, username, password } = req.body;
+        const existingAdmins = await Admin.find();
+        const existingStudents = await Student.find();
+        if (existingAdmins.some(a => a.username === username) || existingStudents.some(s => s.username === username)) {
+            return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
+        }
+        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+        const newAdmin = new Admin({ fullName, username, password: hashedPassword });
+        await newAdmin.save();
+        res.json({ message: 'تم إضافة الأدمن', admin: newAdmin });
+    } catch (error) {
+        console.error('خطأ في إضافة الأدمن:', error);
+        res.status(500).json({ error: 'خطأ في إضافة الأدمن' });
+    }
+});
+
+app.delete('/api/admins/:username', async (req, res) => {
+    try {
+        const admins = await Admin.find();
+        if (admins.length <= 1) {
+            return res.status(400).json({ error: 'لا يمكن حذف آخر أدمن' });
+        }
+        await Admin.deleteOne({ username: req.params.username });
+        res.json({ message: 'تم حذف الأدمن' });
+    } catch (error) {
+        console.error('خطأ في حذف الأدمن:', error);
+        res.status(500).json({ error: 'خطأ في حذف الأدمن' });
+    }
+});
+
+app.get('/api/students', async (req, res) => {
+    try {
+        const students = await Student.find();
+        res.json(students);
+    } catch (error) {
+        console.error('خطأ في جلب الطلاب:', error);
+        res.status(500).json({ error: 'خطأ في جلب الطلاب' });
+    }
+});
+
+app.post('/api/students', async (req, res) => {
+    try {
+        const { fullName, id, subjects, semester } = req.body;
+        const existingAdmins = await Admin.find();
+        const existingStudents = await Student.find();
+        const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
+        const originalPassword = generatePassword(fullName);
+        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+        const newStudent = new Student({
+            fullName,
+            id,
+            username,
+            password: hashedPassword,
+            originalPassword,
+            semester: semester || 'first',
+            subjects,
+            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
+        });
+        await newStudent.save();
+        res.json({ message: 'تم إضافة الطالب', student: newStudent });
+    } catch (error) {
+        console.error('خطأ في إضافة الطالب:', error);
+        res.status(500).json({ error: 'خطأ في إضافة الطالب' });
+    }
+});
+
+app.put('/api/students/:id', async (req, res) => {
+    try {
+        const { subjects, semester } = req.body;
+        const updateData = { subjects };
+        if (semester) updateData.semester = semester;
+        await Student.findOneAndUpdate({ id: req.params.id }, updateData, { new: true });
+        res.json({ message: 'تم تحديث الطالب' });
+    } catch (error) {
+        console.error('خطأ في تحديث الطالب:', error);
+        res.status(500).json({ error: 'خطأ في تحديث الطالب' });
+    }
+});
+
+app.delete('/api/students/:id', async (req, res) => {
+    try {
+        await Student.deleteOne({ id: req.params.id });
+        await Violation.deleteMany({ studentId: req.params.id });
+        res.json({ message: 'تم حذف الطالب' });
+    } catch (error) {
+        console.error('خطأ في حذف الطالب:', error);
+        res.status(500).json({ error: 'خطأ في حذف الطالب' });
+    }
+});
+
+app.get('/api/violations', async (req, res) => {
+    try {
+        const violations = await Violation.find();
+        res.json(violations);
+    } catch (error) {
+        console.error('خطأ في جلب المخالفات:', error);
+        res.status(500).json({ error: 'خطأ في جلب المخالفات' });
+    }
+});
+
+app.post('/api/violations', async (req, res) => {
+    try {
+        const newViolation = new Violation(req.body);
+        await newViolation.save();
+        res.json({ message: 'تم إضافة المخالفة', violation: newViolation });
+    } catch (error) {
+        console.error('خطأ في إضافة المخالفة:', error);
+        res.status(500).json({ error: 'خطأ في إضافة المخالفة' });
+    }
+});
+
+app.delete('/api/violations/:id', async (req, res) => {
+    try {
+        await Violation.findByIdAndDelete(req.params.id);
+        res.json({ message: 'تم حذف المخالفة' });
+    } catch (error) {
+        console.error('خطأ في حذف المخالفة:', error);
+        res.status(500).json({ error: 'خطأ في حذف المخالفة' });
+    }
+});
+
+app.get('/api/notifications', async (req, res) => {
+    try {
+        const notifications = await Notification.find();
+        res.json(notifications);
+    } catch (error) {
+        console.error('خطأ في جلب الإشعارات:', error);
+        res.status(500).json({ error: 'خطأ في جلب الإشعارات' });
+    }
+});
+
+app.post('/api/notifications', async (req, res) => {
+    try {
+        const newNotification = new Notification(req.body);
+        await newNotification.save();
+        res.json({ message: 'تم إضافة الإشعار', notification: newNotification });
+    } catch (error) {
+        console.error('خطأ في إضافة الإشعار:', error);
+        res.status(500).json({ error: 'خطأ في إضافة الإشعار' });
+    }
+});
+
+app.delete('/api/notifications/:id', async (req, res) => {
+    try {
+        await Notification.findByIdAndDelete(req.params.id);
+        res.json({ message: 'تم حذف الإشعار' });
+    } catch (error) {
+        console.error('خطأ في حذف الإشعار:', error);
+        res.status(500).json({ error: 'خطأ في حذف الإشعار' });
+    }
+});
+
+app.post('/api/analyze-pdf', async (req, res) => {
+    try {
+        const { pdfData } = req.body;
+
+        if (!pdfData || typeof pdfData !== 'string') {
+            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
+        }
+
+        let buffer;
+        try {
+            buffer = Buffer.from(pdfData, 'base64');
+        } catch (error) {
+            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
+        }
+
+        const data = await pdfParse(buffer);
+        const text = data.text;
+        const lines = text.split(/\r?\n/).filter(line => line.trim());
+
+        const validSubjects = [
+            'مبادئ وأسس تمريض',
+            'اللغة العربية',
+            'اللغة الإنجليزية',
+            'الفيزياء',
+            'الكيمياء',
+            'التشريح/علم وظائف الأعضاء',
+            'التربية الدينية',
+            'الكمبيوتر',
+            'التاريخ',
+            'الجغرافيا'
+        ];
+
+        const normalizeSubject = (subject) => {
+            let normalized = subject
+                .replace(/اإل/g, 'الإ')
+                .replace(/أ/g, 'ا')
+                .replace(/ی/g, 'ي')
+                .replace(/ة/g, 'ه')
+                .replace(/[\/\\]/g, '/')
+                .replace(/إ/g, 'ا')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (normalized.includes('مبادئ') && normalized.includes('تمريض')) return 'مبادئ وأسس تمريض';
+            if (normalized.includes('عربيه') || normalized.includes('عربية')) return 'اللغة العربية';
+            if (normalized.includes('انجليزيه') || normalized.includes('إنجليزية') || normalized.includes('انجلیزیه')) return 'اللغة الإنجليزية';
+            if (normalized.includes('فيزياء') || normalized.includes('فیزیاء')) return 'الفيزياء';
+            if (normalized.includes('كيمياء') || normalized.includes('كیمیاء')) return 'الكيمياء';
+            if (normalized.includes('تشريح') || normalized.includes('تشریح') || normalized.includes('وظائف')) return 'التشريح/علم وظائف الأعضاء';
+            if (normalized.includes('تربيه') || normalized.includes('دينيه') || normalized.includes('دينية')) return 'التربية الدينية';
+            if (normalized.includes('كمبيوتر') || normalized.includes('كمبیوتر')) return 'الكمبيوتر';
+            if (normalized.includes('تاريخ') || normalized.includes('تاریخ')) return 'التاريخ';
+            if (normalized.includes('جغرافيا') || normalized.includes('جغرافیاء')) return 'الجغرافيا';
+            return normalized;
+        };
+
+        const allResults = [];
+        let currentStudent = null;
+        let grades = [];
+        let semester = 'first';
+        const ignoredLines = [];
+
+        for (const line of lines) {
+            const cleanedLine = line.trim().replace(/\s+/g, ' ');
+
+            const semesterMatch = cleanedLine.match(/(?:الترم|Semester):?\s*(الأول|الثاني|first|second)/i);
+            if (semesterMatch) {
+                semester = semesterMatch[1].includes('الأول') || semesterMatch[1].toLowerCase() === 'first' ? 'first' : 'second';
+                continue;
+            }
+
+            const studentMatch = cleanedLine.match(/(?:طالب|الطالب|Student):?\s*([^-\n]+?)\s*[-–—]?\s*(?:رقم الجلوس|رقم|ID):?\s*(\d+)/i);
+            if (studentMatch) {
+                if (currentStudent && grades.length > 0) {
+                    allResults.push({
+                        name: currentStudent.fullName,
+                        id: currentStudent.id,
+                        semester,
+                        results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
+                    });
+                    const existingAdmins = await Admin.find();
+                    const existingStudents = await Student.find();
+                    let student = await Student.findOne({ id: currentStudent.id });
+                    if (student) {
+                        student.subjects = grades;
+                        student.semester = semester;
+                        await student.save();
+                    } else {
+                        const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
+                        const originalPassword = generatePassword(currentStudent.fullName);
+                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+                        student = new Student({
+                            fullName: currentStudent.fullName,
+                            id: currentStudent.id,
+                            username,
+                            password: hashedPassword,
+                            originalPassword,
+                            semester,
+                            subjects: grades,
+                            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
+                        });
+                        await student.save();
+                    }
+                }
+                currentStudent = {
+                    fullName: studentMatch[1].trim(),
+                    id: studentMatch[2].trim()
+                };
+                grades = [];
+            } else if (cleanedLine.includes(':')) {
+                const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
+                const normalizedSubject = normalizeSubject(subject);
+                if (validSubjects.includes(normalizedSubject) && !isNaN(parseInt(grade))) {
+                    if ((normalizedSubject === 'التاريخ' && semester === 'first') || 
+                        (normalizedSubject === 'الجغرافيا' && semester === 'second') || 
+                        !['التاريخ', 'الجغرافيا'].includes(normalizedSubject)) {
+                        grades.push({ name: normalizedSubject, grade: parseInt(grade) });
+                    } else {
+                        ignoredLines.push(cleanedLine);
+                    }
+                } else {
+                    ignoredLines.push(cleanedLine);
+                }
+            } else {
+                ignoredLines.push(cleanedLine);
+            }
+        }
+
+        if (currentStudent && grades.length > 0) {
+            allResults.push({
+                name: currentStudent.fullName,
+                id: currentStudent.id,
+                semester,
+                results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
+            });
+            const existingAdmins = await Admin.find();
+            const existingStudents = await Student.find();
+            let student = await Student.findOne({ id: currentStudent.id });
+            if (student) {
+                student.subjects = grades;
+                student.semester = semester;
+                await student.save();
+            } else {
+                const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
+                const originalPassword = generatePassword(currentStudent.fullName);
+                const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+                student = new Student({
+                    fullName: currentStudent.fullName,
+                    id: currentStudent.id,
+                    username,
+                    password: hashedPassword,
+                    originalPassword,
+                    semester,
+                    subjects: grades,
+                    profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
+                });
+                await student.save();
+            }
+        }
+
+        if (allResults.length === 0) {
+            return res.status(400).json({ 
+                error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف',
+                details: { extractedLines: lines, ignoredLines }
+            });
+        }
+
+        res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
+    } catch (error) {
+        console.error('خطأ في تحليل PDF:', error);
+        res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
+    }
+});
+
+app.post('/api/check-username', async (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+        }
+
+        // جلب كل المستخدمين مرة واحدة (admins + students)
+        const [existingAdmins, existingStudents] = await Promise.all([
+            Admin.find({ username }).lean(),
+            Student.find({ username }).lean()
+        ]);
+
+        const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
+
+        console.log(`Check username: ${username} → Available: ${isAvailable}`);
+        res.json({ available: isAvailable });
+    } catch (error) {
+        console.error('Error checking username:', error);
+        res.status(500).json({ error: 'خطأ في التحقق من اسم المستخدم' });
+    }
+});
+
+// === باقي الـ routes (exams, register-student) ===
+const examSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    stage: { type: String, required: true },
+    code: { type: String, required: true, unique: true },
+    duration: { type: Number, required: true },
+    questions: [{
+        type: { type: String, required: true },
+        text: { type: String, required: true },
+        options: [String],
+        correctAnswer: String,
+        correctAnswers: [String]
+    }]
+});
+const Exam = mongoose.model('Exam', examSchema);
+
+const examResultSchema = new mongoose.Schema({
+    examCode: { type: String, required: true },
+    studentId: { type: String, required: true },
+    score: { type: Number, required: true },
+    completionTime: { type: Date, default: Date.now }
+});
+const ExamResult = mongoose.model('ExamResult', examResultSchema);
+
+app.post('/api/exams/check-code', async (req, res) => {
+    try {
+        const { code } = req.body;
+        if (!code) return res.status(400).json({ error: 'كود الاختبار مطلوب' });
+        const exam = await Exam.findOne({ code });
+        res.json({ available: !exam });
+    } catch (error) {
+        res.status(500).json({ error: 'فشل في التحقق من الكود' });
+    }
+});
+
+app.post('/api/exams', async (req, res) => {
+    try {
+        const { name, stage, code, duration, questions } = req.body;
+        if (!name || !stage || !code || !duration || !questions || !Array.isArray(questions)) {
+            return res.status(400).json({ error: 'البيانات غير مكتملة أو غير صحيحة' });
+        }
+        const exam = new Exam({ name, stage, code, duration, questions });
+        await exam.save();
+        res.json({ message: 'تم حفظ الاختبار', code });
+    } catch (error) {
+        if (error.code === 11000) {
+            res.status(400).json({ error: 'كود الاختبار مستخدم مسبقًا' });
+        } else {
+            res.status(500).json({ error: `فشل في حفظ الاختبار: ${error.message}` });
+        }
+    }
+});
+
+app.get('/api/exams/:code', async (req, res) => {
+    try {
+        const code = decodeURIComponent(req.params.code);
+        const exam = await Exam.findOne({ code });
+        if (!exam) return res.status(404).json({ error: 'الاختبار غير موجود' });
+        res.json(exam);
+    } catch (error) {
+        res.status(500).json({ error: `فشل في جلب الاختبار: ${error.message}` });
+    }
+});
+
+app.post('/api/exams/submit', async (req, res) => {
+    try {
+        const { examCode, studentId, score } = req.body;
+        const result = new ExamResult({ examCode, studentId, score });
+        await result.save();
+        res.json({ message: 'تم حفظ النتيجة' });
+    } catch (error) {
+        res.status(500).json({ error: 'فشل في إرسال النتيجة' });
+    }
+});
+
+app.get('/api/exams/:code/results', async (req, res) => {
+    try {
+        const code = decodeURIComponent(req.params.code);
+        const results = await ExamResult.find({ examCode: code }).select('studentId score completionTime');
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ error: `فشل في جلب نتائج الاختبار: ${error.message}` });
+    }
+});
 
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, studentCardId, phone, parentName, parentId, password } = req.body;
+        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
 
-        // validation
-        if (!fullName || !username || !studentCardId || !phone || !parentName || !parentId || !password) {
+        // التحقق من الحقول الجديدة فقط
+        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        if (!/^\d{14}$/.test(studentCardId)) {
-            return res.status(400).json({ error: 'رقم بطاقة الطالب يجب أن يكون 14 رقم' });
+        // التحقق من رقم الجلوس (1-7 أرقام)
+        if (!/^\d{1,7}$/.test(id)) {
+            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط' });
         }
 
+        // التحقق من رقم بطاقة ولي الأمر (14 رقم بالظبط)
         if (!/^\d{14}$/.test(parentId)) {
-            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم' });
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
 
+        // التحقق من صيغة اسم المستخدم
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            return res.status(400).json({ error: 'اسم المستخدم غير صحيح' });
+            return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        // check duplicates
-        const [existingCard, existingAdmin, existingStudent, existingParent] = await Promise.all([
-            Student.findOne({ studentCardId }),
-            Admin.findOne({ username }),
-            Student.findOne({ username }),
-            Student.findOne({ 'profile.parentId': parentId })
+        // التحقق من التكرار
+        const [existingId, existingUsername, existingParentId] = await Promise.all([
+            Student.findOne({ id }).lean(),
+            Promise.all([
+                Admin.findOne({ username }).lean(),
+                Student.findOne({ username }).lean()
+            ]),
+            Student.findOne({ 'profile.parentId': parentId }).lean()
         ]);
 
-        if (existingCard) {
-            return res.status(400).json({ error: 'رقم بطاقة الطالب مستخدم من قبل' });
+        if (existingId) {
+            return res.status(400).json({ error: 'رقم الجلوس مستخدم من قبل' });
         }
 
-        if (existingAdmin || existingStudent) {
+        if (existingUsername.some(u => u)) {
             return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
         }
 
-        if (existingParent) {
+        if (existingParentId) {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
         }
 
+        // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
+        // إنشاء الطالب (profile يحتوي على الحقول الجديدة فقط)
         const student = new Student({
             fullName,
-            studentCardId,
+            id,
             username,
             password: hashedPassword,
             originalPassword: password,
@@ -150,129 +613,151 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        console.log(`Student registered: ${username} (${studentCardId})`);
-
+        console.log(`Student registered: \( {username} ( \){id})`);
         res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'خطأ في إنشاء الحساب' });
+        console.error('Error in register-student:', error);
+        res.status(500).json({ error: 'خطأ في إنشاء الحساب: ' + error.message });
     }
 });
+// ====================================================
+// الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
+// ====================================================
 
+// تحديث ملف الطالب الشخصي (الأهم على الإطلاق)
+// ==================== إضافة الـ GET routes المفقودة (الحل النهائي) ====================
 
-// ===================== STUDENTS =====================
-
-app.get('/api/students', async (req, res) => {
-    const students = await Student.find();
-    res.json(students);
-});
-
-
-// ❗ FIXED: كان id → studentCardId
-app.delete('/api/students/:studentCardId', async (req, res) => {
+// جلب بيانات طالب واحد بالـ username
+app.get('/api/students/:username', async (req, res) => {
     try {
-        await Student.deleteOne({ studentCardId: req.params.studentCardId });
-        await Violation.deleteMany({ studentId: req.params.studentCardId });
-        res.json({ message: 'تم حذف الطالب' });
+        const student = await Student.findOne({ username: req.params.username });
+        if (!student) {
+            return res.status(404).json({ error: 'الطالب غير موجود' });
+        }
+        res.json(student);
     } catch (error) {
-        res.status(500).json({ error: 'خطأ في حذف الطالب' });
+        console.error('خطأ في جلب بيانات الطالب:', error);
+        res.status(500).json({ error: 'فشل في جلب البيانات' });
     }
 });
 
-
-// ===================== ANALYZE PDF (FIXED ONLY ID) =====================
-
-app.post('/api/analyze-pdf', async (req, res) => {
+// تحديث profile للطالب
+app.put('/api/students/:username', async (req, res) => {
     try {
-        const { pdfData } = req.body;
+        const { profile } = req.body;
+        const updated = await Student.findOneAndUpdate(
+            { username: req.params.username },
+            { profile },
+            { new: true }
+        );
+        if (!updated) return res.status(404).json({ error: 'الطالب غير موجود' });
+        res.json({ message: 'تم تحديث الملف الشخصي', student: updated });
+    } catch (error) {
+        console.error('خطأ في تحديث profile الطالب:', error);
+        res.status(500).json({ error: 'فشل في التحديث' });
+    }
+});
 
-        const buffer = Buffer.from(pdfData, 'base64');
-        const data = await pdfParse(buffer);
-        const lines = data.text.split(/\r?\n/).filter(l => l.trim());
+// تحديث profile للأدمن (اختياري - لو عايز الأدمن يعدل حاجة)
+app.put('/api/admins/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        const updated = await Admin.findOneAndUpdate(
+            { username: req.params.username },
+            { profile: profile || {} },
+            { new: true, upsert: true }
+        );
+        res.json({ message: 'تم تحديث بيانات الأدمن', admin: updated });
+    } catch (error) {
+        res.status(500).json({ error: 'فشل في التحديث' });
+    }
+});
+// جلب بيانات أدمن واحد بالـ username
+app.get('/api/admins/:username', async (req, res) => {
+    try {
+        const admin = await Admin.findOne({ username: req.params.username });
+        if (!admin) {
+            return res.status(404).json({ error: 'الأدمن غير موجود' });
+        }
+        res.json(admin);
+    } catch (error) {
+        console.error('خطأ في جلب بيانات الأدمن:', error);
+        res.status(500).json({ error: 'فشل في جلب البيانات' });
+    }
+});
 
-        let currentStudent = null;
-        let grades = [];
-        let semester = 'first';
+// ════════════════════════════════════════════════════
+// نور 3.0 – شغالة بـ Gemini 1.5 Flash (مضمونة 100%)
+// ════════════════════════════════════════════════════
+app.post('/api/nour', async (req, res) => {
+    try {
+        const { prompt } = req.body;
 
-        const allResults = [];
-
-        for (const line of lines) {
-
-            const studentMatch = line.match(/(?:طالب|Student):?\s*(.+?)\s*(?:رقم الجلوس|ID):?\s*(\d+)/i);
-
-            if (studentMatch) {
-
-                if (currentStudent) {
-                    allResults.push({
-                        name: currentStudent.name,
-                        studentCardId: currentStudent.studentCardId,
-                        semester,
-                        results: grades
-                    });
-
-                    let student = await Student.findOne({ studentCardId: currentStudent.studentCardId });
-
-                    if (student) {
-                        student.subjects = grades;
-                        student.semester = semester;
-                        await student.save();
-                    } else {
-                        await Student.create({
-                            fullName: currentStudent.name,
-                            studentCardId: currentStudent.studentCardId,
-                            username: generateUniqueUsername(currentStudent.name, currentStudent.studentCardId, []),
-                            password: crypto.createHash('sha256').update('1234').digest('hex'),
-                            originalPassword: '1234',
-                            semester,
-                            subjects: grades,
-                            profile: {}
-                        });
-                    }
-                }
-
-                currentStudent = {
-                    name: studentMatch[1],
-                    studentCardId: studentMatch[2]
-                };
-
-                grades = [];
-            }
+        if (!prompt || prompt.toString().trim() === '') {
+            return res.json({ reply: "اكتب حاجة الأول يا وحش!" });
         }
 
-        res.json({ message: 'تم التحليل', results: allResults });
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
 
-    } catch (error) {
-        res.status(500).json({ error: error.message });
+        if (!GEMINI_API_KEY) {
+            console.error("GEMINI_API_KEY مش موجود في الـ Environment");
+            return res.json({ reply: "نور نايمة دلوقتي يا بطل… كلمني بعد شوية" });
+        }
+
+        const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        role: "user",
+                        parts: [{ text: `أنت نور، مساعد ذكي مصري خفيف الدم ومرح جدًا وبتحب التمريض أوي.
+بترد دايمًا بالعامية المصرية الحلوة وبتقول يا وحش، يا بطل، يا أسطورة، يا دكتور.
+لو سألوك عن الدرجات قولهم يروحوا قسم "النتايج".
+السؤال: ${prompt}` }]
+                    }],
+                    generationConfig: { temperature: 0.9, maxOutputTokens: 1000 }
+                })
+            }
+        );
+
+        if (!response.ok) {
+            const err = await response.text();
+            console.error("Gemini Error:", err);
+            return res.json({ reply: "ثانية يا بطل… في حاجة حصلت، جرب تاني" });
+        }
+
+        const data = await response.json();
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
+                      || "معلش يا وحش… الكلام اتلخبط، قول تاني";
+
+        res.json({ reply: reply.replace(/^\*\*|\*\*$/g, "").trim() });
+
+    } catch (err) {
+        console.error("خطأ في /api/nour:", err.message);
+        res.json({ reply: "النت وقع يا أسطورة… جرب تاني بعد شوية" });
     }
 });
 
-
-// ===================== CHECK USERNAME =====================
-
-app.post('/api/check-username', async (req, res) => {
-    const { username } = req.body;
-
-    const admin = await Admin.findOne({ username });
-    const student = await Student.findOne({ username });
-
-    res.json({ available: !admin && !student });
-});
-
-
-// ===================== EXAMS =====================
-
-const examSchema = new mongoose.Schema({
-    name: String,
-    stage: String,
-    code: { type: String, unique: true },
-    duration: Number,
-    questions: Array
-});
-
-const Exam = mongoose.model('Exam', examSchema);
-
-
-// ===================== SERVERLESS =====================
-
+// === Vercel Serverless Handler ===
 module.exports.handler = serverless(app);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
