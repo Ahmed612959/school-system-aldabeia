@@ -24,36 +24,11 @@ function showToast(message, type = 'error') {
 }
 
 // ================= REGISTER =================
-async function registerStudent(data) {
-
-    console.log("📤 SENDING:", data);
-
-    const BASE_URL = window.location.origin;
-
-const res = await fetch(`${BASE_URL}/api/register-student`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-});
-
-    const result = await res.json();
-
-    console.log("📥 RESPONSE:", result);
-
-    if (!res.ok) {
-        throw new Error(result.error);
-    }
-
-    return result;
-}
-
-// ================= SUBMIT =================
-document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+async function registerStudent() {
 
     const data = {
         fullName: document.getElementById('fullName').value.trim(),
-        username: document.getElementById('username').value.trim().toLowerCase(),
+        username: document.getElementById('username').value.trim(),
         password: document.getElementById('password').value,
         phone: document.getElementById('phone').value.trim(),
         parentName: document.getElementById('parentName').value.trim(),
@@ -61,30 +36,39 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         year: document.getElementById('year').value
     };
 
-    console.log("🧾 FORM DATA:", data);
+    console.log("🚀 SENDING:", data);
 
-    // validation
-    for (const key in data) {
+    // ✅ VALIDATION FRONT
+    for (let key in data) {
         if (!data[key]) {
-            return showToast(`الحقل ${key} فارغ ❌`);
+            alert("كل الحقول مطلوبة");
+            return;
         }
     }
 
     try {
-        showToast('جاري إنشاء الحساب...', 'info');
+        const res = await fetch('/api/register-student', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
 
-        await registerStudent(data);
+        const result = await res.json();
+        console.log("📥 RESPONSE:", result);
 
-        showToast('تم إنشاء الحساب بنجاح ✅', 'success');
+        if (!res.ok) {
+            throw new Error(result.error);
+        }
 
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1500);
+        alert("تم التسجيل بنجاح ✅");
 
     } catch (err) {
-        showToast(err.message);
+        console.error(err);
+        alert(err.message);
     }
-});
+                    }
 
 // ================= LIVE CHECK =================
 let timer;
