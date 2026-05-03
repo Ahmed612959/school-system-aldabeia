@@ -560,124 +560,106 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 
 // ====================== Register Student ======================
+// ====================== Register Student ======================
 app.post('/api/register-student', async (req, res) => {
     try {
-        // Logging للتصحيح (مهم جداً)
-        console.log("📥 Received Body:", JSON.stringify(req.body, null, 2));
-        console.log("📋 Keys received:", Object.keys(req.body));
+        console.log("📥 Raw Body:", JSON.stringify(req.body, null, 2));
 
-        const { 
+        // استقبال الحقول بطريقة أكثر مرونة
+        let {
+            fullName,
+            username,
+            studentCode,
+            phone,
+            parentName,
+            parentId,
+            password
+        } = req.body || {};
+
+        // تنظيف وتحويل
+        fullName = fullName?.toString().trim();
+        username = username?.toString().trim().toLowerCase();
+        studentCode = studentCode?.toString().trim().replace(/\D/g, '');
+        phone = phone?.toString().trim();
+        parentName = parentName?.toString().trim();
+        parentId = parentId?.toString().trim().replace(/\D/g, '');
+        password = password?.toString().trim();
+
+        // Logging مفصل جداً
+        console.log("🧹 Cleaned Data:", { 
             fullName, 
             username, 
             studentCode, 
             phone, 
             parentName, 
             parentId, 
-            password 
-        } = req.body;
+            passwordLength: password ? password.length : 0 
+        });
 
-        // ================= تنظيف البيانات =================
-        const cleanStudentCode = studentCode?.toString().trim().replace(/\D/g, '');
-        const cleanParentId = parentId?.toString().trim().replace(/\D/g, '');
-        const cleanUsername = username?.toString().trim().toLowerCase();
-
-        // ================= Validation =================
-        if (!fullName || !cleanUsername || !cleanStudentCode || !phone || !parentName || !cleanParentId || !password) {
-            console.error("❌ Missing fields:", { 
-                fullName, 
-                username: cleanUsername, 
-                studentCode: cleanStudentCode, 
-                phone, 
-                parentName, 
-                parentId: cleanParentId, 
-                password: password ? "****" : null 
-            });
-            
+        // Validation
+        if (!fullName || !username || !studentCode || !phone || !parentName || !parentId || !password) {
             return res.status(400).json({ 
-                error: 'كل الحقول مطلوبة',
-                details: 'يرجى التأكد من ملء جميع الحقول'
+                error: 'جميع الحقول مطلوبة',
+                received: { fullName, username, studentCode, phone, parentName, parentId, hasPassword: !!password }
             });
         }
 
-        if (cleanStudentCode.length !== 7) {
-            return res.status(400).json({ 
-                error: 'رقم الجلوس لازم يكون 7 أرقام بالضبط' 
-            });
+        if (studentCode.length !== 7) {
+            return res.status(400).json({ error: 'رقم الجلوس لازم يكون 7 أرقام بالضبط' });
         }
 
-        if (cleanParentId.length !== 14) {
-            return res.status(400).json({ 
-                error: 'رقم بطاقة ولي الأمر لازم يكون 14 رقم بالضبط' 
-            });
+        if (parentId.length !== 14) {
+            return res.status(400).json({ error: 'رقم ولي الأمر لازم يكون 14 رقم بالضبط' });
         }
 
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(cleanUsername)) {
-            return res.status(400).json({ 
-                error: 'اسم المستخدم يجب أن يحتوي على 3-20 حرف أو رقم إنجليزي فقط' 
-            });
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+            return res.status(400).json({ error: 'اسم المستخدم غير صالح (3-20 حرف/رقم إنجليزي)' });
         }
 
         if (password.length < 6) {
-            return res.status(400).json({ 
-                error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' 
-            });
+            return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
         }
 
-        // ================= التحقق من التكرار =================
+        // التحقق من التكرار
         const [existCode, existUser] = await Promise.all([
-            Student.findOne({ studentCode: cleanStudentCode }), 
-            Student.findOne({ username: cleanUsername }) 
+            Student.findOne({ studentCode }),
+            Student.findOne({ username })
         ]);
 
-        if (existCode) {
-            return res.status(400).json({ error: 'هذا الكود (رقم الجلوس) مستخدم بالفعل' });
-        }
+        if (existCode) return res.status(400).json({ error: 'هذا الكود مستخدم بالفعل' });
+        if (existUser) return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
 
-        if (existUser) {
-            return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
-        }
-
-        // ================= تشفير كلمة المرور =================
+        // تشفير الباسورد
         const hashed = await bcrypt.hash(password, 10);
 
-        // ================= إنشاء الطالب =================
         const student = new Student({
-            fullName: fullName.trim(),
-            username: cleanUsername,
-            studentCode: cleanStudentCode,
+            fullName,
+            username,
+            studentCode,
             password: hashed,
-            profile: {
-                phone: phone.trim(),
-                parentName: parentName.trim(),
-                parentId: cleanParentId
-            }
+            profile: { phone, parentName, parentId }
         });
 
         await student.save();
 
-        console.log(`✅ Student created successfully: ${cleanUsername} (${cleanStudentCode})`);
+        console.log(`✅ تم إنشاء الطالب: ${username}`);
 
         res.json({ 
+            success: true,
             message: 'تم إنشاء الحساب بنجاح',
-            username: cleanUsername 
+            username 
         });
 
     } catch (err) {
-        console.error('🔥 ERROR in /api/register-student:', err);
-
-        // إذا كان خطأ MongoDB Duplicate Key
-        if (err.code === 11000) {
-            return res.status(400).json({ 
-                error: 'الكود أو اسم المستخدم مستخدم مسبقاً' 
-            });
-        }
-
+        console.error('🔥 Register Error:', err);
         res.status(500).json({ 
-            error: 'حدث خطأ أثناء إنشاء الحساب',
+            error: 'حدث خطأ في السيرفر',
             details: err.message 
         });
     }
 });
+
+
 
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
