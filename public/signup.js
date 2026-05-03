@@ -79,28 +79,32 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     e.preventDefault();
 
     // جلب القيم من الحقول
-    const fullNameInput = document.getElementById('fullName').value.trim();
+    const fullName = document.getElementById('fullName').value.trim();
     const usernameInput = document.getElementById('username').value.trim();
-    const passwordInput = document.getElementById('password').value;
-    let studentCodeInput = document.getElementById('studentId').value.trim();
-    let phoneInput = document.getElementById('phone').value.trim();
-    const parentNameInput = document.getElementById('parentName').value.trim();
-    let parentIdInput = document.getElementById('parentId').value.trim();
+    const password = document.getElementById('password').value;
+    let studentCode = document.getElementById('studentId').value.trim();
+    let phone = document.getElementById('phone').value.trim();
+    const parentName = document.getElementById('parentName').value.trim();
+    let parentId = document.getElementById('parentId').value.trim();
 
-    // ================= تنظيف البيانات قبل الإرسال =================
-    const fullName = fullNameInput;
+    // تنظيف البيانات
     const username = usernameInput.toLowerCase();
-    const password = passwordInput;
-    const studentCode = studentCodeInput.replace(/\D/g, '');
-    const phone = phoneInput;
-    const parentName = parentNameInput;
-    const parentId = parentIdInput.replace(/\D/g, '');
+    studentCode = studentCode.replace(/\D/g, '');
+    parentId = parentId.replace(/\D/g, '');
 
-    // ================= طباعة تفصيلية جداً للتصحيح =================
+    // ================= Logging مفصل للتصحيح =================
     console.log("══════════════════════════════════════");
-    console.log("📋 بيانات النموذج الأصلية:");
-    console.log({ fullNameInput, usernameInput, studentCodeInput, phoneInput, parentNameInput, parentIdInput });
-    
+    console.log("📋 البيانات الأصلية من النموذج:");
+    console.log({
+        fullName,
+        usernameInput,
+        passwordLength: password.length,
+        studentCodeRaw: document.getElementById('studentId').value,
+        phone,
+        parentName,
+        parentIdRaw: document.getElementById('parentId').value
+    });
+
     console.log("🧹 البيانات بعد التنظيف:");
     console.log({
         fullName,
@@ -113,9 +117,8 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     });
     console.log("══════════════════════════════════════");
 
-    // ================= Validation =================
+    // Validation على الـ client
     if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
-        console.error("❌ Validation Failed - Missing Fields");
         return showToast('يرجى ملء جميع الحقول');
     }
 
@@ -141,7 +144,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return showToast('اسم المستخدم مستخدم بالفعل، اختر اسم آخر');
     }
 
-    // ================= إعداد Payload النهائي =================
+    // Payload النهائي
     const payload = {
         fullName,
         username,
@@ -182,7 +185,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         console.log("📦 رد السيرفر بعد التحليل:", data);
 
         if (!res.ok) {
-            throw new Error(data.error || 'فشل في إنشاء الحساب');
+            throw new Error(data.error || data.message || 'فشل في إنشاء الحساب');
         }
 
         showToast('تم إنشاء الحساب بنجاح 🎉', 'success');
