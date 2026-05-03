@@ -35,8 +35,7 @@ const adminSchema = new mongoose.Schema({
 const studentSchema = new mongoose.Schema({
     fullName: String,
 
-    // ❗ ده رقم الجلوس (آخر 7 أرقام)
-    id: {
+    studentCode: { // 👈 بدل id
         type: String,
         required: true,
         unique: true
@@ -55,7 +54,7 @@ const studentSchema = new mongoose.Schema({
         parentId: String
     }
 
-}, { timestamps: true }); // سيب Mongo يعمل _id لوحده
+}, { timestamps: true });
 
 const violationSchema = new mongoose.Schema({
     studentId: String,
@@ -559,27 +558,30 @@ app.get('/api/exams/:code/results', async (req, res) => {
 });
 
 
+
 app.post('/api/register-student', async (req, res) => {
   try {
-    delete req.body._id;
-
+    // 💣 تنظيف كامل
     const {
       fullName,
       username,
-      id,
+      studentCode,
       phone,
       parentName,
       parentId,
       password
     } = req.body;
 
+    // ❌ امسح أي _id غصب عنه
+    delete req.body._id;
+
     // ✅ تحقق
-    if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
+    if (!fullName || !username || !studentCode || !phone || !parentName || !parentId || !password) {
       return res.status(400).json({ error: 'كل الحقول مطلوبة' });
     }
 
-    if (!/^\d{7}$/.test(id)) {
-      return res.status(400).json({ error: 'رقم الجلوس لازم يكون 7 أرقام' });
+    if (!/^\d{7}$/.test(studentCode)) {
+      return res.status(400).json({ error: 'اكتب آخر 7 أرقام من البطاقة' });
     }
 
     if (!/^\d{14}$/.test(parentId)) {
@@ -587,36 +589,41 @@ app.post('/api/register-student', async (req, res) => {
     }
 
     // ✅ تحقق التكرار
-    const [existId, existUser] = await Promise.all([
-      Student.findOne({ id }),
+    const [existCode, existUser] = await Promise.all([
+      Student.findOne({ studentCode }),
       Student.findOne({ username })
     ]);
 
-    if (existId) return res.status(400).json({ error: 'رقم الجلوس مستخدم' });
+    if (existCode) return res.status(400).json({ error: 'الكود مستخدم' });
     if (existUser) return res.status(400).json({ error: 'اسم المستخدم مستخدم' });
 
-    // ✅ تشفير
+    // 🔐 تشفير
     const hashed = await bcrypt.hash(password, 10);
 
+    // 💥 إنشاء نظيف 100% (بدون أي spread)
     const student = new Student({
-    fullName,
-    username,
-    id, // رقم الجلوس
-    password: hashed,
-    profile: {
+      fullName,
+      username,
+      studentCode,
+      password: hashed,
+      profile: {
         phone,
         parentName,
         parentId
-    }
-});
+      }
+    });
 
     await student.save();
 
-    res.json({ message: 'تم إنشاء الحساب', username });
+    res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'خطأ في السيرفر' });
+    console.error('🔥 ERROR:', err);
+
+    res.status(500).json({
+      error: 'خطأ في إنشاء الحساب',
+      details: err.message
+    });
   }
 });
 
