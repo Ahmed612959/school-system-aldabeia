@@ -10,10 +10,16 @@ const serverless = require('serverless-http'); // مهم جدًا
 const app = express();
 
 // Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(cors({
+    origin: '*',                    // مؤقتًا للتجربة
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type']
+}));
 
+app.use(express.json({ limit: '10mb' }));     // مهم جدًا
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); 
+
+app.use(express.static('public'));
 // ربط MongoDB من Environment Variables
 const uri = process.env.MONGODB_URI;
 if (!uri) {
@@ -560,47 +566,44 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 
 // ====================== Register Student ======================
-// ====================== Register Student ======================
+// ====================== Register Student - الحل النهائي ======================
 app.post('/api/register-student', async (req, res) => {
     try {
-        console.log("📥 Raw Body:", JSON.stringify(req.body, null, 2));
+        console.log("📥 Raw req.body received:", JSON.stringify(req.body, null, 2));
+        console.log("📋 Available keys:", Object.keys(req.body || {}));
 
-        // استقبال الحقول بطريقة أكثر مرونة
-        let {
-            fullName,
-            username,
-            studentCode,
-            phone,
-            parentName,
-            parentId,
-            password
-        } = req.body || {};
+        // استخراج الحقول بطريقة مباشرة وآمنة
+        const fullName   = String(req.body.fullName || '').trim();
+        const username   = String(req.body.username || '').trim().toLowerCase();
+        const password   = String(req.body.password || '').trim();
+        let studentCode  = String(req.body.studentCode || '').trim().replace(/\D/g, '');
+        let phone        = String(req.body.phone || '').trim();
+        const parentName = String(req.body.parentName || '').trim();
+        let parentId     = String(req.body.parentId || '').trim().replace(/\D/g, '');
 
-        // تنظيف وتحويل
-        fullName = fullName?.toString().trim();
-        username = username?.toString().trim().toLowerCase();
-        studentCode = studentCode?.toString().trim().replace(/\D/g, '');
-        phone = phone?.toString().trim();
-        parentName = parentName?.toString().trim();
-        parentId = parentId?.toString().trim().replace(/\D/g, '');
-        password = password?.toString().trim();
-
-        // Logging مفصل جداً
         console.log("🧹 Cleaned Data:", { 
             fullName, 
             username, 
+            hasPassword: password.length > 0,
             studentCode, 
             phone, 
             parentName, 
-            parentId, 
-            passwordLength: password ? password.length : 0 
+            parentId 
         });
 
         // Validation
-        if (!fullName || !username || !studentCode || !phone || !parentName || !parentId || !password) {
+        if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
             return res.status(400).json({ 
                 error: 'جميع الحقول مطلوبة',
-                received: { fullName, username, studentCode, phone, parentName, parentId, hasPassword: !!password }
+                debug: {
+                    fullName: !!fullName,
+                    username: !!username,
+                    password: !!password,
+                    studentCode: !!studentCode,
+                    phone: !!phone,
+                    parentName: !!parentName,
+                    parentId: !!parentId
+                }
             });
         }
 
@@ -609,11 +612,11 @@ app.post('/api/register-student', async (req, res) => {
         }
 
         if (parentId.length !== 14) {
-            return res.status(400).json({ error: 'رقم ولي الأمر لازم يكون 14 رقم بالضبط' });
+            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر لازم يكون 14 رقم بالضبط' });
         }
 
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            return res.status(400).json({ error: 'اسم المستخدم غير صالح (3-20 حرف/رقم إنجليزي)' });
+        if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+            return res.status(400).json({ error: 'اسم المستخدم غير صالح' });
         }
 
         if (password.length < 6) {
@@ -642,10 +645,10 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        console.log(`✅ تم إنشاء الطالب: ${username}`);
+        console.log(`✅ Success: Student ${username} created`);
 
         res.json({ 
-            success: true,
+            success: true, 
             message: 'تم إنشاء الحساب بنجاح',
             username 
         });
@@ -653,7 +656,7 @@ app.post('/api/register-student', async (req, res) => {
     } catch (err) {
         console.error('🔥 Register Error:', err);
         res.status(500).json({ 
-            error: 'حدث خطأ في السيرفر',
+            error: 'حدث خطأ في السيرفر', 
             details: err.message 
         });
     }
