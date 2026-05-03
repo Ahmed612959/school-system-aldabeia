@@ -4,7 +4,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const pdfParse = require('pdf-parse');
 const bcrypt = require('bcrypt');
-const crypto = require('crypto');
+
 const serverless = require('serverless-http'); // مهم جدًا
 
 const app = express();
@@ -658,6 +658,7 @@ app.post('/api/register-student', async (req, res) => {
         });
     }
 });
+
 
 
 
