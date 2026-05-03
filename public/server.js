@@ -34,18 +34,28 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    id: String,
-    username: String,
+
+    // ❗ ده رقم الجلوس (آخر 7 أرقام)
+    id: {
+        type: String,
+        required: true,
+        unique: true
+    },
+
+    username: {
+        type: String,
+        unique: true
+    },
+
     password: String,
-    originalPassword: String,
-    semester: { type: String, enum: ['first', 'second'], default: 'first' },
-    subjects: [{ name: String, grade: Number }],
+
     profile: {
         phone: String,
         parentName: String,
         parentId: String
     }
-});
+
+}, { timestamps: true }); // سيب Mongo يعمل _id لوحده
 
 const violationSchema = new mongoose.Schema({
     studentId: String,
