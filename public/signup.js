@@ -95,25 +95,30 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const parentId = document.getElementById('parentId').value.trim();
 
     // ================= Validation =================
-    if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
-        return showToast('يرجى ملء جميع الحقول');
-    }
+function validateForm(data) {
+    if (!data.fullName || data.fullName.length < 10)
+        return 'الاسم لازم يكون رباعي';
 
-    if (!/^\d{7}$/.test(studentCode)) {
-        return showToast('رقم الجلوس لازم يكون 7 أرقام');
-    }
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(data.username))
+        return 'اسم المستخدم 3-20 حروف أو أرقام';
 
-    if (!/^\d{14}$/.test(parentId)) {
-        return showToast('رقم بطاقة ولي الأمر لازم يكون 14 رقم');
-    }
+    if (!data.password || data.password.length < 6)
+        return 'كلمة المرور ضعيفة';
 
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        return showToast('اسم المستخدم غير صالح');
-    }
+    if (!/^\d{7}$/.test(data.studentCode))
+        return 'اكتب آخر 7 أرقام من البطاقة';
 
-    if (password.length < 6) {
-        return showToast('كلمة المرور لازم 6 حروف على الأقل');
-    }
+    if (!/^01\d{9}$/.test(data.phone))
+        return 'رقم الهاتف غير صحيح';
+
+    if (!data.parentName || data.parentName.length < 10)
+        return 'اسم ولي الأمر غير صحيح';
+
+    if (!/^\d{14}$/.test(data.parentId))
+        return 'رقم ولي الأمر لازم 14 رقم';
+
+    return null;
+}
 
     // ================= Check Username Final =================
     const available = await checkUsernameAvailability(username);
