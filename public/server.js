@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const pdfParse = require('pdf-parse');
+const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const serverless = require('serverless-http'); // مهم جدًا
 
@@ -547,82 +548,51 @@ app.get('/api/exams/:code/results', async (req, res) => {
     }
 });
 
-const bcrypt = require('bcrypt');
 
 app.post('/api/register-student', async (req, res) => {
   try {
-    // ❌ منع أي _id جاي من الفرونت
     delete req.body._id;
 
     const {
       fullName,
       username,
-      nationalId, // 👈 البطاقة كاملة (اختياري)
-      studentId,  // 👈 آخر 7 أرقام
+      id,
       phone,
       parentName,
       parentId,
       password
     } = req.body;
 
-    // ✅ تحقق من البيانات
-    if (!fullName || !username || !studentId || !phone || !parentName || !parentId || !password) {
-      return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+    // ✅ تحقق
+    if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
+      return res.status(400).json({ error: 'كل الحقول مطلوبة' });
     }
 
-    // ✅ التحقق من آخر 7 أرقام
-    if (!/^\d{7}$/.test(studentId)) {
-      return res.status(400).json({ error: 'يجب إدخال آخر 7 أرقام من البطاقة فقط' });
+    if (!/^\d{7}$/.test(id)) {
+      return res.status(400).json({ error: 'رقم الجلوس لازم يكون 7 أرقام' });
     }
 
-    // ✅ رقم ولي الأمر
     if (!/^\d{14}$/.test(parentId)) {
-      return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم' });
+      return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
     }
 
-    // ✅ username
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-      return res.status(400).json({ error: 'اسم المستخدم 3-20 حرف (أحرف وأرقام فقط)' });
-    }
-
-    // ✅ password
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'كلمة المرور لازم تكون 6 حروف على الأقل' });
-    }
-
-    // ⚡ تحقق من التكرار
-    const [existingId, existingUsername, existingParentId] = await Promise.all([
-      Student.findOne({ id: studentId }).lean(),
-      Promise.all([
-        Admin.findOne({ username }).lean(),
-        Student.findOne({ username }).lean()
-      ]),
-      Student.findOne({ 'profile.parentId': parentId }).lean()
+    // ✅ تحقق التكرار
+    const [existId, existUser] = await Promise.all([
+      Student.findOne({ id }),
+      Student.findOne({ username })
     ]);
 
-    if (existingId) {
-      return res.status(400).json({ error: 'هذا الرقم مستخدم بالفعل' });
-    }
+    if (existId) return res.status(400).json({ error: 'رقم الجلوس مستخدم' });
+    if (existUser) return res.status(400).json({ error: 'اسم المستخدم مستخدم' });
 
-    if (existingUsername.some(u => u)) {
-      return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
-    }
+    // ✅ تشفير
+    const hashed = await bcrypt.hash(password, 10);
 
-    if (existingParentId) {
-      return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم بالفعل' });
-    }
-
-    // 🔐 تشفير
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // ✅ إنشاء الطالب
     const student = new Student({
       fullName,
-      id: studentId, // 👈 هنا التخزين الحقيقي
       username,
-      password: hashedPassword,
-      semester: 'first',
-      subjects: [],
+      id,
+      password: hashed,
       profile: {
         phone,
         parentName,
@@ -632,26 +602,14 @@ app.post('/api/register-student', async (req, res) => {
 
     await student.save();
 
-    console.log(`✅ New student: ${username} (${studentId})`);
+    res.json({ message: 'تم إنشاء الحساب', username });
 
-    res.status(201).json({
-      message: 'تم إنشاء الحساب بنجاح 🎉',
-      username
-    });
-
-  } catch (error) {
-    console.error('❌ Register Error:', error);
-
-    if (error.code === 11000) {
-      return res.status(400).json({ error: 'بيانات مكررة' });
-    }
-
-    res.status(500).json({
-      error: 'خطأ في إنشاء الحساب',
-      details: error.message
-    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'خطأ في السيرفر' });
   }
 });
+
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
 // ====================================================
