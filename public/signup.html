@@ -3,51 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء حساب طالب</title>
-    <link rel="stylesheet" href="login.css">
+    <title>إنشاء حساب - معهد التمريض</title>
+    <link rel="stylesheet" href="signup.css">
 </head>
 <body>
 
-<header class="main-header">
-    <h1>إنشاء حساب طالب</h1>
-</header>
+<div class="container">
+    <div class="card">
 
-<div class="main-container">
-    <form id="student-signup-form">
+        <div class="header">
+            <h2>🩺 إنشاء حساب طالب</h2>
+            <p>نظام إدارة معهد التمريض</p>
+        </div>
 
-        <input type="text" id="fullName" placeholder="الاسم رباعي" required>
+        <form id="student-signup-form">
 
-        <input type="text" id="username" placeholder="اسم المستخدم" required>
-        <span id="username-availability"></span>
+            <input type="text" id="fullName" placeholder="الاسم رباعي" required>
 
-        <input type="password" id="password" placeholder="كلمة المرور" required>
+            <input type="text" id="username" placeholder="اسم المستخدم" required>
+            <span id="username-availability"></span>
 
-        <!-- ✅ رقم الجلوس = آخر 7 أرقام -->
-        <input 
-            type="text" 
-            id="studentId" 
-            maxlength="7"
-            placeholder="آخر 7 أرقام من البطاقة"
-            required
-            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-        >
+            <input type="password" id="password" placeholder="كلمة المرور" required>
 
-        <input type="text" id="phone" placeholder="رقم الهاتف" required>
+            <!-- رقم الجلوس -->
+            <input 
+                type="text" 
+                id="studentId" 
+                maxlength="7"
+                placeholder="آخر 7 أرقام من البطاقة"
+                required
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+            >
 
-        <input type="text" id="parentName" placeholder="اسم ولي الأمر" required>
+            <input type="text" id="phone" placeholder="رقم الهاتف" required>
 
-        <input 
-            type="text" 
-            id="parentId" 
-            maxlength="14"
-            placeholder="رقم بطاقة ولي الأمر"
-            required
-            oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-        >
+            <input type="text" id="parentName" placeholder="اسم ولي الأمر" required>
 
-        <button type="submit">إنشاء الحساب</button>
+            <input 
+                type="text" 
+                id="parentId" 
+                maxlength="14"
+                placeholder="رقم بطاقة ولي الأمر"
+                required
+                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+            >
 
-    </form>
+            <button type="submit">إنشاء الحساب</button>
+
+        </form>
+
+        <p class="login-link">
+            لديك حساب؟ <a href="login.html">تسجيل الدخول</a>
+        </p>
+
+    </div>
 </div>
 
 <script src="signup.js"></script>
