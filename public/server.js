@@ -599,16 +599,16 @@ app.post('/api/register-student', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
 
     const student = new Student({
-      fullName,
-      username,
-      id,
-      password: hashed,
-      profile: {
+    fullName,
+    username,
+    id, // رقم الجلوس
+    password: hashed,
+    profile: {
         phone,
         parentName,
         parentId
-      }
-    });
+    }
+});
 
     await student.save();
 
