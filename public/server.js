@@ -7,30 +7,37 @@ const bcrypt = require('bcrypt');
 
 const serverless = require('serverless-http'); // مهم جدًا
 
-const app = express();
+const app = express(); 
 
-// Middleware
+// ====================== MIDDLEWARE (مهم جداً) ======================
 app.use(cors({
-    origin: '*',                    // مؤقتًا للتجربة
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type']
+    origin: '*',                    // للتجربة - يمكنك تغييره لاحقاً
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json({ limit: '10mb' }));     // مهم جدًا
-app.use(express.urlencoded({ extended: true, limit: '10mb' })); 
+// يجب أن يكون قبل أي Routes
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-app.use(express.static('public'));
-// ربط MongoDB من Environment Variables
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  console.error('MONGODB_URI is missing!');
-  process.exit(1);
-}
+// إذا كان bodyParser موجود، يفضل إزالته أو وضعه بعد الـ express.json
+// app.use(bodyParser.json());   ← احذفه إذا كان موجود
 
-mongoose.connect(uri)
-  .then(() => console.log('تم الاتصال بـ MongoDB'))
+app.use(express.static('public')); 
+
+// ربط MongoDB
+const uri = process.env.MONGODB_URI; 
+if (!uri) { 
+  console.error('MONGODB_URI is missing!'); 
+  process.exit(1); 
+} 
+
+mongoose.connect(uri) 
+  .then(() => console.log('تم الاتصال بـ MongoDB')) 
   .catch(err => console.error('خطأ في الاتصال:', err));
 
+// ====================== النماذج (Schemas) ======================
+// (اترك باقي الـ Schemas كما هي - لا تغيرها)
 // === النماذج (Schemas) ===
 const adminSchema = new mongoose.Schema({
     fullName: String,
