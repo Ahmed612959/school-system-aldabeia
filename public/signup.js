@@ -29,15 +29,7 @@ async function checkUsernameAvailability(username) {
         const res = await fetch('/api/check-username', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-    fullName,
-    username,
-    password,
-    studentCode, // 👈 بدل id
-    phone,
-    parentName,
-    parentId
-})
+            body: JSON.stringify({ username }) // ✅ الصح
         });
 
         const data = await res.json();
