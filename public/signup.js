@@ -89,17 +89,17 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const fullName = document.getElementById('fullName').value.trim();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    const id = document.getElementById('studentId').value.trim();
+    const studentCode = document.getElementById('studentId').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
     const parentId = document.getElementById('parentId').value.trim();
 
     // ================= Validation =================
-    if (!fullName || !username || !password || !id || !phone || !parentName || !parentId) {
+    if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
         return showToast('يرجى ملء جميع الحقول');
     }
 
-    if (!/^\d{7}$/.test(id)) {
+    if (!/^\d{7}$/.test(studentCode)) {
         return showToast('رقم الجلوس لازم يكون 7 أرقام');
     }
 
@@ -132,7 +132,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
                 fullName,
                 username,
                 password,
-                id,
+                studentCode,
                 phone,
                 parentName,
                 parentId
