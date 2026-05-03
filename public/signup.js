@@ -6,18 +6,19 @@ function showToast(message, type = 'error') {
         position: fixed;
         bottom: 20px;
         right: 20px;
-        padding: 14px 20px;
+        padding: 14px 22px;
         border-radius: 8px;
         color: white;
         font-weight: bold;
         z-index: 9999;
         background: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.25);
         direction: rtl;
         text-align: right;
+        max-width: 90%;
     `;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    setTimeout(() => toast.remove(), 4500);
 }
 
 // ================= Check Username =================
@@ -28,7 +29,6 @@ async function checkUsernameAvailability(username) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
         });
-
         const data = await res.json();
         return data.available || false;
     } catch (err) {
@@ -52,7 +52,7 @@ document.getElementById('username')?.addEventListener('input', (e) => {
     }
 
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        span.textContent = '❌ 3-20 حروف أو أرقام فقط (إنجليزي)';
+        span.textContent = '❌ 3-20 حرف أو رقم إنجليزي فقط';
         span.style.color = '#e74c3c';
         span.style.display = 'block';
         return;
@@ -64,7 +64,6 @@ document.getElementById('username')?.addEventListener('input', (e) => {
 
     usernameTimeout = setTimeout(async () => {
         const isAvailable = await checkUsernameAvailability(username);
-
         if (isAvailable) {
             span.textContent = '✔ اسم المستخدم متاح';
             span.style.color = '#2ecc71';
@@ -79,21 +78,44 @@ document.getElementById('username')?.addEventListener('input', (e) => {
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // جلب القيم
-    const fullName = document.getElementById('fullName').value.trim();
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    let studentCode = document.getElementById('studentId').value.trim();
-    let phone = document.getElementById('phone').value.trim();
-    const parentName = document.getElementById('parentName').value.trim();
-    let parentId = document.getElementById('parentId').value.trim();
+    // جلب القيم من الحقول
+    const fullNameInput = document.getElementById('fullName').value.trim();
+    const usernameInput = document.getElementById('username').value.trim();
+    const passwordInput = document.getElementById('password').value;
+    let studentCodeInput = document.getElementById('studentId').value.trim();
+    let phoneInput = document.getElementById('phone').value.trim();
+    const parentNameInput = document.getElementById('parentName').value.trim();
+    let parentIdInput = document.getElementById('parentId').value.trim();
 
-    // ================= تنظيف البيانات =================
-    studentCode = studentCode.replace(/\D/g, ''); // إزالة أي حرف غير رقم
-    parentId = parentId.replace(/\D/g, '');
+    // ================= تنظيف البيانات قبل الإرسال =================
+    const fullName = fullNameInput;
+    const username = usernameInput.toLowerCase();
+    const password = passwordInput;
+    const studentCode = studentCodeInput.replace(/\D/g, '');
+    const phone = phoneInput;
+    const parentName = parentNameInput;
+    const parentId = parentIdInput.replace(/\D/g, '');
+
+    // ================= طباعة تفصيلية جداً للتصحيح =================
+    console.log("══════════════════════════════════════");
+    console.log("📋 بيانات النموذج الأصلية:");
+    console.log({ fullNameInput, usernameInput, studentCodeInput, phoneInput, parentNameInput, parentIdInput });
+    
+    console.log("🧹 البيانات بعد التنظيف:");
+    console.log({
+        fullName,
+        username,
+        passwordLength: password.length,
+        studentCode,
+        phone,
+        parentName,
+        parentId
+    });
+    console.log("══════════════════════════════════════");
 
     // ================= Validation =================
     if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
+        console.error("❌ Validation Failed - Missing Fields");
         return showToast('يرجى ملء جميع الحقول');
     }
 
@@ -106,23 +128,23 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        return showToast('اسم المستخدم يجب أن يحتوي على 3-20 حرف أو رقم إنجليزي فقط');
+        return showToast('اسم المستخدم غير صالح (3-20 حرف أو رقم إنجليزي فقط)');
     }
 
     if (password.length < 6) {
         return showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
     }
 
-    // ================= Check Username Final =================
+    // التحقق من توفر اسم المستخدم
     const available = await checkUsernameAvailability(username);
     if (!available) {
         return showToast('اسم المستخدم مستخدم بالفعل، اختر اسم آخر');
     }
 
-    // ================= إعداد البيانات النهائية =================
+    // ================= إعداد Payload النهائي =================
     const payload = {
         fullName,
-        username: username.toLowerCase(),   // موحد
+        username,
         password,
         studentCode,
         phone,
@@ -130,9 +152,11 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         parentId
     };
 
-    console.log("🚀 Sending Payload:", payload);   // للتصحيح
+    console.log("🚀 الـ Payload النهائي المرسل إلى السيرفر:");
+    console.log(payload);
+    console.log("══════════════════════════════════════");
 
-    // ================= Send Data =================
+    // ================= إرسال الطلب =================
     try {
         showToast('جاري إنشاء الحساب...', 'success');
 
@@ -146,27 +170,29 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         });
 
         const responseText = await res.text();
-        console.log("📥 Server Response:", responseText);
+        console.log("📥 رد السيرفر (Raw):", responseText);
 
         let data;
         try {
             data = JSON.parse(responseText);
         } catch (e) {
-            data = { error: responseText };
+            data = { error: responseText || 'خطأ غير معروف' };
         }
 
+        console.log("📦 رد السيرفر بعد التحليل:", data);
+
         if (!res.ok) {
-            throw new Error(data.error || data.message || 'حدث خطأ أثناء إنشاء الحساب');
+            throw new Error(data.error || 'فشل في إنشاء الحساب');
         }
 
         showToast('تم إنشاء الحساب بنجاح 🎉', 'success');
 
         setTimeout(() => {
             window.location.href = 'login.html';
-        }, 1800);
+        }, 2000);
 
     } catch (err) {
         console.error('❌ Signup Error:', err);
-        showToast(err.message || 'حدث خطأ غير متوقع، حاول مرة أخرى');
+        showToast(err.message || 'حدث خطأ أثناء إنشاء الحساب');
     }
 });
