@@ -1,39 +1,92 @@
+// ================= Toast =================
 function showToast(message, type = 'error') {
-    alert(message); // بسيط مؤقت
+    const toast = document.createElement('div');
+
+    toast.textContent = message;
+
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 9999;
+        background: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    `;
+
+    document.body.appendChild(toast);
+
+    setTimeout(() => toast.remove(), 3000);
 }
 
-// إرسال البيانات
-async function saveToServer(data) {
-    const res = await fetch('/api/register-student', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-    });
 
-    const result = await res.json();
+// ================= Check Username =================
+async function checkUsernameAvailability(username) {
+    try {
+        const res = await fetch('/api/check-username', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username })
+        });
 
-    if (!res.ok) throw new Error(result.error);
+        const data = await res.json();
+        return data.available;
 
-    return result;
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 
-// التحقق من username
-async function checkUsername(username) {
-    const res = await fetch('/api/check-username', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username })
-    });
 
-    const data = await res.json();
-    return data.available;
-}
+// ================= Live Username Check =================
+let usernameTimeout;
 
-// submit
-document.getElementById('student-signup-form').addEventListener('submit', async (e) => {
+document.getElementById('username')?.addEventListener('input', (e) => {
+    const username = e.target.value.trim();
+    const span = document.getElementById('username-availability');
+
+    clearTimeout(usernameTimeout);
+
+    if (username.length < 3) {
+        span.style.display = 'none';
+        return;
+    }
+
+    // صيغة غير صحيحة
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        span.textContent = '❌ 3-20 حروف أو أرقام فقط';
+        span.style.color = '#e74c3c';
+        span.style.display = 'block';
+        return;
+    }
+
+    span.textContent = '⏳ جاري التحقق...';
+    span.style.color = '#f39c12';
+    span.style.display = 'block';
+
+    usernameTimeout = setTimeout(async () => {
+        const isAvailable = await checkUsernameAvailability(username);
+
+        if (isAvailable) {
+            span.textContent = '✔ اسم المستخدم متاح';
+            span.style.color = '#2ecc71';
+        } else {
+            span.textContent = '❌ اسم المستخدم مستخدم';
+            span.style.color = '#e74c3c';
+        }
+    }, 500);
+});
+
+
+// ================= Submit Form =================
+document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fullName = fullName.value.trim();
+    const fullName = document.getElementById('fullName').value.trim();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const id = document.getElementById('studentId').value.trim();
@@ -41,37 +94,63 @@ document.getElementById('student-signup-form').addEventListener('submit', async 
     const parentName = document.getElementById('parentName').value.trim();
     const parentId = document.getElementById('parentId').value.trim();
 
-    // ✅ validations
+    // ================= Validation =================
+    if (!fullName || !username || !password || !id || !phone || !parentName || !parentId) {
+        return showToast('يرجى ملء جميع الحقول');
+    }
+
     if (!/^\d{7}$/.test(id)) {
-        return showToast('لازم تكتب 7 أرقام بس');
+        return showToast('رقم الجلوس لازم يكون 7 أرقام');
     }
 
     if (!/^\d{14}$/.test(parentId)) {
-        return showToast('رقم ولي الأمر لازم 14 رقم');
+        return showToast('رقم بطاقة ولي الأمر لازم يكون 14 رقم');
+    }
+
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        return showToast('اسم المستخدم غير صالح');
     }
 
     if (password.length < 6) {
-        return showToast('كلمة المرور ضعيفة');
+        return showToast('كلمة المرور لازم 6 حروف على الأقل');
     }
 
-    const available = await checkUsername(username);
-    if (!available) return showToast('اسم المستخدم مستخدم');
+    // ================= Check Username Final =================
+    const available = await checkUsernameAvailability(username);
+    if (!available) {
+        return showToast('اسم المستخدم مستخدم بالفعل');
+    }
 
+    // ================= Send Data =================
     try {
-        const res = await saveToServer({
-            fullName,
-            username,
-            password,
-            id,
-            phone,
-            parentName,
-            parentId
+        showToast('جاري إنشاء الحساب...', 'success');
+
+        const res = await fetch('/api/register-student', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fullName,
+                username,
+                password,
+                id,
+                phone,
+                parentName,
+                parentId
+            })
         });
 
-        showToast('تم إنشاء الحساب بنجاح', 'success');
-        location.href = 'login.html';
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error);
+
+        showToast('تم إنشاء الحساب بنجاح 🎉', 'success');
+
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 2000);
 
     } catch (err) {
-        showToast(err.message);
+        console.error(err);
+        showToast(err.message || 'حدث خطأ');
     }
 });
