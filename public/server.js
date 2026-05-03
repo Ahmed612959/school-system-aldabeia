@@ -559,72 +559,124 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 
 
+// ====================== Register Student ======================
 app.post('/api/register-student', async (req, res) => {
-  try {
-    // 💣 تنظيف كامل
-    const {
-      fullName,
-      username,
-      studentCode,
-      phone,
-      parentName,
-      parentId,
-      password
-    } = req.body;
+    try {
+        // Logging للتصحيح (مهم جداً)
+        console.log("📥 Received Body:", JSON.stringify(req.body, null, 2));
+        console.log("📋 Keys received:", Object.keys(req.body));
 
-    // ❌ امسح أي _id غصب عنه
-    delete req.body._id;
+        const { 
+            fullName, 
+            username, 
+            studentCode, 
+            phone, 
+            parentName, 
+            parentId, 
+            password 
+        } = req.body;
 
-    // ✅ تحقق
-    if (!fullName || !username || !studentCode || !phone || !parentName || !parentId || !password) {
-      return res.status(400).json({ error: 'كل الحقول مطلوبة' });
+        // ================= تنظيف البيانات =================
+        const cleanStudentCode = studentCode?.toString().trim().replace(/\D/g, '');
+        const cleanParentId = parentId?.toString().trim().replace(/\D/g, '');
+        const cleanUsername = username?.toString().trim().toLowerCase();
+
+        // ================= Validation =================
+        if (!fullName || !cleanUsername || !cleanStudentCode || !phone || !parentName || !cleanParentId || !password) {
+            console.error("❌ Missing fields:", { 
+                fullName, 
+                username: cleanUsername, 
+                studentCode: cleanStudentCode, 
+                phone, 
+                parentName, 
+                parentId: cleanParentId, 
+                password: password ? "****" : null 
+            });
+            
+            return res.status(400).json({ 
+                error: 'كل الحقول مطلوبة',
+                details: 'يرجى التأكد من ملء جميع الحقول'
+            });
+        }
+
+        if (cleanStudentCode.length !== 7) {
+            return res.status(400).json({ 
+                error: 'رقم الجلوس لازم يكون 7 أرقام بالضبط' 
+            });
+        }
+
+        if (cleanParentId.length !== 14) {
+            return res.status(400).json({ 
+                error: 'رقم بطاقة ولي الأمر لازم يكون 14 رقم بالضبط' 
+            });
+        }
+
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(cleanUsername)) {
+            return res.status(400).json({ 
+                error: 'اسم المستخدم يجب أن يحتوي على 3-20 حرف أو رقم إنجليزي فقط' 
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ 
+                error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' 
+            });
+        }
+
+        // ================= التحقق من التكرار =================
+        const [existCode, existUser] = await Promise.all([
+            Student.findOne({ studentCode: cleanStudentCode }), 
+            Student.findOne({ username: cleanUsername }) 
+        ]);
+
+        if (existCode) {
+            return res.status(400).json({ error: 'هذا الكود (رقم الجلوس) مستخدم بالفعل' });
+        }
+
+        if (existUser) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
+        }
+
+        // ================= تشفير كلمة المرور =================
+        const hashed = await bcrypt.hash(password, 10);
+
+        // ================= إنشاء الطالب =================
+        const student = new Student({
+            fullName: fullName.trim(),
+            username: cleanUsername,
+            studentCode: cleanStudentCode,
+            password: hashed,
+            profile: {
+                phone: phone.trim(),
+                parentName: parentName.trim(),
+                parentId: cleanParentId
+            }
+        });
+
+        await student.save();
+
+        console.log(`✅ Student created successfully: ${cleanUsername} (${cleanStudentCode})`);
+
+        res.json({ 
+            message: 'تم إنشاء الحساب بنجاح',
+            username: cleanUsername 
+        });
+
+    } catch (err) {
+        console.error('🔥 ERROR in /api/register-student:', err);
+
+        // إذا كان خطأ MongoDB Duplicate Key
+        if (err.code === 11000) {
+            return res.status(400).json({ 
+                error: 'الكود أو اسم المستخدم مستخدم مسبقاً' 
+            });
+        }
+
+        res.status(500).json({ 
+            error: 'حدث خطأ أثناء إنشاء الحساب',
+            details: err.message 
+        });
     }
-
-    if (!/^\d{7}$/.test(studentCode)) {
-      return res.status(400).json({ error: 'اكتب آخر 7 أرقام من البطاقة' });
-    }
-
-    if (!/^\d{14}$/.test(parentId)) {
-      return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
-    }
-
-    // ✅ تحقق التكرار
-    const [existCode, existUser] = await Promise.all([
-      Student.findOne({ studentCode }),
-      Student.findOne({ username })
-    ]);
-
-    if (existCode) return res.status(400).json({ error: 'الكود مستخدم' });
-    if (existUser) return res.status(400).json({ error: 'اسم المستخدم مستخدم' });
-
-    // 🔐 تشفير
-    const hashed = await bcrypt.hash(password, 10);
-
-    // 💥 إنشاء نظيف 100% (بدون أي spread)
-    const student = new Student({
-      fullName,
-      username,
-      studentCode,
-      password: hashed,
-      profile: {
-        phone,
-        parentName,
-        parentId
-      }
-    });
-
-    await student.save();
-
-    res.json({ message: 'تم إنشاء الحساب بنجاح', username });
-
-  } catch (err) {
-    console.error('🔥 ERROR:', err);
-
-    res.status(500).json({
-      error: 'خطأ في إنشاء الحساب',
-      details: err.message
-    });
-  }
 });
 
 // ====================================================
