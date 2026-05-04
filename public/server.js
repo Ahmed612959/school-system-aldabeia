@@ -114,13 +114,15 @@ const WeeklyQuiz = mongoose.model('WeeklyQuiz', weeklyQuizSchema);
 
 // ====================== REGISTER STUDENT - الحل النهائي ======================
 // ====================== REGISTER STUDENT - الحل المحسن (JSON) ======================
+// ====================== REGISTER STUDENT - الحل النهائي المحدث ======================
 app.post('/api/register-student', async (req, res) => {
     try {
         console.log("=== REGISTER STUDENT START ===");
-        console.log("📌 Content-Type:", req.headers['content-type']);
-        console.log("📥 Raw req.body:", JSON.stringify(req.body, null, 2));
-        console.log("📋 Keys received:", Object.keys(req.body || {}));
+        console.log("📌 Content-Type Received:", req.headers['content-type']);
+        console.log("📥 Raw Body Received:", JSON.stringify(req.body, null, 2));
+        console.log("📋 Keys in req.body:", Object.keys(req.body || {}));
 
+        // استخراج البيانات
         const fullName   = String(req.body.fullName || '').trim();
         const username   = String(req.body.username || '').trim().toLowerCase();
         const password   = String(req.body.password || '').trim();
@@ -139,48 +141,74 @@ app.post('/api/register-student', async (req, res) => {
             passwordLength: password.length 
         });
 
+        // التحقق من ملء جميع الحقول
         if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
+            console.log("❌ Validation Failed - Missing Fields");
             return res.status(400).json({ 
                 error: 'جميع الحقول مطلوبة',
-                debug: {
-                    fullName: !!fullName,
-                    username: !!username,
+                debug: { 
+                    fullName: !!fullName, 
+                    username: !!username, 
                     password: !!password,
-                    studentCode: !!studentCode,
-                    phone: !!phone,
-                    parentName: !!parentName,
+                    studentCode: !!studentCode, 
+                    phone: !!phone, 
+                    parentName: !!parentName, 
                     parentId: !!parentId,
                     receivedKeys: Object.keys(req.body || {})
                 }
             });
         }
 
-        if (studentCode.length !== 7) return res.status(400).json({ error: 'رقم الجلوس لازم 7 أرقام' });
-        if (parentId.length !== 14) return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) return res.status(400).json({ error: 'اسم المستخدم غير صالح' });
-        if (password.length < 6) return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
+        // Validation إضافية
+        if (studentCode.length !== 7) {
+            return res.status(400).json({ error: 'رقم الجلوس لازم 7 أرقام' });
+        }
+        
+        if (parentId.length !== 14) {
+            return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
+        }
+        
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+            return res.status(400).json({ error: 'اسم المستخدم غير صالح' });
+        }
+        
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
+        }
 
+        // التحقق من عدم التكرار
         const [existCode, existUser] = await Promise.all([
             Student.findOne({ studentCode }),
             Student.findOne({ username })
         ]);
 
-        if (existCode) return res.status(400).json({ error: 'هذا الكود مستخدم بالفعل' });
-        if (existUser) return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
+        if (existCode) {
+            return res.status(400).json({ error: 'هذا الكود مستخدم بالفعل' });
+        }
+        
+        if (existUser) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
+        }
 
+        // تشفير كلمة المرور
         const hashed = await bcrypt.hash(password, 10);
 
+        // إنشاء الطالب الجديد
         const student = new Student({
             fullName,
             username,
             studentCode,
             password: hashed,
-            profile: { phone, parentName, parentId }
+            profile: { 
+                phone, 
+                parentName, 
+                parentId 
+            }
         });
 
         await student.save();
 
-        console.log(`✅ تم إنشاء الطالب بنجاح: ${username}`);
+        console.log(`✅ تم إنشاء الطالب بنجاح: ${username} | كود: ${studentCode}`);
 
         res.json({ 
             success: true,
