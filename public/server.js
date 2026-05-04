@@ -1,28 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-const pdfParse = require('pdf-parse');
-const crypto = require('crypto');
-const serverless = require('serverless-http'); // مهم جدًا
 
 const app = express();
 
-// Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static('public'));
 
-// ربط MongoDB من Environment Variables
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  console.error('MONGODB_URI is missing!');
-  process.exit(1);
-}
+// 🔥 ربط الـ API
+const registerRoute = require('./api/register');
+app.use('/api/register', registerRoute);
 
-mongoose.connect(uri)
-  .then(() => console.log('تم الاتصال بـ MongoDB'))
-  .catch(err => console.error('خطأ في الاتصال:', err));
+// MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error(err));
+
+app.listen(3000, () => console.log('Server running'));
 
 // === النماذج (Schemas) ===
 const adminSchema = new mongoose.Schema({
@@ -33,7 +28,7 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    id: String,
+    birthdate: String,           // بدل id
     username: String,
     password: String,
     originalPassword: String,
@@ -65,15 +60,72 @@ const Student = mongoose.model('Student', studentSchema);
 const Violation = mongoose.model('Violation', violationSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 
+
+
+
+// ====================== قائمة أسماء المستخدمين المسموح لهم بالتسجيل ======================
+const ALLOWED_USERNAMES = [
+    "ahmed2026",
+    "mohamed2026",
+    "sara2026",
+    "fatma2026",
+    "ali2026",
+    "noura2026",
+    "youssef2026",
+    "omnia2026",
+    "hassan2026",
+    "layla2026",
+    "mostafa2026",
+    "rania2026"
+    // ← أضف هنا أسماء الطلاب المسموح لهم بالتسجيل
+];
+
+// دالة التحقق
+function isAllowedUsername(username) {
+    if (!username) return false;
+    return ALLOWED_USERNAMES.includes(username.toLowerCase().trim());
+}
+
+
+
 // === دوال مساعدة ===
-function generateUniqueUsername(fullName, id, existingUsers) {
-    let baseUsername = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 10) + id.slice(-2);
+// === دالة توليد اسم مستخدم فريد باستخدام تاريخ الميلاد ===
+function generateUniqueUsername(fullName, birthdate, existingUsers) {
+    if (!birthdate) {
+        // حالة احتياطية لو تاريخ الميلاد فاضي
+        const timestamp = Date.now().toString().slice(-4);
+        let base = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 8) + timestamp;
+        let username = base;
+        let counter = 1;
+        while (existingUsers.some(user => user.username === username)) {
+            username = `\( {base} \){counter}`;
+            counter++;
+        }
+        return username;
+    }
+
+    // استخراج آخر 4 أرقام من تاريخ الميلاد (مثال: 2005-03-15 → 0315)
+    const cleanDate = birthdate.replace(/\D/g, ''); // إزالة كل شيء غير الأرقام
+    const datePart = cleanDate.length >= 4 ? cleanDate.slice(-4) : cleanDate.padEnd(4, '0');
+
+    // أخذ أول 8-10 حروف من الاسم + آخر 4 أرقام من التاريخ
+    let baseUsername = fullName
+        .toLowerCase()
+        .replace(/\s+/g, '')           // إزالة المسافات
+        .replace(/[^a-z0-9]/g, '')     // إزالة أي حروف غير إنجليزية
+        .slice(0, 9);                  // أول 9 حروف
+
+    baseUsername += datePart;
+
     let username = baseUsername;
     let counter = 1;
+
+    // التحقق من التكرار وإضافة رقم متزايد إذا لزم الأمر
     while (existingUsers.some(user => user.username === username)) {
-        username = `${baseUsername}${counter}`;
+        username = `\( {baseUsername} \){counter}`;
         counter++;
     }
+
     return username;
 }
 
@@ -439,26 +491,54 @@ app.post('/api/analyze-pdf', async (req, res) => {
     }
 });
 
+// ====================== التحقق من اسم المستخدم (Whitelist + Database) ======================
 app.post('/api/check-username', async (req, res) => {
     try {
         const { username } = req.body;
+
         if (!username) {
-            return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+            return res.status(400).json({ 
+                available: false, 
+                error: 'اسم المستخدم مطلوب' 
+            });
         }
 
-        // جلب كل المستخدمين مرة واحدة (admins + students)
-        const [existingAdmins, existingStudents] = await Promise.all([
-            Admin.find({ username }).lean(),
-            Student.find({ username }).lean()
+        const lowerUsername = username.toLowerCase().trim();
+
+        // 1. التحقق من أن اليوزر نيم مسموح به في القائمة
+        if (!isAllowedUsername(username)) {
+            return res.json({ 
+                available: false, 
+                error: 'اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.' 
+            });
+        }
+
+        // 2. التحقق من عدم استخدامه مسبقاً في قاعدة البيانات
+        const [existingAdmin, existingStudent] = await Promise.all([
+            Admin.findOne({ username: lowerUsername }).lean(),
+            Student.findOne({ username: lowerUsername }).lean()
         ]);
 
-        const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
+        const isTaken = !!(existingAdmin || existingStudent);
 
-        console.log(`Check username: ${username} → Available: ${isAvailable}`);
-        res.json({ available: isAvailable });
+        if (isTaken) {
+            return res.json({ 
+                available: false, 
+                error: 'اسم المستخدم مستخدم من قبل' 
+            });
+        }
+
+        // إذا وصل هنا = اليوزر نيم مسموح وغير مستخدم
+        res.json({ 
+            available: true 
+        });
+
     } catch (error) {
-        console.error('Error checking username:', error);
-        res.status(500).json({ error: 'خطأ في التحقق من اسم المستخدم' });
+        console.error('Error in check-username:', error);
+        res.status(500).json({ 
+            available: false, 
+            error: 'حدث خطأ أثناء التحقق من اسم المستخدم' 
+        });
     }
 });
 
@@ -549,31 +629,28 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
+        const { fullName, username, parentName, parentId, password } = req.body;
 
-        // التحقق من الحقول الجديدة فقط
-        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
+        if (!fullName || !username || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        // التحقق من رقم الجلوس (1-7 أرقام)
-        if (!/^\d{1,7}$/.test(id)) {
-            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط' });
+        // التحقق من الـ Whitelist (الأهم)
+        if (!isAllowedUsername(username)) {
+            return res.status(403).json({ 
+                error: 'اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.' 
+            });
         }
 
-        // التحقق من رقم بطاقة ولي الأمر (14 رقم بالظبط)
         if (!/^\d{14}$/.test(parentId)) {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
 
-        // التحقق من صيغة اسم المستخدم
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
             return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        // التحقق من التكرار
-        const [existingId, existingUsername, existingParentId] = await Promise.all([
-            Student.findOne({ id }).lean(),
+        const [existingUsernameCheck, existingParentId] = await Promise.all([
             Promise.all([
                 Admin.findOne({ username }).lean(),
                 Student.findOne({ username }).lean()
@@ -581,11 +658,7 @@ app.post('/api/register-student', async (req, res) => {
             Student.findOne({ 'profile.parentId': parentId }).lean()
         ]);
 
-        if (existingId) {
-            return res.status(400).json({ error: 'رقم الجلوس مستخدم من قبل' });
-        }
-
-        if (existingUsername.some(u => u)) {
+        if (existingUsernameCheck.some(u => u)) {
             return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
         }
 
@@ -593,19 +666,16 @@ app.post('/api/register-student', async (req, res) => {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
         }
 
-        // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        // إنشاء الطالب (profile يحتوي على الحقول الجديدة فقط)
         const student = new Student({
             fullName,
-            id,
             username,
             password: hashedPassword,
             originalPassword: password,
             subjects: [],
             profile: {
-                phone,
+                phone: '',
                 parentName,
                 parentId
             }
@@ -613,7 +683,7 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        console.log(`Student registered: \( {username} ( \){id})`);
+        console.log(`✅ Student registered: ${username} - ${fullName}`);
         res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
     } catch (error) {
