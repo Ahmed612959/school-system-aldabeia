@@ -24,7 +24,7 @@ function showToast(message, type = 'error') {
 // ================= Check Username =================
 async function checkUsernameAvailability(username) {
     try {
-        const res = await fetch('/api/check-username', {
+        const res = await fetch('https://schoolx-five.vercel.app/api/check-username', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
@@ -78,7 +78,6 @@ document.getElementById('username')?.addEventListener('input', (e) => {
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // جلب القيم من الحقول
     const fullName   = document.getElementById('fullName').value.trim();
     const usernameInput = document.getElementById('username').value.trim();
     const password   = document.getElementById('password').value;
@@ -87,56 +86,19 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     const parentName = document.getElementById('parentName').value.trim();
     let parentId     = document.getElementById('parentId').value.trim();
 
-    // تنظيف البيانات
     const username = usernameInput.toLowerCase();
     studentCode = studentCode.replace(/\D/g, '');
     parentId = parentId.replace(/\D/g, '');
 
-    // ================= Logging مفصل للتصحيح =================
-    console.log("══════════════════════════════════════");
-    console.log("📋 البيانات الأصلية من النموذج:");
-    console.log({
-        fullName,
-        usernameInput,
-        passwordLength: password.length,
-        studentCodeRaw: document.getElementById('studentId').value,
-        phone,
-        parentName,
-        parentIdRaw: document.getElementById('parentId').value
-    });
-
-    console.log("🧹 البيانات بعد التنظيف:");
-    console.log({
-        fullName,
-        username,
-        passwordLength: password.length,
-        studentCode,
-        phone,
-        parentName,
-        parentId
-    });
-    console.log("══════════════════════════════════════");
-
-    // Validation على الـ client
+    // Validation
     if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
         return showToast('يرجى ملء جميع الحقول');
     }
 
-    if (studentCode.length !== 7) {
-        return showToast('رقم الجلوس لازم يكون 7 أرقام بالضبط');
-    }
-
-    if (parentId.length !== 14) {
-        return showToast('رقم بطاقة ولي الأمر لازم يكون 14 رقم بالضبط');
-    }
-
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        return showToast('اسم المستخدم غير صالح (3-20 حرف أو رقم إنجليزي فقط)');
-    }
-
-    if (password.length < 6) {
-        return showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-    }
+    if (studentCode.length !== 7) return showToast('رقم الجلوس لازم يكون 7 أرقام بالضبط');
+    if (parentId.length !== 14) return showToast('رقم بطاقة ولي الأمر لازم يكون 14 رقم بالضبط');
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) return showToast('اسم المستخدم غير صالح (3-20 حرف أو رقم إنجليزي فقط)');
+    if (password.length < 6) return showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
 
     // التحقق من توفر اسم المستخدم
     const available = await checkUsernameAvailability(username);
@@ -144,7 +106,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return showToast('اسم المستخدم مستخدم بالفعل، اختر اسم آخر');
     }
 
-    // ================= إرسال الطلب (JSON محسن) =================
+    // ================= إرسال الطلب =================
     try {
         showToast('جاري إنشاء الحساب...', 'success');
 
@@ -158,11 +120,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             parentId
         };
 
-        console.log("🚀 الـ Payload النهائي المرسل إلى السيرفر:");
-        console.log(payload);
-        console.log("══════════════════════════════════════");
-
-        const res = await fetch('/api/register-student', {
+        const res = await fetch('https://schoolx-five.vercel.app/api/register-student', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json; charset=utf-8'
@@ -180,10 +138,8 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
             data = { error: responseText || 'خطأ غير معروف' };
         }
 
-        console.log("📦 رد السيرفر بعد التحليل:", data);
-
         if (!res.ok) {
-            throw new Error(data.error || data.message || 'فشل في إنشاء الحساب');
+            throw new Error(data.error || 'فشل في إنشاء الحساب');
         }
 
         showToast('تم إنشاء الحساب بنجاح 🎉', 'success');
