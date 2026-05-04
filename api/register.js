@@ -1,13 +1,10 @@
+const express = require('express');
+const router = express.Router();
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const uri = process.env.MONGODB_URI;
-
-if (!mongoose.connections[0].readyState) {
-    mongoose.connect(uri);
-}
-
-const StudentSchema = new mongoose.Schema({
+// Model
+const Student = mongoose.model('Student', new mongoose.Schema({
     fullName: String,
     username: { type: String, unique: true },
     studentCode: { type: String, unique: true },
@@ -15,16 +12,9 @@ const StudentSchema = new mongoose.Schema({
     phone: String,
     parentName: String,
     parentId: String
-});
+}));
 
-const Student = mongoose.models.Student || mongoose.model('Student', StudentSchema);
-
-module.exports = async (req, res) => {
-
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
-
+router.post('/', async (req, res) => {
     try {
         const {
             fullName,
@@ -36,7 +26,7 @@ module.exports = async (req, res) => {
             parentId
         } = req.body;
 
-        // ✅ validation بسيط
+        // ✅ validation
         if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
             return res.status(400).json({ error: 'كل الحقول مطلوبة' });
         }
@@ -46,16 +36,12 @@ module.exports = async (req, res) => {
         }
 
         if (!/^\d{14}$/.test(parentId)) {
-            return res.status(400).json({ error: 'رقم ولي الأمر غلط' });
+            return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
         }
 
-        // check duplicate
-        const exist = await Student.findOne({
-            $or: [{ username }, { studentCode }]
-        });
-
-        if (exist) {
-            return res.status(400).json({ error: 'المستخدم موجود' });
+        const exists = await Student.findOne({ username });
+        if (exists) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم' });
         }
 
         const hashed = await bcrypt.hash(password, 10);
@@ -70,10 +56,12 @@ module.exports = async (req, res) => {
             parentId
         });
 
-        res.json({ message: 'تم التسجيل' });
+        res.json({ message: 'تم التسجيل بنجاح' });
 
     } catch (err) {
         console.error(err);
         res.status(500).json({ error: 'خطأ في السيرفر' });
     }
-};
+});
+
+module.exports = router;
