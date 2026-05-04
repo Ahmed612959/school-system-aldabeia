@@ -79,13 +79,13 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     e.preventDefault();
 
     // جلب القيم من الحقول
-    const fullName = document.getElementById('fullName').value.trim();
+    const fullName   = document.getElementById('fullName').value.trim();
     const usernameInput = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    let studentCode = document.getElementById('studentId').value.trim();
-    let phone = document.getElementById('phone').value.trim();
+    const password   = document.getElementById('password').value;
+    let studentCode  = document.getElementById('studentId').value.trim();
+    let phone        = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
-    let parentId = document.getElementById('parentId').value.trim();
+    let parentId     = document.getElementById('parentId').value.trim();
 
     // تنظيف البيانات
     const username = usernameInput.toLowerCase();
@@ -144,20 +144,17 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return showToast('اسم المستخدم مستخدم بالفعل، اختر اسم آخر');
     }
 
-    // Payload النهائي
-    const payload = {
-        fullName,
-        username,
-        password,
-        studentCode,
-        phone,
-        parentName,
-        parentId
-    };
+    // ================= إنشاء FormData (التعديل الجديد) =================
+    const formData = new FormData();
+    formData.append('fullName', fullName);
+    formData.append('username', username);
+    formData.append('password', password);
+    formData.append('studentCode', studentCode);
+    formData.append('phone', phone);
+    formData.append('parentName', parentName);
+    formData.append('parentId', parentId);
 
-    console.log("🚀 الـ Payload النهائي المرسل إلى السيرفر:");
-    console.log(payload);
-    console.log("══════════════════════════════════════");
+    console.log("🚀 جاري إرسال البيانات باستخدام FormData...");
 
     // ================= إرسال الطلب =================
     try {
@@ -165,11 +162,8 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
         const res = await fetch('/api/register-student', {
             method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-            },
-            body: JSON.stringify(payload)
+            body: formData
+            // لا نضع Content-Type يدوياً عند استخدام FormData
         });
 
         const responseText = await res.text();
