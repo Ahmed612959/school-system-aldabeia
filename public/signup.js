@@ -47,7 +47,6 @@ async function checkUsernameAvailability(username) {
             body: JSON.stringify({ username })
         });
         const data = await response.json();
-        console.log('Backend response for username check:', data);
         return data && typeof data.available === 'boolean' ? data.available : false;
     } catch (error) {
         console.error('خطأ في التحقق من اسم المستخدم:', error);
@@ -55,33 +54,21 @@ async function checkUsernameAvailability(username) {
     }
 }
 
-// معالجة نموذج إنشاء حساب الطالب
-// معالجة نموذج إنشاء حساب الطالب
-// معالجة نموذج إنشاء حساب الطالب
+// ====================== معالجة نموذج إنشاء حساب الطالب ======================
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const fullName   = document.getElementById('fullName').value.trim();
     const username   = document.getElementById('username').value.trim();
-    const password   = document.getElementById('password').value;
-    const birthdate  = document.getElementById('birthdate').value;     // ← مهم
-    const phone      = document.getElementById('phone').value.trim();
+    const password   = document.getElementById('password').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
     const parentId   = document.getElementById('parentId').value.replace(/\s/g, '').trim();
 
-    // إعادة تعيين رسائل الخطأ
     const availabilitySpan = document.getElementById('username-availability');
-    availabilitySpan.style.display = 'none';
 
-    // التحقق من الحقول الفارغة
-    if (!fullName || !username || !password || !birthdate || !phone || !parentName || !parentId) {
+    // التحقق من ملء جميع الحقول
+    if (!fullName || !username || !password || !parentName || !parentId) {
         showToast('يرجى ملء جميع الحقول!', 'error');
-        return;
-    }
-
-    // التحقق من صيغة تاريخ الميلاد
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
-        showToast('يرجى اختيار تاريخ ميلاد صحيح (YYYY-MM-DD)', 'error');
         return;
     }
 
@@ -91,7 +78,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return;
     }
 
-    // التحقق من صيغة اسم المستخدم
+    // التحقق من اسم المستخدم
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
         showToast('اسم المستخدم: 3-20 حرف إنجليزي وأرقام فقط!', 'error');
         return;
@@ -108,7 +95,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         showToast('اسم المستخدم مستخدم من قبل!', 'error');
         return;
     } else {
-        availabilitySpan.textContent = 'اسم المستخدم متاح!';
+        availabilitySpan.textContent = 'اسم المستخدم متاح ✓';
         availabilitySpan.style.color = '#28a745';
         availabilitySpan.style.display = 'block';
     }
@@ -116,34 +103,30 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     try {
         showToast('جاري إنشاء الحساب...', 'info');
 
-        const response = await saveToServer('/api/register-student', {
+        const result = await saveToServer('/api/register-student', {
             fullName,
             username,
-            birthdate,        // ← هنا التعديل المهم
-            phone,
             parentName,
             parentId,
             password
         });
 
-        showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username || username}`, 'success');
+        showToast(`✅ تم إنشاء الحساب بنجاح! اسم المستخدم: ${username}`, 'success');
 
         setTimeout(() => {
             window.location.href = 'login.html';
         }, 2500);
 
     } catch (error) {
-        console.error('خطأ في إنشاء الحساب:', error);
-        const msg = error.message || error || '';
+        console.error('Register Error:', error);
+        const msg = (error.message || error || '').toString();
 
-        if (msg.includes('تاريخ الميلاد') || msg.includes('birthdate')) {
-            showToast('تاريخ الميلاد مستخدم من قبل!', 'error');
-        } else if (msg.includes('اسم المستخدم') || msg.includes('username')) {
+        if (msg.includes('اسم المستخدم') || msg.includes('username')) {
             showToast('اسم المستخدم مستخدم من قبل!', 'error');
-        } else if (msg.includes('ولي الأمر') || msg.includes('parentId')) {
+        } else if (msg.includes('parentId') || msg.includes('ولي الأمر')) {
             showToast('رقم بطاقة ولي الأمر مستخدم من قبل!', 'error');
         } else {
-            showToast(`خطأ: ${msg}`, 'error');
+            showToast(`خطأ في إنشاء الحساب: ${msg}`, 'error');
         }
     }
 });
