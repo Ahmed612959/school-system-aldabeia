@@ -3,62 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء حساب - معهد التمريض</title>
-    <link rel="stylesheet" href="signup.css">
+    <title>إنشاء حساب طالب</title>
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
+    <header class="main-header">
+        <img src="logo.png" alt="شعار المدرسة" class="logo">
+        <h1>نظام إدارة المدرسة</h1>
+    </header>
+    <div class="main-container">
+        <div class="login-form-container">
+            <h2>إنشاء حساب طالب</h2>
+            <form id="student-signup-form">
+                <div class="input-group">
+                    <label for="fullName">اسم الطالب رباعي</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="مثال: أحمد محمد علي السيد" required>
+                </div>
 
-<div class="container">
-    <div class="card">
+                <div class="input-group">
+                    <label for="username">اسم المستخدم</label>
+                    <input type="text" id="username" name="username" placeholder="3-20 حرف (أحرف وأرقام)" required>
+                    <span id="username-availability" style="font-size: 0.8em; display: none; margin-top: 5px;"></span>
+                </div>
 
-        <div class="header">
-            <h2>🩺 إنشاء حساب طالب</h2>
-            <p>نظام إدارة معهد التمريض</p>
-        </div>
+                <div class="input-group">
+                    <label for="password">كلمة المرور</label>
+                    <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
+                </div>
 
-        <form id="student-signup-form">
+                <div class="input-group">
+                    <label for="studentId">رقم الجلوس</label>
+                    <input type="text" id="studentId" name="studentId" inputmode="numeric" maxlength="7" placeholder="من 1 إلى 7 أرقام" required>
+                </div>
 
-            <input type="text" id="fullName" placeholder="الاسم رباعي" required>
+                <div class="input-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <input type="tel" id="phone" name="phone" placeholder="01012345678" required>
+                </div>
 
-            <input type="text" id="username" placeholder="اسم المستخدم" required>
-            <span id="username-availability"></span>
+                <div class="input-group">
+                    <label for="parentName">اسم الأب أو الأم رباعي</label>
+                    <input type="text" id="parentName" name="parentName" placeholder="مثال: محمد علي أحمد السيد" required>
+                </div>
 
-            <input type="password" id="password" placeholder="كلمة المرور" required>
-
-            <!-- رقم الجلوس -->
-            <input 
-    type="text" 
-    id="studentId"
-    maxlength="7"
-    placeholder="آخر 7 أرقام من البطاقة"
-    required
-    oninput="this.value=this.value.replace(/[^0-9]/g,'')"
->
-
-            <input type="text" id="phone" placeholder="رقم الهاتف" required>
-
-            <input type="text" id="parentName" placeholder="اسم ولي الأمر" required>
-
-            <input 
-                type="text" 
-                id="parentId" 
-                maxlength="14"
-                placeholder="رقم بطاقة ولي الأمر"
-                required
-                oninput="this.value=this.value.replace(/[^0-9]/g,'')"
-            >
-
-            <button type="submit">إنشاء الحساب</button>
-
-        </form>
-
-        <p class="login-link">
-            لديك حساب؟ <a href="login.html">تسجيل الدخول</a>
-        </p>
-
-    </div>
+                <div class="input-group">
+    <label for="parentId">رقم بطاقة ولي الأمر</label>
+    <input type="text" id="parentId" name="parentId" inputmode="numeric" maxlength="14" placeholder="14 رقم بدون مسافات" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
 </div>
 
-<script src="signup.js"></script>
+                <button type="submit" class="submit-btn">إنشاء الحساب</button>
+
+                <p style="text-align: center; margin-top: 15px;">
+                    لديك حساب؟ <a href="login.html" class="signup-link">تسجيل الدخول</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>Developed by Ahmed Mousa <span class="heart">❤</span></p>
+    </footer>
+
+    <script src="signup.js" defer></script>
 </body>
 </html>
