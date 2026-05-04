@@ -580,22 +580,25 @@ app.post('/api/register-student', async (req, res) => {
     try {
         const { fullName, username, parentName, parentId, password } = req.body;
 
-        // التحقق من الحقول المطلوبة
         if (!fullName || !username || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        // التحقق من رقم بطاقة ولي الأمر
+        // التحقق من الـ Whitelist (الأهم)
+        if (!isAllowedUsername(username)) {
+            return res.status(403).json({ 
+                error: 'اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.' 
+            });
+        }
+
         if (!/^\d{14}$/.test(parentId)) {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
 
-        // التحقق من صيغة اسم المستخدم
         if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
             return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        // التحقق من عدم التكرار
         const [existingUsernameCheck, existingParentId] = await Promise.all([
             Promise.all([
                 Admin.findOne({ username }).lean(),
@@ -612,10 +615,8 @@ app.post('/api/register-student', async (req, res) => {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
         }
 
-        // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        // إنشاء الطالب
         const student = new Student({
             fullName,
             username,
@@ -623,7 +624,7 @@ app.post('/api/register-student', async (req, res) => {
             originalPassword: password,
             subjects: [],
             profile: {
-                phone: '',           // فارغ لأننا حذفنا حقل الهاتف
+                phone: '',
                 parentName,
                 parentId
             }
@@ -631,7 +632,7 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        console.log(`✅ Student registered successfully: ${username} - ${fullName}`);
+        console.log(`✅ Student registered: ${username} - ${fullName}`);
         res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
     } catch (error) {
