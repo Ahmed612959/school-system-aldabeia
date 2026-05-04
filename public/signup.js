@@ -1,122 +1,182 @@
-// ================= Toast =================
+// دالة لعرض رسائل التنبيه
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
     toast.textContent = message;
     toast.style.cssText = `
-        position: fixed; bottom: 20px; right: 20px; padding: 14px 22px;
-        border-radius: 8px; color: white; font-weight: bold; z-index: 9999;
-        background: ${type === 'success' ? '#2ecc71' : '#e74c3c'};
-        box-shadow: 0 4px 15px rgba(0,0,0,0.25); direction: rtl; text-align: right;
-        max-width: 90%;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: bold;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background-color: ${type === 'success' ? '#28a745' : '#dc3545'};
     `;
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 4500);
+    setTimeout(() => toast.remove(), 3500);
 }
 
-// ================= Check Username Availability =================
+// إرسال طلب إلى الخادم
+async function saveToServer(endpoint, data) {
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'خطأ في الخادم');
+        }
+        return result;
+    } catch (error) {
+        console.error('خطأ في الاتصال بالخادم:', error);
+        throw error;
+    }
+}
+
+// التحقق من توفر اسم المستخدم
 async function checkUsernameAvailability(username) {
     try {
-        const res = await fetch('https://schoolx-five.vercel.app/api/check-username', {
+        const response = await fetch('/api/check-username', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username })
         });
-        const data = await res.json();
-        return data.available || false;
-    } catch (err) {
-        console.error(err);
+        const data = await response.json();
+        console.log('Backend response for username check:', data);
+        return data && typeof data.available === 'boolean' ? data.available : false;
+    } catch (error) {
+        console.error('خطأ في التحقق من اسم المستخدم:', error);
         return false;
     }
 }
 
-// ================= Live Username Check =================
-let usernameTimeout;
-document.getElementById('username')?.addEventListener('input', (e) => {
-    const username = e.target.value.trim();
-    const span = document.getElementById('username-availability');
-
-    clearTimeout(usernameTimeout);
-
-    if (username.length < 3) {
-        span.style.display = 'none';
-        return;
-    }
-
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        span.textContent = '❌ 3-20 حرف أو رقم إنجليزي فقط';
-        span.style.color = '#e74c3c';
-        span.style.display = 'block';
-        return;
-    }
-
-    span.textContent = '⏳ جاري التحقق...';
-    span.style.color = '#f39c12';
-    span.style.display = 'block';
-
-    usernameTimeout = setTimeout(async () => {
-        const isAvailable = await checkUsernameAvailability(username);
-        span.textContent = isAvailable ? '✔ اسم المستخدم متاح' : '❌ اسم المستخدم مستخدم';
-        span.style.color = isAvailable ? '#2ecc71' : '#e74c3c';
-    }, 600);
-});
-
-// ================= Submit Form - النسخة المنفصلة النهائية =================
+// معالجة نموذج إنشاء حساب الطالب
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const fullName   = document.getElementById('fullName').value.trim();
-    const usernameInput = document.getElementById('username').value.trim();
-    const password   = document.getElementById('password').value.trim();
-    let studentCode  = document.getElementById('studentId').value.trim();
-    let phone        = document.getElementById('phone').value.trim();
+    const fullName = document.getElementById('fullName').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const studentId = document.getElementById('studentId').value.replace(/\s/g, '').trim();
+    const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
-    let parentId     = document.getElementById('parentId').value.trim();
+    const parentId = document.getElementById('parentId').value.replace(/\s/g, '').trim();
 
-    const username = usernameInput.toLowerCase();
-    studentCode = studentCode.replace(/\D/g, '');
-    parentId = parentId.replace(/\D/g, '');
+    // إعادة تعيين رسائل الخطأ
+    document.getElementById('username-availability').style.display = 'none';
 
-    // Client Validation
-    if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
-        return showToast('يرجى ملء جميع الحقول');
+    // التحقق من الحقول الفارغة (مع حذف المسافات الزيادة)
+    if (
+        fullName === '' ||
+        username === '' ||
+        password === '' ||
+        studentId === '' ||
+        phone === '' ||
+        parentName === '' ||
+        parentId === ''
+    ) {
+        showToast('يرجى ملء جميع الحقول!', 'error');
+        return;
     }
-    if (studentCode.length !== 7) return showToast('رقم الجلوس لازم 7 أرقام');
-    if (parentId.length !== 14) return showToast('رقم ولي الأمر لازم 14 رقم');
-    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) return showToast('اسم المستخدم غير صالح');
-    if (password.length < 6) return showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
 
-    const available = await checkUsernameAvailability(username);
-    if (!available) return showToast('اسم المستخدم مستخدم بالفعل، اختر اسم آخر');
+    // التحقق من رقم الجلوس (1-7 أرقام)
+    if (!/^\d{1,7}$/.test(studentId)) {
+        showToast('رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط!', 'error');
+        return;
+    }
 
-    // إرسال الطلب
+    // التحقق من رقم البطاقة (14 رقم بالظبط)
+    if (parentId.length !== 14 || !/^\d{14}$/.test(parentId)) {
+        showToast('رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط بدون مسافات!', 'error');
+        return;
+    }
+
+    // التحقق من صيغة اسم المستخدم
+    if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        showToast('اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)!', 'error');
+        return;
+    }
+
+    // التحقق من توفر اسم المستخدم
+    showToast('جاري التحقق من اسم المستخدم...', 'info');
+    const isUsernameAvailable = await checkUsernameAvailability(username);
+    const availabilitySpan = document.getElementById('username-availability');
+    if (!isUsernameAvailable) {
+        availabilitySpan.textContent = 'اسم المستخدم مستخدم من قبل!';
+        availabilitySpan.style.color = '#dc3545';
+        availabilitySpan.style.display = 'block';
+        showToast('اسم المستخدم مستخدم من قبل!', 'error');
+        return;
+    } else {
+        availabilitySpan.textContent = 'اسم المستخدم متاح!';
+        availabilitySpan.style.color = '#28a745';
+        availabilitySpan.style.display = 'block';
+    }
+
     try {
-        showToast('جاري إنشاء الحساب...', 'success');
-
-        const payload = { fullName, username, password, studentCode, phone, parentName, parentId };
-
-        const res = await fetch('https://schoolx-five.vercel.app/api/register-student', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json; charset=utf-8'
-            },
-            body: JSON.stringify(payload)
+        showToast('جاري إنشاء الحساب...', 'info');
+        const response = await saveToServer('/api/register-student', {
+            fullName,
+            username,
+            id: studentId,
+            phone,
+            parentName,
+            parentId,
+            password
         });
 
-        const text = await res.text();
-        let data;
-        try { data = JSON.parse(text); } 
-        catch { data = { error: text }; }
-
-        if (!res.ok) throw new Error(data.error || 'فشل في إنشاء الحساب');
-
-        showToast('تم إنشاء الحساب بنجاح 🎉', 'success');
-
+        showToast(`تم إنشاء الحساب بنجاح! اسم المستخدم: ${response.username}`, 'success');
         setTimeout(() => {
             window.location.href = 'login.html';
-        }, 1800);
+        }, 3000);
 
-    } catch (err) {
-        console.error(err);
-        showToast(err.message || 'حدث خطأ أثناء التسجيل');
+    } catch (error) {
+        console.error('خطأ في إنشاء الحساب:', error);
+        const msg = error.message || '';
+        if (msg.includes('رقم الجلوس') || msg.includes('id')) {
+            showToast('رقم الجلوس مستخدم من قبل!', 'error');
+        } else if (msg.includes('Username')) {
+            showToast('اسم المستخدم مستخدم من قبل!', 'error');
+        } else if (msg.includes('parentId')) {
+            showToast('رقم بطاقة ولي الأمر مستخدم من قبل!', 'error');
+        } else {
+            showToast(`خطأ في إنشاء الحساب: ${msg}`, 'error');
+        }
     }
+});
+
+// التحقق من توفر اسم المستخدم أثناء الكتابة
+let usernameTimeout;
+document.getElementById('username')?.addEventListener('input', async (e) => {
+    const username = e.target.value.trim();
+    const availabilitySpan = document.getElementById('username-availability');
+
+    clearTimeout(usernameTimeout);
+
+    if (username.length === 0) {
+        availabilitySpan.style.display = 'none';
+        return;
+    }
+
+    if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+        availabilitySpan.textContent = 'يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)';
+        availabilitySpan.style.color = '#dc3545';
+        availabilitySpan.style.display = 'block';
+        return;
+    }
+
+    availabilitySpan.textContent = 'جاري التحقق...';
+    availabilitySpan.style.color = '#ffc107';
+    availabilitySpan.style.display = 'block';
+
+    usernameTimeout = setTimeout(async () => {
+        const isAvailable = await checkUsernameAvailability(username);
+        availabilitySpan.textContent = isAvailable ? 'متاح!' : 'غير متاح!';
+        availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
+    }, 500);
 });
