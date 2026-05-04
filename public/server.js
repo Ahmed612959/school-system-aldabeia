@@ -10,8 +10,14 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static('public'));
+
+const registerRoute = require('./api/register');
+
+app.post('/api/register', (req, res) => {
+    registerRoute(req, res);
+});
 
 // ربط MongoDB من Environment Variables
 const uri = process.env.MONGODB_URI;
