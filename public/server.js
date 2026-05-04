@@ -742,7 +742,7 @@ app.post('/api/nour', async (req, res) => {
 });
 
 // === Vercel Serverless Handler ===
-module.exports.handler = serverless(app);
+module.exports = app;
 
 
 
