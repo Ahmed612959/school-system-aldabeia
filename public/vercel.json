@@ -1,13 +1,9 @@
 {
-    "experimentalServices": {
-        "web": {
-            "routePrefix": "/_/web",
-            "buildCommand": "npm install"
-        },
-        "public": {
-            "entrypoint": "public",
-            "routePrefix": "/_/public",
-            "buildCommand": "npm install"
-        }
-    }
+  "version": 2,
+  "builds": [
+    { "src": "server.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "server.js" }
+  ]
 }
