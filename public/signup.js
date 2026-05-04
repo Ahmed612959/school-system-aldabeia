@@ -1,4 +1,4 @@
-// دالة لعرض رسائل التنبيه
+// دالة  رسائل التنبيه
 function showToast(message, type = 'error') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
