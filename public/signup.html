@@ -14,6 +14,13 @@
     <div class="main-container">
         <div class="login-form-container">
             <h2>إنشاء حساب طالب</h2>
+            
+            <!-- تحذير مهم -->
+            <p style="color: #d32f2f; text-align: center; font-size: 0.95em; margin-bottom: 20px; background: #ffebee; padding: 10px; border-radius: 8px;">
+                ⚠️ <strong>اسم المستخدم يجب أن يكون صادر من الإدارة فقط</strong><br>
+                أي اسم مستخدم غير مسجل مسبقًا لن يعمل
+            </p>
+
             <form id="student-signup-form">
                 
                 <div class="input-group">
@@ -23,7 +30,7 @@
 
                 <div class="input-group">
                     <label for="username">اسم المستخدم</label>
-                    <input type="text" id="username" name="username" placeholder="3-20 حرف (أحرف وأرقام)" required>
+                    <input type="text" id="username" name="username" placeholder="مثال: ahmed2026" required>
                     <span id="username-availability" style="font-size: 0.8em; display: none; margin-top: 5px;"></span>
                 </div>
 
