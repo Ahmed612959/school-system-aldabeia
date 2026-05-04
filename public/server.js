@@ -578,19 +578,14 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, birthdate, phone, parentName, parentId, password } = req.body;
+        const { fullName, username, parentName, parentId, password } = req.body;
 
-        // التحقق من الحقول
-        if (!fullName || !username || !birthdate || !phone || !parentName || !parentId || !password) {
+        // التحقق من الحقول المطلوبة
+        if (!fullName || !username || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        // التحقق من صيغة تاريخ الميلاد (YYYY-MM-DD)
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
-            return res.status(400).json({ error: 'تاريخ الميلاد يجب أن يكون بهذا الشكل: YYYY-MM-DD' });
-        }
-
-        // التحقق من رقم بطاقة ولي الأمر (14 رقم)
+        // التحقق من رقم بطاقة ولي الأمر
         if (!/^\d{14}$/.test(parentId)) {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
@@ -600,9 +595,8 @@ app.post('/api/register-student', async (req, res) => {
             return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
         }
 
-        // التحقق من التكرار
-        const [existingBirthdate, existingUsername, existingParentId] = await Promise.all([
-            Student.findOne({ birthdate }).lean(),
+        // التحقق من عدم التكرار
+        const [existingUsernameCheck, existingParentId] = await Promise.all([
             Promise.all([
                 Admin.findOne({ username }).lean(),
                 Student.findOne({ username }).lean()
@@ -610,11 +604,7 @@ app.post('/api/register-student', async (req, res) => {
             Student.findOne({ 'profile.parentId': parentId }).lean()
         ]);
 
-        if (existingBirthdate) {
-            return res.status(400).json({ error: 'تاريخ الميلاد مستخدم من قبل (طالب مسجل بنفس التاريخ)' });
-        }
-
-        if (existingUsername.some(u => u)) {
+        if (existingUsernameCheck.some(u => u)) {
             return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
         }
 
@@ -625,15 +615,15 @@ app.post('/api/register-student', async (req, res) => {
         // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
+        // إنشاء الطالب
         const student = new Student({
             fullName,
-            birthdate,                    // بدل id
             username,
             password: hashedPassword,
             originalPassword: password,
             subjects: [],
             profile: {
-                phone,
+                phone: '',           // فارغ لأننا حذفنا حقل الهاتف
                 parentName,
                 parentId
             }
@@ -641,7 +631,7 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        console.log(`Student registered: \( {username} ( \){birthdate})`);
+        console.log(`✅ Student registered successfully: ${username} - ${fullName}`);
         res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
     } catch (error) {
