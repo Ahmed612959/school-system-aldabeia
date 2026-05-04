@@ -65,6 +65,34 @@ const Student = mongoose.model('Student', studentSchema);
 const Violation = mongoose.model('Violation', violationSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 
+
+
+
+// ====================== قائمة أسماء المستخدمين المسموح لهم بالتسجيل ======================
+const ALLOWED_USERNAMES = [
+    "ahmed2026",
+    "mohamed2026",
+    "sara2026",
+    "fatma2026",
+    "ali2026",
+    "noura2026",
+    "youssef2026",
+    "omnia2026",
+    "hassan2026",
+    "layla2026",
+    "mostafa2026",
+    "rania2026"
+    // ← أضف هنا أسماء الطلاب المسموح لهم بالتسجيل
+];
+
+// دالة التحقق
+function isAllowedUsername(username) {
+    if (!username) return false;
+    return ALLOWED_USERNAMES.includes(username.toLowerCase().trim());
+}
+
+
+
 // === دوال مساعدة ===
 // === دالة توليد اسم مستخدم فريد باستخدام تاريخ الميلاد ===
 function generateUniqueUsername(fullName, birthdate, existingUsers) {
