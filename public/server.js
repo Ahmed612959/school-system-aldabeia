@@ -33,7 +33,7 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    id: String,
+    birthdate: String,           // بدل id
     username: String,
     password: String,
     originalPassword: String,
@@ -66,14 +66,43 @@ const Violation = mongoose.model('Violation', violationSchema);
 const Notification = mongoose.model('Notification', notificationSchema);
 
 // === دوال مساعدة ===
-function generateUniqueUsername(fullName, id, existingUsers) {
-    let baseUsername = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 10) + id.slice(-2);
+// === دالة توليد اسم مستخدم فريد باستخدام تاريخ الميلاد ===
+function generateUniqueUsername(fullName, birthdate, existingUsers) {
+    if (!birthdate) {
+        // حالة احتياطية لو تاريخ الميلاد فاضي
+        const timestamp = Date.now().toString().slice(-4);
+        let base = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 8) + timestamp;
+        let username = base;
+        let counter = 1;
+        while (existingUsers.some(user => user.username === username)) {
+            username = `\( {base} \){counter}`;
+            counter++;
+        }
+        return username;
+    }
+
+    // استخراج آخر 4 أرقام من تاريخ الميلاد (مثال: 2005-03-15 → 0315)
+    const cleanDate = birthdate.replace(/\D/g, ''); // إزالة كل شيء غير الأرقام
+    const datePart = cleanDate.length >= 4 ? cleanDate.slice(-4) : cleanDate.padEnd(4, '0');
+
+    // أخذ أول 8-10 حروف من الاسم + آخر 4 أرقام من التاريخ
+    let baseUsername = fullName
+        .toLowerCase()
+        .replace(/\s+/g, '')           // إزالة المسافات
+        .replace(/[^a-z0-9]/g, '')     // إزالة أي حروف غير إنجليزية
+        .slice(0, 9);                  // أول 9 حروف
+
+    baseUsername += datePart;
+
     let username = baseUsername;
     let counter = 1;
+
+    // التحقق من التكرار وإضافة رقم متزايد إذا لزم الأمر
     while (existingUsers.some(user => user.username === username)) {
-        username = `${baseUsername}${counter}`;
+        username = `\( {baseUsername} \){counter}`;
         counter++;
     }
+
     return username;
 }
 
@@ -549,19 +578,19 @@ app.get('/api/exams/:code/results', async (req, res) => {
 
 app.post('/api/register-student', async (req, res) => {
     try {
-        const { fullName, username, id, phone, parentName, parentId, password } = req.body;
+        const { fullName, username, birthdate, phone, parentName, parentId, password } = req.body;
 
-        // التحقق من الحقول الجديدة فقط
-        if (!fullName || !username || !id || !phone || !parentName || !parentId || !password) {
+        // التحقق من الحقول
+        if (!fullName || !username || !birthdate || !phone || !parentName || !parentId || !password) {
             return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        // التحقق من رقم الجلوس (1-7 أرقام)
-        if (!/^\d{1,7}$/.test(id)) {
-            return res.status(400).json({ error: 'رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط' });
+        // التحقق من صيغة تاريخ الميلاد (YYYY-MM-DD)
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
+            return res.status(400).json({ error: 'تاريخ الميلاد يجب أن يكون بهذا الشكل: YYYY-MM-DD' });
         }
 
-        // التحقق من رقم بطاقة ولي الأمر (14 رقم بالظبط)
+        // التحقق من رقم بطاقة ولي الأمر (14 رقم)
         if (!/^\d{14}$/.test(parentId)) {
             return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
         }
@@ -572,8 +601,8 @@ app.post('/api/register-student', async (req, res) => {
         }
 
         // التحقق من التكرار
-        const [existingId, existingUsername, existingParentId] = await Promise.all([
-            Student.findOne({ id }).lean(),
+        const [existingBirthdate, existingUsername, existingParentId] = await Promise.all([
+            Student.findOne({ birthdate }).lean(),
             Promise.all([
                 Admin.findOne({ username }).lean(),
                 Student.findOne({ username }).lean()
@@ -581,8 +610,8 @@ app.post('/api/register-student', async (req, res) => {
             Student.findOne({ 'profile.parentId': parentId }).lean()
         ]);
 
-        if (existingId) {
-            return res.status(400).json({ error: 'رقم الجلوس مستخدم من قبل' });
+        if (existingBirthdate) {
+            return res.status(400).json({ error: 'تاريخ الميلاد مستخدم من قبل (طالب مسجل بنفس التاريخ)' });
         }
 
         if (existingUsername.some(u => u)) {
@@ -596,10 +625,9 @@ app.post('/api/register-student', async (req, res) => {
         // تشفير كلمة المرور
         const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
 
-        // إنشاء الطالب (profile يحتوي على الحقول الجديدة فقط)
         const student = new Student({
             fullName,
-            id,
+            birthdate,                    // بدل id
             username,
             password: hashedPassword,
             originalPassword: password,
@@ -613,7 +641,7 @@ app.post('/api/register-student', async (req, res) => {
 
         await student.save();
 
-        console.log(`Student registered: \( {username} ( \){id})`);
+        console.log(`Student registered: \( {username} ( \){birthdate})`);
         res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
     } catch (error) {
