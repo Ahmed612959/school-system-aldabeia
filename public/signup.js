@@ -56,13 +56,14 @@ async function checkUsernameAvailability(username) {
 }
 
 // معالجة نموذج إنشاء حساب الطالب
+// معالجة نموذج إنشاء حساب الطالب
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const fullName = document.getElementById('fullName').value.trim();
     const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
-    const studentId = document.getElementById('studentId').value.replace(/\s/g, '').trim();
+    const birthdate = document.getElementById('birthdate').value;   // جديد
     const phone = document.getElementById('phone').value.trim();
     const parentName = document.getElementById('parentName').value.trim();
     const parentId = document.getElementById('parentId').value.replace(/\s/g, '').trim();
@@ -70,12 +71,11 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     // إعادة تعيين رسائل الخطأ
     document.getElementById('username-availability').style.display = 'none';
 
-    // التحقق من الحقول الفارغة (مع حذف المسافات الزيادة)
     if (
         fullName === '' ||
         username === '' ||
         password === '' ||
-        studentId === '' ||
+        birthdate === '' ||
         phone === '' ||
         parentName === '' ||
         parentId === ''
@@ -84,15 +84,15 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         return;
     }
 
-    // التحقق من رقم الجلوس (1-7 أرقام)
-    if (!/^\d{1,7}$/.test(studentId)) {
-        showToast('رقم الجلوس يجب أن يكون من 1 إلى 7 أرقام فقط!', 'error');
+    // التحقق من صيغة تاريخ الميلاد
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
+        showToast('يرجى اختيار تاريخ ميلاد صحيح!', 'error');
         return;
     }
 
-    // التحقق من رقم البطاقة (14 رقم بالظبط)
+    // التحقق من رقم البطاقة (14 رقم)
     if (parentId.length !== 14 || !/^\d{14}$/.test(parentId)) {
-        showToast('رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط بدون مسافات!', 'error');
+        showToast('رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط!', 'error');
         return;
     }
 
@@ -106,6 +106,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     showToast('جاري التحقق من اسم المستخدم...', 'info');
     const isUsernameAvailable = await checkUsernameAvailability(username);
     const availabilitySpan = document.getElementById('username-availability');
+
     if (!isUsernameAvailable) {
         availabilitySpan.textContent = 'اسم المستخدم مستخدم من قبل!';
         availabilitySpan.style.color = '#dc3545';
@@ -123,7 +124,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         const response = await saveToServer('/api/register-student', {
             fullName,
             username,
-            id: studentId,
+            birthdate,           // جديد
             phone,
             parentName,
             parentId,
@@ -138,11 +139,11 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     } catch (error) {
         console.error('خطأ في إنشاء الحساب:', error);
         const msg = error.message || '';
-        if (msg.includes('رقم الجلوس') || msg.includes('id')) {
-            showToast('رقم الجلوس مستخدم من قبل!', 'error');
-        } else if (msg.includes('Username')) {
+        if (msg.includes('تاريخ الميلاد')) {
+            showToast('تاريخ الميلاد مستخدم من قبل!', 'error');
+        } else if (msg.includes('اسم المستخدم')) {
             showToast('اسم المستخدم مستخدم من قبل!', 'error');
-        } else if (msg.includes('parentId')) {
+        } else if (msg.includes('ولي الأمر')) {
             showToast('رقم بطاقة ولي الأمر مستخدم من قبل!', 'error');
         } else {
             showToast(`خطأ في إنشاء الحساب: ${msg}`, 'error');
