@@ -66,19 +66,16 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
     const availabilitySpan = document.getElementById('username-availability');
 
-    // التحقق من ملء جميع الحقول
     if (!fullName || !username || !password || !parentName || !parentId) {
         showToast('يرجى ملء جميع الحقول!', 'error');
         return;
     }
 
-    // التحقق من رقم بطاقة ولي الأمر
     if (parentId.length !== 14 || !/^\d{14}$/.test(parentId)) {
         showToast('رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط!', 'error');
         return;
     }
 
-    // التحقق من اسم المستخدم
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
         showToast('اسم المستخدم: 3-20 حرف إنجليزي وأرقام فقط!', 'error');
         return;
@@ -121,9 +118,11 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         console.error('Register Error:', error);
         const msg = (error.message || error || '').toString();
 
-        if (msg.includes('اسم المستخدم') || msg.includes('username')) {
+        if (msg.includes('غير مسموح به') || msg.includes('اسم المستخدم غير مسموح')) {
+            showToast('اسم المستخدم غير مسموح به. تواصل مع الإدارة.', 'error');
+        } else if (msg.includes('اسم المستخدم') || msg.includes('username')) {
             showToast('اسم المستخدم مستخدم من قبل!', 'error');
-        } else if (msg.includes('parentId') || msg.includes('ولي الأمر')) {
+        } else if (msg.includes('ولي الأمر') || msg.includes('parentId')) {
             showToast('رقم بطاقة ولي الأمر مستخدم من قبل!', 'error');
         } else {
             showToast(`خطأ في إنشاء الحساب: ${msg}`, 'error');
@@ -131,7 +130,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 });
 
-// التحقق من توفر اسم المستخدم أثناء الكتابة
+// التحقق المباشر أثناء الكتابة
 let usernameTimeout;
 document.getElementById('username')?.addEventListener('input', async (e) => {
     const username = e.target.value.trim();
@@ -145,7 +144,7 @@ document.getElementById('username')?.addEventListener('input', async (e) => {
     }
 
     if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        availabilitySpan.textContent = 'يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)';
+        availabilitySpan.textContent = '3-20 حرف (أحرف وأرقام فقط)';
         availabilitySpan.style.color = '#dc3545';
         availabilitySpan.style.display = 'block';
         return;
@@ -157,7 +156,7 @@ document.getElementById('username')?.addEventListener('input', async (e) => {
 
     usernameTimeout = setTimeout(async () => {
         const isAvailable = await checkUsernameAvailability(username);
-        availabilitySpan.textContent = isAvailable ? 'متاح!' : 'غير متاح!';
+        availabilitySpan.textContent = isAvailable ? 'متاح ✓' : 'غير متاح!';
         availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
     }, 500);
 });
