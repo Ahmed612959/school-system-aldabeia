@@ -3,44 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <title>إنشاء حساب</title>
+
 <style>
 body {
-  font-family: Arial;
-  background: #f4f7fb;
+    font-family: Arial;
+    background: #0f172a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
-.box {
-  width: 300px;
-  margin: 80px auto;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 300px;
 }
-input, button {
-  width: 100%;
-  margin: 8px 0;
-  padding: 10px;
+input {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
 }
 button {
-  background: #3498db;
-  color: white;
-  border: none;
+    width: 100%;
+    padding: 10px;
+    background: #22c55e;
+    color: white;
+    border: none;
+    cursor: pointer;
 }
 </style>
 </head>
+
 <body>
 
-<div class="box">
-  <h3>إنشاء حساب</h3>
+<div class="card">
+    <h3>إنشاء حساب</h3>
 
-  <input id="username" placeholder="Username">
-  <input id="password" type="password" placeholder="Password">
-  <input id="studentCode" placeholder="7 أرقام">
+    <input id="fullName" placeholder="الاسم">
+    <input id="username" placeholder="اسم المستخدم">
+    <input id="password" type="password" placeholder="كلمة المرور">
+    <input id="studentCode" placeholder="7 أرقام">
+    <input id="phone" placeholder="رقم الهاتف">
+    <input id="parentName" placeholder="ولي الأمر">
+    <input id="parentId" placeholder="14 رقم">
 
-  <button onclick="register()">تسجيل</button>
-
-  <p id="msg"></p>
+    <button onclick="register()">تسجيل</button>
 </div>
 
-<script src="signup.js"></script>
+<script>
+async function register() {
+    const data = {
+        fullName: fullName.value,
+        username: username.value,
+        password: password.value,
+        studentCode: studentCode.value,
+        phone: phone.value,
+        parentName: parentName.value,
+        parentId: parentId.value
+    };
+
+    const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+        alert(result.error);
+    } else {
+        alert("تم التسجيل بنجاح");
+    }
+}
+</script>
+
 </body>
 </html>
