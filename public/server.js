@@ -113,11 +113,15 @@ const weeklyQuizSchema = new mongoose.Schema({
 const WeeklyQuiz = mongoose.model('WeeklyQuiz', weeklyQuizSchema);
 
 // ====================== REGISTER STUDENT - الحل النهائي ======================
+// ====================== REGISTER STUDENT - الحل النهائي (محدث) ======================
 app.post('/api/register-student', async (req, res) => {
     try {
         console.log("=== REGISTER STUDENT START ===");
+        console.log("📌 Content-Type:", req.headers['content-type']);
         console.log("📥 Raw Body:", JSON.stringify(req.body, null, 2));
+        console.log("📋 All Keys Received:", Object.keys(req.body || {}));
 
+        // استخراج البيانات (يعمل مع JSON و FormData)
         const fullName   = String(req.body.fullName || '').trim();
         const username   = String(req.body.username || '').trim().toLowerCase();
         const password   = String(req.body.password || '').trim();
@@ -136,7 +140,9 @@ app.post('/api/register-student', async (req, res) => {
             passwordLength: password.length 
         });
 
+        // Validation
         if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
+            console.log("❌ Validation Failed: Missing fields");
             return res.status(400).json({ 
                 error: 'جميع الحقول مطلوبة',
                 debug: { 
@@ -145,37 +151,61 @@ app.post('/api/register-student', async (req, res) => {
                     studentCode: !!studentCode, 
                     phone: !!phone, 
                     parentName: !!parentName, 
-                    parentId: !!parentId 
+                    parentId: !!parentId,
+                    receivedKeys: Object.keys(req.body || {})
                 }
             });
         }
 
-        if (studentCode.length !== 7) return res.status(400).json({ error: 'رقم الجلوس لازم 7 أرقام' });
-        if (parentId.length !== 14) return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) return res.status(400).json({ error: 'اسم المستخدم غير صالح' });
-        if (password.length < 6) return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
+        if (studentCode.length !== 7) {
+            return res.status(400).json({ error: 'رقم الجلوس لازم 7 أرقام' });
+        }
+        
+        if (parentId.length !== 14) {
+            return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
+        }
+        
+        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
+            return res.status(400).json({ error: 'اسم المستخدم غير صالح' });
+        }
+        
+        if (password.length < 6) {
+            return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' });
+        }
 
+        // التحقق من التكرار
         const [existCode, existUser] = await Promise.all([
             Student.findOne({ studentCode }),
             Student.findOne({ username })
         ]);
 
-        if (existCode) return res.status(400).json({ error: 'هذا الكود مستخدم بالفعل' });
-        if (existUser) return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
+        if (existCode) {
+            return res.status(400).json({ error: 'هذا الكود مستخدم بالفعل' });
+        }
+        
+        if (existUser) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم بالفعل' });
+        }
 
+        // تشفير كلمة المرور
         const hashed = await bcrypt.hash(password, 10);
 
+        // إنشاء الطالب
         const student = new Student({
             fullName,
             username,
             studentCode,
             password: hashed,
-            profile: { phone, parentName, parentId }
+            profile: { 
+                phone, 
+                parentName, 
+                parentId 
+            }
         });
 
         await student.save();
 
-        console.log(`✅ Student created successfully: ${username}`);
+        console.log(`✅ Student created successfully: ${username} | Code: ${studentCode}`);
 
         res.json({ 
             success: true,
