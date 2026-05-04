@@ -496,26 +496,54 @@ app.post('/api/analyze-pdf', async (req, res) => {
     }
 });
 
+// ====================== التحقق من اسم المستخدم (Whitelist + Database) ======================
 app.post('/api/check-username', async (req, res) => {
     try {
         const { username } = req.body;
+
         if (!username) {
-            return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+            return res.status(400).json({ 
+                available: false, 
+                error: 'اسم المستخدم مطلوب' 
+            });
         }
 
-        // جلب كل المستخدمين مرة واحدة (admins + students)
-        const [existingAdmins, existingStudents] = await Promise.all([
-            Admin.find({ username }).lean(),
-            Student.find({ username }).lean()
+        const lowerUsername = username.toLowerCase().trim();
+
+        // 1. التحقق من أن اليوزر نيم مسموح به في القائمة
+        if (!isAllowedUsername(username)) {
+            return res.json({ 
+                available: false, 
+                error: 'اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.' 
+            });
+        }
+
+        // 2. التحقق من عدم استخدامه مسبقاً في قاعدة البيانات
+        const [existingAdmin, existingStudent] = await Promise.all([
+            Admin.findOne({ username: lowerUsername }).lean(),
+            Student.findOne({ username: lowerUsername }).lean()
         ]);
 
-        const isAvailable = existingAdmins.length === 0 && existingStudents.length === 0;
+        const isTaken = !!(existingAdmin || existingStudent);
 
-        console.log(`Check username: ${username} → Available: ${isAvailable}`);
-        res.json({ available: isAvailable });
+        if (isTaken) {
+            return res.json({ 
+                available: false, 
+                error: 'اسم المستخدم مستخدم من قبل' 
+            });
+        }
+
+        // إذا وصل هنا = اليوزر نيم مسموح وغير مستخدم
+        res.json({ 
+            available: true 
+        });
+
     } catch (error) {
-        console.error('Error checking username:', error);
-        res.status(500).json({ error: 'خطأ في التحقق من اسم المستخدم' });
+        console.error('Error in check-username:', error);
+        res.status(500).json({ 
+            available: false, 
+            error: 'حدث خطأ أثناء التحقق من اسم المستخدم' 
+        });
     }
 });
 
