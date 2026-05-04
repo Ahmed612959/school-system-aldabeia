@@ -1,71 +1,46 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إنشاء حساب طالب</title>
-    <link rel="stylesheet" href="login.css">
+<meta charset="UTF-8">
+<title>إنشاء حساب</title>
+<style>
+body {
+  font-family: Arial;
+  background: #f4f7fb;
+}
+.box {
+  width: 300px;
+  margin: 80px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+}
+input, button {
+  width: 100%;
+  margin: 8px 0;
+  padding: 10px;
+}
+button {
+  background: #3498db;
+  color: white;
+  border: none;
+}
+</style>
 </head>
 <body>
-    <header class="main-header">
-        <img src="logo.png" alt="شعار المدرسة" class="logo">
-        <h1>نظام إدارة المدرسة</h1>
-    </header>
-    <div class="main-container">
-        <div class="login-form-container">
-            <h2>إنشاء حساب طالب</h2>
-            
-            <!-- تحذير مهم -->
-            <p style="color: #d32f2f; text-align: center; font-size: 0.95em; margin-bottom: 20px; background: #ffebee; padding: 10px; border-radius: 8px;">
-                ⚠️ <strong>اسم المستخدم يجب أن يكون صادر من الإدارة فقط</strong><br>
-                أي اسم مستخدم غير مسجل مسبقًا لن يعمل
-            </p>
 
-            <form id="student-signup-form">
-                
-                <div class="input-group">
-                    <label for="fullName">اسم الطالب رباعي</label>
-                    <input type="text" id="fullName" name="fullName" placeholder="مثال: أحمد محمد علي السيد" required>
-                </div>
+<div class="box">
+  <h3>إنشاء حساب</h3>
 
-                <div class="input-group">
-                    <label for="username">اسم المستخدم</label>
-                    <input type="text" id="username" name="username" placeholder="مثال: ahmed2026" required>
-                    <span id="username-availability" style="font-size: 0.8em; display: none; margin-top: 5px;"></span>
-                </div>
+  <input id="username" placeholder="Username">
+  <input id="password" type="password" placeholder="Password">
+  <input id="studentCode" placeholder="7 أرقام">
 
-                <div class="input-group">
-                    <label for="password">كلمة المرور</label>
-                    <input type="password" id="password" name="password" placeholder="أدخل كلمة مرور قوية" required>
-                </div>
+  <button onclick="register()">تسجيل</button>
 
-                <div class="input-group">
-                    <label for="parentName">اسم ولي الأمر رباعي</label>
-                    <input type="text" id="parentName" name="parentName" placeholder="مثال: محمد علي أحمد السيد" required>
-                </div>
+  <p id="msg"></p>
+</div>
 
-                <div class="input-group">
-                    <label for="parentId">رقم بطاقة ولي الأمر</label>
-                    <input type="text" id="parentId" name="parentId" 
-                           inputmode="numeric" maxlength="14" 
-                           placeholder="14 رقم بدون مسافات" 
-                           required 
-                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-                </div>
-
-                <button type="submit" class="submit-btn">إنشاء الحساب</button>
-
-                <p style="text-align: center; margin-top: 15px;">
-                    لديك حساب؟ <a href="login.html" class="signup-link">تسجيل الدخول</a>
-                </p>
-            </form>
-        </div>
-    </div>
-
-    <footer>
-        <p>Developed by Ahmed Mousa <span class="heart">❤</span></p>
-    </footer>
-
-    <script src="signup.js" defer></script>
+<script src="signup.js"></script>
 </body>
 </html>
