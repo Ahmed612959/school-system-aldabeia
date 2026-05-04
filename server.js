@@ -1,34 +1,23 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bodyParser = require('body-parser');
-const pdfParse = require('pdf-parse');
-const crypto = require('crypto');
-const serverless = require('serverless-http'); // مهم جدًا
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
+// 🔥 ربط الـ API
 const registerRoute = require('./api/register');
+app.use('/api/register', registerRoute);
 
-app.post('/api/register', (req, res) => {
-    registerRoute(req, res);
-});
+// MongoDB
+mongoose.connect(process.env.MONGODB_URI)
+.then(() => console.log('MongoDB connected'))
+.catch(err => console.error(err));
 
-// ربط MongoDB من Environment Variables
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  console.error('MONGODB_URI is missing!');
-  process.exit(1);
-}
-
-mongoose.connect(uri)
-  .then(() => console.log('تم الاتصال بـ MongoDB'))
-  .catch(err => console.error('خطأ في الاتصال:', err));
+app.listen(3000, () => console.log('Server running'));
 
 // === النماذج (Schemas) ===
 const adminSchema = new mongoose.Schema({
