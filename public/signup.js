@@ -38,22 +38,6 @@ async function saveToServer(endpoint, data) {
     }
 }
 
-// التحقق من توفر اسم المستخدم
-async function checkUsernameAvailability(username) {
-    try {
-        const response = await fetch('/api/check-username', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username })
-        });
-        const data = await response.json();
-        return data && typeof data.available === 'boolean' ? data.available : false;
-    } catch (error) {
-        console.error('خطأ في التحقق من اسم المستخدم:', error);
-        return false;
-    }
-}
-
 // ====================== معالجة نموذج إنشاء حساب الطالب ======================
 document.getElementById('student-signup-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -66,35 +50,22 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
 
     const availabilitySpan = document.getElementById('username-availability');
 
+    // التحقق من ملء جميع الحقول
     if (!fullName || !username || !password || !parentName || !parentId) {
         showToast('يرجى ملء جميع الحقول!', 'error');
         return;
     }
 
+    // التحقق من رقم بطاقة ولي الأمر
     if (parentId.length !== 14 || !/^\d{14}$/.test(parentId)) {
         showToast('رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط!', 'error');
         return;
     }
 
+    // التحقق من صيغة اسم المستخدم
     if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
         showToast('اسم المستخدم: 3-20 حرف إنجليزي وأرقام فقط!', 'error');
         return;
-    }
-
-    // التحقق من توفر اسم المستخدم
-    showToast('جاري التحقق من اسم المستخدم...', 'info');
-    const isUsernameAvailable = await checkUsernameAvailability(username);
-
-    if (!isUsernameAvailable) {
-        availabilitySpan.textContent = 'اسم المستخدم مستخدم من قبل!';
-        availabilitySpan.style.color = '#dc3545';
-        availabilitySpan.style.display = 'block';
-        showToast('اسم المستخدم مستخدم من قبل!', 'error');
-        return;
-    } else {
-        availabilitySpan.textContent = 'اسم المستخدم متاح ✓';
-        availabilitySpan.style.color = '#28a745';
-        availabilitySpan.style.display = 'block';
     }
 
     try {
@@ -119,8 +90,8 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
         const msg = (error.message || error || '').toString();
 
         if (msg.includes('غير مسموح به') || msg.includes('اسم المستخدم غير مسموح')) {
-            showToast('اسم المستخدم غير مسموح به. تواصل مع الإدارة.', 'error');
-        } else if (msg.includes('اسم المستخدم') || msg.includes('username')) {
+            showToast('اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.', 'error');
+        } else if (msg.includes('اسم المستخدم مستخدم من قبل')) {
             showToast('اسم المستخدم مستخدم من قبل!', 'error');
         } else if (msg.includes('ولي الأمر') || msg.includes('parentId')) {
             showToast('رقم بطاقة ولي الأمر مستخدم من قبل!', 'error');
@@ -130,7 +101,7 @@ document.getElementById('student-signup-form')?.addEventListener('submit', async
     }
 });
 
-// التحقق المباشر أثناء الكتابة
+// ====================== التحقق من اسم المستخدم أثناء الكتابة ======================
 let usernameTimeout;
 document.getElementById('username')?.addEventListener('input', async (e) => {
     const username = e.target.value.trim();
@@ -143,8 +114,9 @@ document.getElementById('username')?.addEventListener('input', async (e) => {
         return;
     }
 
+    // التحقق الأولي من الصيغة
     if (username.length < 3 || !/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-        availabilitySpan.textContent = '3-20 حرف (أحرف وأرقام فقط)';
+        availabilitySpan.textContent = 'يجب أن يكون 3-20 حرف (أحرف وأرقام فقط)';
         availabilitySpan.style.color = '#dc3545';
         availabilitySpan.style.display = 'block';
         return;
@@ -155,8 +127,26 @@ document.getElementById('username')?.addEventListener('input', async (e) => {
     availabilitySpan.style.display = 'block';
 
     usernameTimeout = setTimeout(async () => {
-        const isAvailable = await checkUsernameAvailability(username);
-        availabilitySpan.textContent = isAvailable ? 'متاح ✓' : 'غير متاح!';
-        availabilitySpan.style.color = isAvailable ? '#28a745' : '#dc3545';
-    }, 500);
+        try {
+            const response = await fetch('/api/check-username', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username })
+            });
+
+            const data = await response.json();
+
+            if (data.available === true) {
+                availabilitySpan.textContent = '✅ متاح ومسموح';
+                availabilitySpan.style.color = '#28a745';
+            } else {
+                availabilitySpan.textContent = data.error || 'غير متاح!';
+                availabilitySpan.style.color = '#dc3545';
+            }
+        } catch (err) {
+            console.error(err);
+            availabilitySpan.textContent = 'خطأ في التحقق';
+            availabilitySpan.style.color = '#dc3545';
+        }
+    }, 600);
 });
