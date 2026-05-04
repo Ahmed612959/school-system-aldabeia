@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const crypto = require('crypto');
+const serverless = require('serverless-http');
 const app = express();
 
 app.use(cors());
