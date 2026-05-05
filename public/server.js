@@ -1,60 +1,31 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const pdfParse = require('pdf-parse');
 const crypto = require('crypto');
-const serverless = require('serverless-http');
 
 const app = express();
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public'));
+// ================= Middleware =================
+app.use(express.json());
 
-// ====================== MongoDB Connection ======================
-const uri = process.env.MONGODB_URI;
-
-if (!uri) {
-  console.error('❌ MONGODB_URI is missing in Vercel Environment Variables!');
-}
-
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+// ================= MongoDB =================
+let isConnected = false;
 
 async function connectDB() {
-  if (cached.conn) {
-    console.log('✅ MongoDB already connected (cached)');
-    return cached.conn;
-  }
+    if (isConnected) return;
 
-  if (!cached.promise) {
-    const opts = {
-      serverSelectionTimeoutMS: 10000,
-      socketTimeoutMS: 45000,
-      maxPoolSize: 5,
-    };
+    const uri = process.env.MONGODB_URI;
 
-    cached.promise = mongoose.connect(uri, opts)
-      .then((mongooseInstance) => {
-        console.log('✅ تم الاتصال بـ MongoDB بنجاح');
-        return mongooseInstance;
-      })
-      .catch((err) => {
-        console.error('❌ فشل في الاتصال بـ MongoDB:', err.message);
-        throw err;
-      });
-  }
+    if (!uri) {
+        throw new Error('MONGODB_URI not found');
+    }
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+    await mongoose.connect(uri);
+    isConnected = true;
+
+    console.log('✅ MongoDB Connected');
 }
 
-// ====================== Schemas ======================
+// ================= Schemas =================
 const adminSchema = new mongoose.Schema({
     fullName: String,
     username: String,
@@ -63,219 +34,112 @@ const adminSchema = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    studentCode: { type: String, required: true, unique: true },
-    username: { type: String, unique: true },
+    id: String,
+    username: String,
     password: String,
     originalPassword: String,
-    semester: { type: String, enum: ['first', 'second'], default: 'first' },
-    subjects: [{ name: String, grade: Number }],
+    semester: { type: String, default: 'first' },
+    subjects: [],
     profile: {
         phone: String,
         parentName: String,
         parentId: String
     }
-}, { timestamps: true });
-
-const violationSchema = new mongoose.Schema({
-    studentId: String,
-    type: String,
-    reason: String,
-    penalty: String,
-    parentSummons: Boolean,
-    date: String
 });
 
-const notificationSchema = new mongoose.Schema({
-    text: String,
-    date: String
-});
+const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
+const Student = mongoose.models.Student || mongoose.model('Student', studentSchema);
 
-const Admin = mongoose.model('Admin', adminSchema);
-const Student = mongoose.model('Student', studentSchema);
-const Violation = mongoose.model('Violation', violationSchema);
-const Notification = mongoose.model('Notification', notificationSchema);
+// ================= Routes =================
 
-// ====================== Helper Functions ======================
-function generateUniqueUsername(fullName, id, existingUsers) {
-    let baseUsername = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 10) + id.slice(-2);
-    let username = baseUsername;
-    let counter = 1;
-    while (existingUsers.some(user => user.username === username)) {
-        username = `${baseUsername}${counter}`;
-        counter++;
-    }
-    return username;
-}
+// 🔥 مهم: endpoints مطابقة لـ auth.js
 
-// ====================== API Routes ======================
-
-// Admins
 app.get('/api/admins', async (req, res) => {
     try {
         await connectDB();
         const admins = await Admin.find().lean();
         res.json(admins);
-    } catch (error) {
-        console.error('خطأ في جلب الأدمنز:', error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'خطأ في جلب الأدمنز' });
     }
 });
 
-// Students
 app.get('/api/students', async (req, res) => {
     try {
         await connectDB();
         const students = await Student.find().lean();
         res.json(students);
-    } catch (error) {
-        console.error('خطأ في جلب الطلاب:', error);
+    } catch (err) {
+        console.error(err);
         res.status(500).json({ error: 'خطأ في جلب الطلاب' });
     }
 });
 
-app.get('/api/students/:username', async (req, res) => {
+// ================= إضافة بيانات (اختياري) =================
+
+function hash(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+// إنشاء أدمن
+app.post('/api/admins', async (req, res) => {
     try {
         await connectDB();
-        const student = await Student.findOne({ username: req.params.username });
-        if (!student) return res.status(404).json({ error: 'الطالب غير موجود' });
-        res.json(student);
-    } catch (error) {
-        console.error('خطأ في جلب الطالب:', error);
-        res.status(500).json({ error: 'فشل في جلب البيانات' });
-    }
-});
 
-app.put('/api/students/:username', async (req, res) => {
-    try {
-        await connectDB();
-        const { profile } = req.body;
-        const updated = await Student.findOneAndUpdate(
-            { username: req.params.username },
-            { profile },
-            { new: true }
-        );
-        if (!updated) return res.status(404).json({ error: 'الطالب غير موجود' });
-        res.json({ message: 'تم تحديث الملف الشخصي', student: updated });
-    } catch (error) {
-        console.error('خطأ في تحديث profile:', error);
-        res.status(500).json({ error: 'فشل في التحديث' });
-    }
-});
+        const { fullName, username, password } = req.body;
 
-// Register Student
-app.post('/api/register-student', async (req, res) => {
-    try {
-        await connectDB();
-        const { fullName, username, studentCode, phone, parentName, parentId, password } = req.body;
-
-        if (!fullName || !username || !studentCode || !phone || !parentName || !parentId || !password) {
-            return res.status(400).json({ error: 'كل الحقول مطلوبة' });
+        const exists = await Admin.findOne({ username });
+        if (exists) {
+            return res.status(400).json({ error: 'اسم المستخدم موجود' });
         }
 
-        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+        const admin = new Admin({
+            fullName,
+            username,
+            password: hash(password)
+        });
+
+        await admin.save();
+
+        res.json({ message: 'تم إنشاء الأدمن' });
+    } catch (err) {
+        res.status(500).json({ error: 'خطأ في إنشاء الأدمن' });
+    }
+});
+
+// إنشاء طالب
+app.post('/api/students', async (req, res) => {
+    try {
+        await connectDB();
+
+        const { fullName, username, id, password } = req.body;
+
+        const exists = await Student.findOne({ username });
+        if (exists) {
+            return res.status(400).json({ error: 'اسم المستخدم مستخدم' });
+        }
 
         const student = new Student({
             fullName,
-            studentCode,
             username,
-            password: hashedPassword,
-            originalPassword: password,
-            profile: { phone, parentName, parentId }
+            id,
+            password: hash(password),
+            originalPassword: password
         });
 
         await student.save();
-        res.json({ message: 'تم إنشاء الحساب بنجاح', username });
 
+        res.json({ message: 'تم إنشاء الطالب' });
     } catch (err) {
-        console.error('Error in register-student:', err);
-        res.status(500).json({ error: 'خطأ في إنشاء الحساب', details: err.message });
+        res.status(500).json({ error: 'خطأ في إنشاء الطالب' });
     }
 });
 
-// Violations
-app.get('/api/violations', async (req, res) => {
-    try {
-        await connectDB();
-        const violations = await Violation.find().lean();
-        res.json(violations);
-    } catch (error) {
-        console.error('خطأ في جلب المخالفات:', error);
-        res.status(500).json({ error: 'خطأ في جلب المخالفات' });
-    }
+// ================= Health =================
+app.get('/', (req, res) => {
+    res.send('API running 🚀');
 });
 
-app.post('/api/violations', async (req, res) => {
-    try {
-        await connectDB();
-        const newViolation = new Violation(req.body);
-        await newViolation.save();
-        res.json({ message: 'تم إضافة المخالفة', violation: newViolation });
-    } catch (error) {
-        console.error('خطأ في إضافة المخالفة:', error);
-        res.status(500).json({ error: 'خطأ في إضافة المخالفة' });
-    }
-});
-
-// Notifications
-app.get('/api/notifications', async (req, res) => {
-    try {
-        await connectDB();
-        const notifications = await Notification.find().lean();
-        res.json(notifications);
-    } catch (error) {
-        console.error('خطأ في جلب الإشعارات:', error);
-        res.status(500).json({ error: 'خطأ في جلب الإشعارات' });
-    }
-});
-
-app.post('/api/notifications', async (req, res) => {
-    try {
-        await connectDB();
-        const newNotification = new Notification(req.body);
-        await newNotification.save();
-        res.json({ message: 'تم إضافة الإشعار', notification: newNotification });
-    } catch (error) {
-        console.error('خطأ في إضافة الإشعار:', error);
-        res.status(500).json({ error: 'خطأ في إضافة الإشعار' });
-    }
-});
-
-// Analyze PDF
-app.post('/api/analyze-pdf', async (req, res) => {
-    try {
-        await connectDB();
-        const { pdfData } = req.body;
-        // ... (يمكنك لصق كود تحليل PDF الأصلي هنا لاحقاً)
-        res.json({ message: 'تم تحليل PDF بنجاح' });
-    } catch (error) {
-        console.error('خطأ في تحليل PDF:', error);
-        res.status(500).json({ error: 'خطأ في تحليل PDF' });
-    }
-});
-
-// Nour AI
-app.post('/api/nour', async (req, res) => {
-    try {
-        await connectDB();
-        const { prompt } = req.body;
-        if (!prompt || prompt.toString().trim() === '') {
-            return res.json({ reply: "اكتب حاجة الأول يا وحش!" });
-        }
-
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
-        if (!GEMINI_API_KEY) {
-            return res.json({ reply: "نور نايمة دلوقتي يا بطل…" });
-        }
-
-        // يمكنك لصق كود Gemini الأصلي هنا
-        res.json({ reply: "نور جاهزة يا وحش! قولي عايز إيه؟" });
-    } catch (err) {
-        console.error("خطأ في /api/nour:", err.message);
-        res.json({ reply: "النت وقع يا أسطورة… جرب تاني" });
-    }
-});
-
-// ====================== Vercel Serverless Handler ======================
-module.exports.handler = serverless(app);
-
-console.log('🚀 Server.js كامل ومتوافق مع auth.js');
+// ================= Export =================
+module.exports = app;
