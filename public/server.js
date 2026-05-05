@@ -1,127 +1,104 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const crypto = require('crypto');
 const serverless = require('serverless-http');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// ====================== Middleware ======================
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
 app.use(express.static('public'));
 
-// ====================== MongoDB Connection مع تصحيح قوي ======================
-const uri = process.env.MONGODB_URI;
+// ====================== MongoDB Connection (مباشر دلوقتي) ======================
+const MONGODB_URI = "mongodb+srv://myadmin:MySecurePass123@cluster0.1cou98u.mongodb.net/adminDB?retryWrites=true&w=majority";
 
-console.log('MONGODB_URI موجود؟:', !!uri); // مهم للتصحيح
+console.log("جاري الاتصال بـ MongoDB...");
 
-if (!uri) {
-  console.error('❌ MONGODB_URI غير موجود في Environment Variables!');
-}
+mongoose.connect(MONGODB_URI, {
+    // خيارات مفيدة للسيرفرلس
+    maxPoolSize: 5,
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
+})
+.then(() => {
+    console.log("✅ تم الاتصال بـ MongoDB بنجاح!");
+})
+.catch((err) => {
+    console.error("❌ فشل الاتصال بـ MongoDB:", err.message);
+});
 
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
-
-async function connectDB() {
-  if (cached.conn) {
-    console.log('✅ MongoDB متصل (من الـ Cache)');
-    return cached.conn;
-  }
-
-  try {
-    console.log('⏳ جاري الاتصال بـ MongoDB...');
-    
-    const opts = {
-      serverSelectionTimeoutMS: 15000,
-      socketTimeoutMS: 60000,
-    };
-
-    cached.promise = mongoose.connect(uri, opts);
-    const mongooseInstance = await cached.promise;
-
-    console.log('✅ تم الاتصال بـ MongoDB بنجاح!');
-    cached.conn = mongooseInstance;
-    return mongooseInstance;
-
-  } catch (err) {
-    console.error('❌ فشل الاتصال بـ MongoDB:');
-    console.error('   الرسالة:', err.message);
-    console.error('   السبب:', err.reason || 'غير معروف');
-    throw err;   // مهم عشان يرجع 500 مع تفاصيل
-  }
-}
-
-// ====================== Schemas ======================
-const adminSchema = new mongoose.Schema({ fullName: String, username: String, password: String });
+// ====================== Schema بسيط للطالب (مؤقت) ======================
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    id: String,
-    username: String,
+    studentCode: { type: String, required: true, unique: true },
+    username: { type: String, unique: true },
     password: String,
-    originalPassword: String,
-    year: { type: String, enum: ['first', 'second'], default: 'first' },
-    semester: { type: String, enum: ['first', 'second'], default: 'first' },
-    subjects: [{ name: String, grade: Number }],
-    profile: { phone: String, parentName: String, parentId: String }
-});
+    profile: {
+        phone: String,
+        parentName: String,
+        parentId: String
+    }
+}, { timestamps: true });
 
-const Admin = mongoose.model('Admin', adminSchema);
 const Student = mongoose.model('Student', studentSchema);
 
-// ====================== Routes مع تصحيح ======================
-
-app.get('/api/admins', async (req, res) => {
+// ====================== Route إنشاء الطالب (مباشر) ======================
+app.post('/api/register-student', async (req, res) => {
     try {
-        console.log('طلب /api/admins');
-        await connectDB();
-        const admins = await Admin.find().lean();
-        console.log(`تم جلب ${admins.length} أدمن`);
-        res.json(admins);
-    } catch (error) {
-        console.error('خطأ في /api/admins:', error.message);
-        res.status(500).json({ 
-            error: 'خطأ في جلب الأدمنز', 
-            details: error.message,
-            isMongoError: error.name.includes('Mongo')
+        const { fullName, username, password, studentCode, phone, parentName, parentId } = req.body;
+
+        if (!fullName || !username || !password || !studentCode || !phone || !parentName || !parentId) {
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+        }
+
+        // تنظيف سريع
+        const cleanStudentCode = studentCode.toString().trim().replace(/\D/g, '');
+        const cleanParentId = parentId.toString().trim().replace(/\D/g, '');
+
+        if (cleanStudentCode.length !== 7) return res.status(400).json({ error: 'رقم الجلوس لازم 7 أرقام' });
+        if (cleanParentId.length !== 14) return res.status(400).json({ error: 'رقم ولي الأمر لازم 14 رقم' });
+
+        // التحقق من التكرار
+        const exist = await Student.findOne({ $or: [{ studentCode: cleanStudentCode }, { username }] });
+        if (exist) {
+            return res.status(400).json({ error: 'الكود أو اسم المستخدم مستخدم بالفعل' });
+        }
+
+        const hashedPassword = await require('bcrypt').hash(password, 10);
+
+        const newStudent = new Student({
+            fullName: fullName.trim(),
+            username: username.toLowerCase().trim(),
+            password: hashedPassword,
+            studentCode: cleanStudentCode,
+            profile: { phone, parentName, parentId: cleanParentId }
         });
+
+        await newStudent.save();
+
+        console.log(`✅ تم إنشاء طالب جديد: ${username}`);
+
+        res.json({
+            success: true,
+            message: 'تم إنشاء الحساب بنجاح 🎉',
+            username
+        });
+
+    } catch (err) {
+        console.error("خطأ في التسجيل:", err);
+        res.status(500).json({ error: 'حدث خطأ في السيرفر' });
     }
 });
 
-app.get('/api/students', async (req, res) => {
-    try {
-        console.log('طلب /api/students');
-        await connectDB();
-        const students = await Student.find().lean();
-        console.log(`تم جلب ${students.length} طالب`);
-        res.json(students);
-    } catch (error) {
-        console.error('خطأ في /api/students:', error.message);
-        res.status(500).json({ 
-            error: 'خطأ في جلب الطلاب', 
-            details: error.message,
-            isMongoError: error.name.includes('Mongo')
-        });
-    }
-});
-
-// Route بسيطة لاختبار الاتصال
-app.get('/api/test-db', async (req, res) => {
-    try {
-        await connectDB();
-        res.json({ status: 'success', message: 'الاتصال بـ MongoDB شغال' });
-    } catch (error) {
-        res.status(500).json({ 
-            status: 'error', 
-            message: 'فشل الاتصال بـ MongoDB',
-            details: error.message 
-        });
-    }
-});
-
-// Vercel Handler
+// ====================== Serverless Handler ======================
 module.exports.handler = serverless(app);
 
-console.log('🚀 Server started - Debug Mode');
+console.log("🚀 السيرفر جاهز...");
