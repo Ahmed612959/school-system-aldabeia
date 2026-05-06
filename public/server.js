@@ -675,7 +675,56 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
+// ====================== Login Route (بـ bcrypt) ======================
+app.post('/api/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
 
+        if (!username || !password) {
+            return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
+        }
+
+        // البحث في الأدمنز
+        const admin = await Admin.findOne({ username: username.toLowerCase() });
+        if (admin) {
+            const isMatch = await bcrypt.compare(password, admin.password);
+            if (isMatch) {
+                return res.json({
+                    success: true,
+                    user: {
+                        username: admin.username,
+                        fullName: admin.fullName,
+                        type: 'admin'
+                    }
+                });
+            }
+        }
+
+        // البحث في الطلاب
+        const student = await Student.findOne({ username: username.toLowerCase() });
+        if (student) {
+            const isMatch = await bcrypt.compare(password, student.password);
+            if (isMatch) {
+                return res.json({
+                    success: true,
+                    user: {
+                        username: student.username,
+                        fullName: student.fullName,
+                        type: 'student',
+                        id: student.studentCode || student.id
+                    }
+                });
+            }
+        }
+
+        // لو مفيش حساب
+        res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+
+    } catch (error) {
+        console.error('❌ Login Error:', error);
+        res.status(500).json({ error: 'حدث خطأ في السيرفر أثناء تسجيل الدخول' });
+    }
+});
 
 
 // ====================================================
