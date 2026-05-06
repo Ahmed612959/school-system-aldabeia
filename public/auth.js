@@ -1,4 +1,4 @@
-// auth.js - النسخة النهائية المحدثة لـ bcrypt
+// auth.js - النسخة النهائية المحدثة لـ bcrypt + معالجة أخطاء أفضل
 document.addEventListener('DOMContentLoaded', function () {
 
     // تسجيل الدخول
@@ -26,14 +26,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     body: JSON.stringify({ username, password })
                 });
 
+                // معالجة الرد بشكل آمن (لحل مشكلة body stream already read)
                 let data;
                 try {
-                    data = await response.json();
-                } catch (e) {
-                    console.error('Response is not JSON');
                     const text = await response.text();
-                    console.log('Server Response:', text);
-                    throw new Error('فشل الاتصال بالسيرفر - الرد غير صالح');
+                    console.log('Raw Response from server:', text);
+                    
+                    data = text ? JSON.parse(text) : {};
+                } catch (parseError) {
+                    console.error('Failed to parse JSON:', parseError);
+                    throw new Error('الرد من السيرفر غير صالح (ليس JSON)');
                 }
 
                 if (response.ok && data.success) {
@@ -54,23 +56,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
             } catch (err) {
                 console.error('Login Error:', err);
-                alert('فشل الاتصال بالخادم! تأكد أن السيرفر يعمل وأن الـ route /api/login موجود.');
+                alert('فشل الاتصال بالخادم! تأكد أن السيرفر يعمل وأن route /api/login موجود.');
             }
         });
     }
 
-    // حماية الصفحات (Home, Admin, Profile)
+    // حماية الصفحات
     const currentPage = location.pathname.split('/').pop().toLowerCase();
     if (['home.html', 'admin.html', 'profile.html', 'index.html'].includes(currentPage)) {
         const user = JSON.parse(localStorage.getItem('loggedInUser') || 'null');
         
         if (!user) {
-            console.warn('مستخدم غير مسجل دخوله - إعادة توجيه لتسجيل الدخول');
+            console.warn('مستخدم غير مسجل - إعادة توجيه');
             location.href = 'login.html';
             return;
         }
 
-        // منع الطلاب من دخول صفحة الأدمن
         if (user.type === 'student' && currentPage === 'admin.html') {
             alert('غير مصرح لك بالدخول إلى لوحة الإدارة!');
             location.href = 'Home.html';
@@ -78,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// دالة تسجيل الخروج العامة
+// دالة تسجيل الخروج
 window.logout = function () {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
         localStorage.removeItem('loggedInUser');
