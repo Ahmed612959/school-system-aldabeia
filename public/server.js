@@ -3,8 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const pdfParse = require('pdf-parse');
-const crypto = require('crypto');
 const bcrypt = require('bcrypt');
+const crypto = require('crypto'); // لو لسه محتاجه
 
 const serverless = require('serverless-http'); // مهم جدًا
 
@@ -675,7 +675,7 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
-// ====================== Login Route (بـ bcrypt) ======================
+// ====================== Login Route - النسخة المحسنة ======================
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -684,11 +684,14 @@ app.post('/api/login', async (req, res) => {
             return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
         }
 
+        console.log(`🔑 محاولة تسجيل دخول: ${username}`);
+
         // البحث في الأدمنز
-        const admin = await Admin.findOne({ username: username.toLowerCase() });
+        const admin = await Admin.findOne({ username: username.toLowerCase().trim() });
         if (admin) {
             const isMatch = await bcrypt.compare(password, admin.password);
             if (isMatch) {
+                console.log(`✅ أدمن دخل: ${admin.username}`);
                 return res.json({
                     success: true,
                     user: {
@@ -701,10 +704,11 @@ app.post('/api/login', async (req, res) => {
         }
 
         // البحث في الطلاب
-        const student = await Student.findOne({ username: username.toLowerCase() });
+        const student = await Student.findOne({ username: username.toLowerCase().trim() });
         if (student) {
             const isMatch = await bcrypt.compare(password, student.password);
             if (isMatch) {
+                console.log(`✅ طالب دخل: ${student.username}`);
                 return res.json({
                     success: true,
                     user: {
@@ -717,15 +721,17 @@ app.post('/api/login', async (req, res) => {
             }
         }
 
-        // لو مفيش حساب
-        res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+        console.log(`❌ فشل تسجيل الدخول: ${username}`);
+        return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
 
     } catch (error) {
-        console.error('❌ Login Error:', error);
-        res.status(500).json({ error: 'حدث خطأ في السيرفر أثناء تسجيل الدخول' });
+        console.error('❌ Login Server Error:', error);
+        res.status(500).json({ 
+            error: 'حدث خطأ داخلي في السيرفر',
+            details: error.message 
+        });
     }
 });
-
 
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
