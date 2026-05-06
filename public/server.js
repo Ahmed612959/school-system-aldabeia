@@ -26,17 +26,27 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(express.static('public')); 
 
-// ربط MongoDB
-const uri = process.env.MONGODB_URI; 
-if (!uri) { 
-  console.error('MONGODB_URI is missing!'); 
-  process.exit(1); 
-} 
+// ====================== ربط MongoDB (النهائي والمحسن) ======================
+const uri = process.env.MONGODB_URI;
 
-mongoose.connect(uri) 
-  .then(() => console.log('تم الاتصال بـ MongoDB')) 
-  .catch(err => console.error('خطأ في الاتصال:', err));
+if (!uri) {
+    console.error('❌ MONGODB_URI غير موجود في Environment Variables');
+    console.error('يرجى إضافته في Vercel Settings → Environment Variables');
+} else {
+    console.log('📡 جاري الاتصال بـ MongoDB...');
+}
 
+mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+    family: 4,                    // استخدام IPv4
+})
+.then(() => {
+    console.log('✅ تم الاتصال بـ MongoDB بنجاح');
+})
+.catch((err) => {
+    console.error('❌ فشل الاتصال بـ MongoDB:', err.message);
+});
 // ====================== النماذج (Schemas) ======================
 // (اترك باقي الـ Schemas كما هي - لا تغيرها)
 // === النماذج (Schemas) ===
