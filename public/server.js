@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const pdfParse = require('pdf-parse');
+const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 
 const serverless = require('serverless-http'); // مهم جدًا
@@ -137,14 +138,19 @@ app.get('/api/admins', async (req, res) => {
 app.post('/api/admins', async (req, res) => {
     try {
         const { fullName, username, password } = req.body;
+
         const existingAdmins = await Admin.find();
         const existingStudents = await Student.find();
+
         if (existingAdmins.some(a => a.username === username) || existingStudents.some(s => s.username === username)) {
             return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
         }
-        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
+
+        const hashedPassword = await bcrypt.hash(password, 10);   // ← التعديل المهم
+
         const newAdmin = new Admin({ fullName, username, password: hashedPassword });
         await newAdmin.save();
+
         res.json({ message: 'تم إضافة الأدمن', admin: newAdmin });
     } catch (error) {
         console.error('خطأ في إضافة الأدمن:', error);
@@ -183,7 +189,7 @@ app.post('/api/students', async (req, res) => {
         const existingStudents = await Student.find();
         const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
         const originalPassword = generatePassword(fullName);
-        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+const hashedPassword = await bcrypt.hash(originalPassword, 10);
         const newStudent = new Student({
             fullName,
             id,
@@ -793,6 +799,15 @@ app.post('/api/nour', async (req, res) => {
 });
 
 // === Vercel Serverless Handler ===
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error('❌ Unhandled Server Error:', err);
+    res.status(500).json({ 
+        error: 'خطأ داخلي في السيرفر',
+        details: err.message 
+    });
+});
+
 module.exports.handler = serverless(app);
 
 
