@@ -675,10 +675,10 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
-// ====================== Login Route - نسخة Debug قوية ======================
+// ====================== Login Route - نسخة آمنة جداً (Debug) ======================
 app.post('/api/login', async (req, res) => {
     try {
-        const { username, password } = req.body;
+        const { username, password } = req.body || {};
 
         if (!username || !password) {
             return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
@@ -686,29 +686,45 @@ app.post('/api/login', async (req, res) => {
 
         console.log(`🔑 محاولة تسجيل دخول: ${username}`);
 
+        // التحقق من وجود bcrypt
+        if (typeof bcrypt === 'undefined') {
+            console.error('❌ bcrypt غير مستورد!');
+            return res.status(500).json({ error: 'خطأ في تهيئة السيرفر (bcrypt)' });
+        }
+
         // === الأدمن ===
-        const admin = await Admin.findOne({ username: username.toLowerCase().trim() });
+        const admin = await Admin.findOne({ username: username.toLowerCase().trim() }).catch(err => {
+            console.error('Admin query error:', err);
+            return null;
+        });
+
         if (admin) {
             console.log('✓ تم العثور على أدمن');
-            const isMatch = await bcrypt.compare(password, admin.password);
+            const isMatch = await bcrypt.compare(password, admin.password || '');
             if (isMatch) {
-                console.log(`✅ أدمن ناجح: ${admin.username}`);
+                console.log(`✅ تسجيل دخول أدمن ناجح: ${admin.username}`);
                 return res.json({
                     success: true,
-                    user: { username: admin.username, fullName: admin.fullName, type: 'admin' }
+                    user: {
+                        username: admin.username,
+                        fullName: admin.fullName,
+                        type: 'admin'
+                    }
                 });
-            } else {
-                console.log('❌ كلمة مرور أدمن خاطئة');
             }
         }
 
         // === الطالب ===
-        const student = await Student.findOne({ username: username.toLowerCase().trim() });
+        const student = await Student.findOne({ username: username.toLowerCase().trim() }).catch(err => {
+            console.error('Student query error:', err);
+            return null;
+        });
+
         if (student) {
             console.log('✓ تم العثور على طالب');
-            const isMatch = await bcrypt.compare(password, student.password);
+            const isMatch = await bcrypt.compare(password, student.password || '');
             if (isMatch) {
-                console.log(`✅ طالب ناجح: ${student.username}`);
+                console.log(`✅ تسجيل دخول طالب ناجح: ${student.username}`);
                 return res.json({
                     success: true,
                     user: {
@@ -718,20 +734,18 @@ app.post('/api/login', async (req, res) => {
                         id: student.studentCode || student.id
                     }
                 });
-            } else {
-                console.log('❌ كلمة مرور طالب خاطئة');
             }
         }
 
-        console.log(`❌ بيانات خاطئة: ${username}`);
+        console.log(`❌ بيانات غير صحيحة: ${username}`);
         return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
 
     } catch (error) {
-        console.error('🚨 Login Server Error:', error);
+        console.error('🚨 CRITICAL LOGIN ERROR:', error);
         console.error('Error Name:', error.name);
         console.error('Error Message:', error.message);
-        console.error('Error Stack:', error.stack);
-        
+        console.error('Stack:', error.stack);
+
         res.status(500).json({ 
             error: 'حدث خطأ داخلي في السيرفر',
             details: error.message 
