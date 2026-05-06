@@ -675,7 +675,7 @@ app.post('/api/register-student', async (req, res) => {
     }
 });
 
-// ====================== Login Route - النسخة المحسنة ======================
+// ====================== Login Route - نسخة Debug قوية ======================
 app.post('/api/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -686,29 +686,29 @@ app.post('/api/login', async (req, res) => {
 
         console.log(`🔑 محاولة تسجيل دخول: ${username}`);
 
-        // البحث في الأدمنز
+        // === الأدمن ===
         const admin = await Admin.findOne({ username: username.toLowerCase().trim() });
         if (admin) {
+            console.log('✓ تم العثور على أدمن');
             const isMatch = await bcrypt.compare(password, admin.password);
             if (isMatch) {
-                console.log(`✅ أدمن دخل: ${admin.username}`);
+                console.log(`✅ أدمن ناجح: ${admin.username}`);
                 return res.json({
                     success: true,
-                    user: {
-                        username: admin.username,
-                        fullName: admin.fullName,
-                        type: 'admin'
-                    }
+                    user: { username: admin.username, fullName: admin.fullName, type: 'admin' }
                 });
+            } else {
+                console.log('❌ كلمة مرور أدمن خاطئة');
             }
         }
 
-        // البحث في الطلاب
+        // === الطالب ===
         const student = await Student.findOne({ username: username.toLowerCase().trim() });
         if (student) {
+            console.log('✓ تم العثور على طالب');
             const isMatch = await bcrypt.compare(password, student.password);
             if (isMatch) {
-                console.log(`✅ طالب دخل: ${student.username}`);
+                console.log(`✅ طالب ناجح: ${student.username}`);
                 return res.json({
                     success: true,
                     user: {
@@ -718,21 +718,26 @@ app.post('/api/login', async (req, res) => {
                         id: student.studentCode || student.id
                     }
                 });
+            } else {
+                console.log('❌ كلمة مرور طالب خاطئة');
             }
         }
 
-        console.log(`❌ فشل تسجيل الدخول: ${username}`);
+        console.log(`❌ بيانات خاطئة: ${username}`);
         return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
 
     } catch (error) {
-        console.error('❌ Login Server Error:', error);
+        console.error('🚨 Login Server Error:', error);
+        console.error('Error Name:', error.name);
+        console.error('Error Message:', error.message);
+        console.error('Error Stack:', error.stack);
+        
         res.status(500).json({ 
             error: 'حدث خطأ داخلي في السيرفر',
             details: error.message 
         });
     }
 });
-
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
 // ====================================================
