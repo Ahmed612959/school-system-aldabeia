@@ -872,19 +872,16 @@ app.post('/api/nour', async (req, res) => {
     }
 });
 
-// === Vercel Serverless Handler ===
-// Error Handling Middleware
+// ====================== Error Handling Middleware ======================
 app.use((err, req, res, next) => {
-    console.error('❌ Unhandled Server Error:', err);
-    res.status(500).json({ 
-        error: 'خطأ داخلي في السيرفر',
-        details: err.message 
+    console.error('❌ Unhandled Error:', err);
+    res.status(500).json({
+        error: 'حدث خطأ داخلي في السيرفر',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
     });
 });
 
 module.exports.handler = serverless(app);
-
-
 
 
 
