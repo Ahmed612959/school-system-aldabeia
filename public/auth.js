@@ -1,26 +1,47 @@
-// auth.js - النسخة النهائية اللي شغالة 100% مع server.js بتاعك (مجربة ومضمونة)
+// auth.js - النسخة المحدثة لـ bcrypt
 document.addEventListener('DOMContentLoaded', function () {
 
-    // دالة تشفير مطابقة 100% للسيرفر (crypto.createHash('sha256').digest('hex'))
-    async function hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // تسجيل الدخول باستخدام bcrypt (الطريقة الصحيحة)
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-    // جلب البيانات
-    async function getFromServer(path) {
-        try {
-            const response = await fetch(`/api${path}`, { cache: 'no-store' });
-            if (!response.ok) throw new Error('فشل الاتصال');
-            return await response.json();
-        } catch (err) {
-            console.error('خطأ في جلب البيانات:', err);
-            alert('فشل الاتصال بالخادم!');
-            return [];
-        }
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            if (!username || !password) {
+                alert('أدخل اسم المستخدم وكلمة المرور!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    localStorage.setItem('loggedInUser', JSON.stringify({
+                        username: data.user.username,
+                        fullName: data.user.fullName,
+                        type: data.user.type,
+                        ...(data.user.id && { id: data.user.id })
+                    }));
+
+                    alert(`✅ مرحباً ${data.user.fullName}!`);
+                    location.href = 'Home.html';
+                } else {
+                    alert(data.error || 'اسم المستخدم أو كلمة المرور غير صحيحة!');
+                }
+            } catch (err) {
+                console.error('Login Error:', err);
+                alert('فشل الاتصال بالخادم! تأكد أن السيرفر شغال.');
+            }
+        });
     }
 
     // حماية الصفحات
@@ -35,59 +56,6 @@ document.addEventListener('DOMContentLoaded', function () {
             alert('غير مصرح لك!');
             location.href = 'Home.html';
         }
-    }
-
-    // تسجيل الدخول
-    const loginForm = document.getElementById('login-form');
-    if (loginForm) {
-        loginForm.addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-
-            if (!username || !password) {
-                alert('أدخل اسم المستخدم وكلمة المرور!');
-                return;
-            }
-
-            const hashedPassword = await hashPassword(password);
-            console.log('كلمة المرور مشفرة صح (مطابقة للسيرفر):', hashedPassword);
-
-            try {
-                const [admins, students] = await Promise.all([
-                    getFromServer('/admins'),
-                    getFromServer('/students')
-                ]);
-
-                const admin = admins.find(a => a.username === username && a.password === hashedPassword);
-                if (admin) {
-                    localStorage.setItem('loggedInUser', JSON.stringify({
-                        username: admin.username,
-                        fullName: admin.fullName,
-                        type: 'admin'
-                    }));
-                    location.href = 'Home.html';
-                    return;
-                }
-
-                const student = students.find(s => s.username === username && s.password === hashedPassword);
-                if (student) {
-                    localStorage.setItem('loggedInUser', JSON.stringify({
-                        username: student.username,
-                        fullName: student.fullName,
-                        type: 'student',
-                        id: student.id
-                    }));
-                    location.href = 'Home.html';
-                    return;
-                }
-
-                alert('اسم المستخدم أو كلمة المرور غير صحيحة!');
-            } catch (err) {
-                alert('فشل الاتصال بالخادم!');
-            }
-        });
     }
 });
 
