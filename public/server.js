@@ -195,29 +195,35 @@ app.get('/api/students', async (req, res) => {
 app.post('/api/students', async (req, res) => {
     try {
         const { fullName, id, subjects, semester } = req.body;
+
+        if (!fullName || !id) {
+            return res.status(400).json({ error: 'الاسم ورقم الجلوس مطلوبان' });
+        }
+
         const existingAdmins = await Admin.find();
         const existingStudents = await Student.find();
+
         const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
         const originalPassword = generatePassword(fullName);
-const hashedPassword = await bcrypt.hash(originalPassword, 10);
+        const hashedPassword = await bcrypt.hash(originalPassword, 10);
+
         const newStudent = new Student({
             fullName,
-            id,
-            username,
+            studentCode: id,
+            username: username.toLowerCase().trim(),
             password: hashedPassword,
-            originalPassword,
             semester: semester || 'first',
-            subjects,
-            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
+            subjects: subjects || [],
+            profile: { phone: '', parentName: '', parentId: '' }
         });
+
         await newStudent.save();
-        res.json({ message: 'تم إضافة الطالب', student: newStudent });
+        res.json({ message: 'تم إضافة الطالب', student: newStudent, originalPassword });
     } catch (error) {
         console.error('خطأ في إضافة الطالب:', error);
         res.status(500).json({ error: 'خطأ في إضافة الطالب' });
     }
 });
-
 app.put('/api/students/:id', async (req, res) => {
     try {
         const { subjects, semester } = req.body;
@@ -394,7 +400,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
                     } else {
                         const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
                         const originalPassword = generatePassword(currentStudent.fullName);
-                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+                     const hashedPassword = await bcrypt.hash(originalPassword, 10);
                         student = new Student({
                             fullName: currentStudent.fullName,
                             id: currentStudent.id,
@@ -449,7 +455,7 @@ app.post('/api/analyze-pdf', async (req, res) => {
             } else {
                 const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
                 const originalPassword = generatePassword(currentStudent.fullName);
-                const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
+               const hashedPassword = await bcrypt.hash(originalPassword, 10);
                 student = new Student({
                     fullName: currentStudent.fullName,
                     id: currentStudent.id,
@@ -761,6 +767,10 @@ app.post('/api/login', async (req, res) => {
             details: error.message 
         });
     }
+});
+
+app.get('/api/test', (req, res) => {
+    res.json({ status: 'Server is working', bcrypt: typeof bcrypt !== 'undefined' });
 });
 // ====================================================
 // الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
