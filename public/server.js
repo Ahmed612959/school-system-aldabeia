@@ -912,4 +912,15 @@ app.use((err, req, res, next) => {
     });
 });
 
-module.exports.handler = serverless(app);
+// في نهاية server.js، يجب أن يكون بهذا الشكل بالضبط:
+
+// إذا كنت تستخدم serverless-http
+if (process.env.VERCEL) {
+    module.exports = serverless(app);
+} else {
+    // للتشغيل المحلي
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+}
