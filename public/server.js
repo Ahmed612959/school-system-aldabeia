@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const pdfParse = require('pdf-parse');
 
 const app = express();
@@ -15,6 +15,15 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
+
+// ====================== دالة التشفير ======================
+function hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
+
+function verifyPassword(password, hash) {
+    return hashPassword(password) === hash;
+}
 
 // ====================== النماذج (Schemas) ======================
 const adminSchema = new mongoose.Schema({
@@ -32,6 +41,8 @@ const studentSchema = new mongoose.Schema({
     studentCode: { type: String, required: true, unique: true },
     username: { type: String, unique: true },
     password: String,
+    semester: String,
+    subjects: Array,
     profile: {
         phone: String,
         parentName: String,
@@ -142,6 +153,8 @@ app.get('/api/test', (req, res) => {
     });
 });
 
+// ====================== الأدمنز ======================
+
 // جلب كل الأدمنز
 app.get('/api/admins', async (req, res) => {
     try {
@@ -177,7 +190,7 @@ app.post('/api/admins', async (req, res) => {
             return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = hashPassword(password);
         const newAdmin = new Admin({ fullName, username, password: hashedPassword });
         await newAdmin.save();
 
@@ -219,6 +232,8 @@ app.delete('/api/admins/:username', async (req, res) => {
     }
 });
 
+// ====================== الطلاب ======================
+
 // جلب كل الطلاب
 app.get('/api/students', async (req, res) => {
     try {
@@ -252,7 +267,7 @@ app.post('/api/students', async (req, res) => {
         const existingStudents = await Student.find();
         const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
         const originalPassword = generatePassword(fullName);
-        const hashedPassword = await bcrypt.hash(originalPassword, 10);
+        const hashedPassword = hashPassword(originalPassword);
         
         const newStudent = new Student({
             fullName,
@@ -260,11 +275,11 @@ app.post('/api/students', async (req, res) => {
             username,
             password: hashedPassword,
             semester: semester || 'first',
-            subjects,
+            subjects: subjects || [],
             profile: { phone: '', parentName: '', parentId: '' }
         });
         await newStudent.save();
-        res.json({ message: 'تم إضافة الطالب', student: { fullName, username, studentCode: id } });
+        res.json({ message: 'تم إضافة الطالب', student: { fullName, username, studentCode: id, password: originalPassword } });
     } catch (error) {
         console.error('Error adding student:', error);
         res.status(500).json({ error: 'خطأ في إضافة الطالب' });
@@ -274,10 +289,15 @@ app.post('/api/students', async (req, res) => {
 // تحديث طالب
 app.put('/api/students/:username', async (req, res) => {
     try {
-        const { profile } = req.body;
+        const { profile, subjects, semester } = req.body;
+        const updateData = {};
+        if (profile) updateData.profile = profile;
+        if (subjects) updateData.subjects = subjects;
+        if (semester) updateData.semester = semester;
+        
         const updated = await Student.findOneAndUpdate(
             { username: req.params.username },
-            { profile },
+            updateData,
             { new: true }
         );
         if (!updated) return res.status(404).json({ error: 'الطالب غير موجود' });
@@ -326,7 +346,8 @@ app.post('/api/login', async (req, res) => {
         }
 
         // التحقق من كلمة المرور
-        const isMatch = await bcrypt.compare(password, user.password);
+        const hashedInputPassword = hashPassword(password);
+        const isMatch = (hashedInputPassword === user.password);
         
         if (!isMatch) {
             console.log('❌ Password incorrect for:', username);
@@ -365,7 +386,7 @@ app.post('/api/register-student', async (req, res) => {
             return res.status(400).json({ error: 'المستخدم أو الكود موجود مسبقاً' });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = hashPassword(password);
         
         const student = new Student({
             fullName,
@@ -472,7 +493,7 @@ app.delete('/api/notifications/:id', async (req, res) => {
 // ====================== إنشاء مدير تجريبي ======================
 app.post('/api/create-test-admin', async (req, res) => {
     try {
-        const hashedPassword = await bcrypt.hash('admin123', 10);
+        const hashedPassword = hashPassword('admin123');
         
         const existingAdmin = await Admin.findOne({ username: 'admin' });
         if (existingAdmin) {
