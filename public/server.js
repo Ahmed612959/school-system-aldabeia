@@ -15,10 +15,10 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// ========== نماذج مبسطة للتجربة ==========
+// ========== النماذج ==========
 const adminSchema = new mongoose.Schema({
     fullName: String,
-    username: String,
+    username: { type: String, unique: true },
     password: String
 });
 
@@ -40,38 +40,32 @@ const Student = mongoose.models.Student || mongoose.model('Student', studentSche
 // ========== تسجيل الدخول ==========
 app.post('/api/login', async (req, res) => {
     try {
-        console.log('📥 Login request received:', req.body);
+        console.log('📥 Login:', req.body.username);
         const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' });
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
         }
 
-        // محاولة العثور على أدمن
+        // البحث عن أدمن
         let user = await Admin.findOne({ username: username.toLowerCase() });
         let userType = 'admin';
 
-        // إذا لم يكن أدمن، ابحث عن طالب
+        // البحث عن طالب
         if (!user) {
             user = await Student.findOne({ username: username.toLowerCase() });
             userType = 'student';
         }
 
         if (!user) {
-            console.log('❌ User not found:', username);
-            return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+            return res.status(401).json({ error: 'بيانات غير صحيحة' });
         }
 
-        // التحقق من كلمة المرور
-        const isMatch = await bcrypt.compare(password, user.password || '');
-        
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            console.log('❌ Password incorrect for:', username);
-            return res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' });
+            return res.status(401).json({ error: 'بيانات غير صحيحة' });
         }
 
-        console.log('✅ Login successful:', username);
-        
         res.json({
             success: true,
             user: {
@@ -83,33 +77,95 @@ app.post('/api/login', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('🔥 Login error:', error);
-        res.status(500).json({ error: 'حدث خطأ داخلي في السيرفر: ' + error.message });
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'خطأ في السيرفر: ' + error.message });
     }
 });
 
-// ========== اختبار بسيط ==========
+// ========== تسجيل طالب جديد ==========
+app.post('/api/register-student', async (req, res) => {
+    try {
+        const { fullName, username, password, studentCode, phone, parentName, parentId } = req.body;
+
+        if (!fullName || !username || !password || !studentCode) {
+            return res.status(400).json({ error: 'البيانات ناقصة' });
+        }
+
+        // التحقق من التكرار
+        const existingUser = await Student.findOne({ $or: [{ username }, { studentCode }] });
+        if (existingUser) {
+            return res.status(400).json({ error: 'المستخدم أو الكود موجود مسبقاً' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const student = new Student({
+            fullName,
+            username: username.toLowerCase(),
+            studentCode,
+            password: hashedPassword,
+            profile: { phone, parentName, parentId }
+        });
+
+        await student.save();
+        res.json({ success: true, message: 'تم التسجيل بنجاح' });
+
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== جلب الطلاب ==========
+app.get('/api/students', async (req, res) => {
+    try {
+        const students = await Student.find().select('-password');
+        res.json(students);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ========== اختبار الاتصال ==========
 app.get('/api/test', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        message: 'API is working!',
-        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    res.json({
+        status: 'ok',
+        mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        message: 'API is working!'
     });
 });
 
-// ========== التعامل مع MongoDB ==========
-const MONGODB_URI = process.env.MONGODB_URI;
+// ========== إنشاء مستخدم تجريبي ==========
+app.post('/api/create-test-admin', async (req, res) => {
+    try {
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        
+        const admin = new Admin({
+            fullName: 'مدير النظام',
+            username: 'admin',
+            password: hashedPassword
+        });
+        
+        await admin.save();
+        res.json({ message: 'تم إنشاء المدير بنجاح', username: 'admin', password: 'admin123' });
+    } catch (error) {
+        if (error.code === 11000) {
+            res.json({ message: 'المدير موجود مسبقاً', username: 'admin' });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
+    }
+});
 
-if (MONGODB_URI) {
-    mongoose.connect(MONGODB_URI, {
-        serverSelectionTimeoutMS: 8000,
-        socketTimeoutMS: 45000,
-    })
-    .then(() => console.log('✅ MongoDB connected'))
-    .catch(err => console.error('❌ MongoDB connection error:', err.message));
-} else {
-    console.error('❌ MONGODB_URI not set in environment variables');
-}
+// ========== الاتصال بقاعدة البيانات ==========
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://myadmin:MySecurePass123@cluster0.1cou98u.mongodb.net/school_system?retryWrites=true&w=majority';
 
-// ========== التصدير لـ Vercel ==========
+mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+})
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => console.error('❌ MongoDB connection error:', err.message));
+
+// ========== التصدير ==========
 module.exports = serverless(app);
