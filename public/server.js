@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');   // ← بدل bcrypt العادي
 const pdfParse = require('pdf-parse');
 
 const app = express();
