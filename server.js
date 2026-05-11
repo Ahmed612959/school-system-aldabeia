@@ -1,45 +1,51 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const crypto = require('crypto');
+const pdfParse = require('pdf-parse');
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// ====================== MIDDLEWARE ======================
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static('public'));
 
-// 🔥 ربط الـ API
-const registerRoute = require('./api/register');
-app.use('/api/register', registerRoute);
+// ====================== دالة التشفير ======================
+function hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+}
 
-// MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.error(err));
-
-app.listen(3000, () => console.log('Server running'));
-
-// === النماذج (Schemas) ===
+// ====================== النماذج (Schemas) ======================
 const adminSchema = new mongoose.Schema({
     fullName: String,
-    username: String,
-    password: String
+    username: { type: String, unique: true },
+    password: String,
+    profile: {
+        phone: String,
+        email: String
+    }
 });
 
 const studentSchema = new mongoose.Schema({
     fullName: String,
-    birthdate: String,           // بدل id
-    username: String,
+    studentCode: { type: String, required: true, unique: true },
+    username: { type: String, unique: true },
     password: String,
-    originalPassword: String,
-    semester: { type: String, enum: ['first', 'second'], default: 'first' },
-    subjects: [{ name: String, grade: Number }],
+    semester: String,
+    subjects: Array,
     profile: {
         phone: String,
         parentName: String,
         parentId: String
     }
-});
+}, { timestamps: true });
 
 const violationSchema = new mongoose.Schema({
     studentId: String,
@@ -55,92 +61,12 @@ const notificationSchema = new mongoose.Schema({
     date: String
 });
 
-const Admin = mongoose.model('Admin', adminSchema);
-const Student = mongoose.model('Student', studentSchema);
-const Violation = mongoose.model('Violation', violationSchema);
-const Notification = mongoose.model('Notification', notificationSchema);
-
-
-
-
-// ====================== قائمة أسماء المستخدمين المسموح لهم بالتسجيل ======================
-const ALLOWED_USERNAMES = [
-    "ahmed2026",
-    "mohamed2026",
-    "sara2026",
-    "fatma2026",
-    "ali2026",
-    "noura2026",
-    "youssef2026",
-    "omnia2026",
-    "hassan2026",
-    "layla2026",
-    "mostafa2026",
-    "rania2026"
-    // ← أضف هنا أسماء الطلاب المسموح لهم بالتسجيل
-];
-
-// دالة التحقق
-function isAllowedUsername(username) {
-    if (!username) return false;
-    return ALLOWED_USERNAMES.includes(username.toLowerCase().trim());
-}
-
-
-
-// === دوال مساعدة ===
-// === دالة توليد اسم مستخدم فريد باستخدام تاريخ الميلاد ===
-function generateUniqueUsername(fullName, birthdate, existingUsers) {
-    if (!birthdate) {
-        // حالة احتياطية لو تاريخ الميلاد فاضي
-        const timestamp = Date.now().toString().slice(-4);
-        let base = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 8) + timestamp;
-        let username = base;
-        let counter = 1;
-        while (existingUsers.some(user => user.username === username)) {
-            username = `\( {base} \){counter}`;
-            counter++;
-        }
-        return username;
-    }
-
-    // استخراج آخر 4 أرقام من تاريخ الميلاد (مثال: 2005-03-15 → 0315)
-    const cleanDate = birthdate.replace(/\D/g, ''); // إزالة كل شيء غير الأرقام
-    const datePart = cleanDate.length >= 4 ? cleanDate.slice(-4) : cleanDate.padEnd(4, '0');
-
-    // أخذ أول 8-10 حروف من الاسم + آخر 4 أرقام من التاريخ
-    let baseUsername = fullName
-        .toLowerCase()
-        .replace(/\s+/g, '')           // إزالة المسافات
-        .replace(/[^a-z0-9]/g, '')     // إزالة أي حروف غير إنجليزية
-        .slice(0, 9);                  // أول 9 حروف
-
-    baseUsername += datePart;
-
-    let username = baseUsername;
-    let counter = 1;
-
-    // التحقق من التكرار وإضافة رقم متزايد إذا لزم الأمر
-    while (existingUsers.some(user => user.username === username)) {
-        username = `\( {baseUsername} \){counter}`;
-        counter++;
-    }
-
-    return username;
-}
-
-function generatePassword(fullName) {
-    const firstName = fullName.split(' ')[0];
-    return `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}1234@`;
-}
-
-// === نموذج مسابقة الأسبوع ===
 const weeklyQuizSchema = new mongoose.Schema({
-    weekNumber: { type: Number, required: true },  // رقم الأسبوع في السنة
+    weekNumber: { type: Number, required: true },
     question: { type: String, required: true },
-    options: [{ type: String, required: true }],   // 4 إجابات
-    correctIndex: { type: Number, required: true }, // رقم الإجابة الصح (0-3)
-    winners: [{                                    // أول 5 يجاوبوا صح
+    options: [{ type: String, required: true }],
+    correctIndex: { type: Number, required: true },
+    winners: [{
         studentId: String,
         username: String,
         fullName: String,
@@ -149,400 +75,6 @@ const weeklyQuizSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: true }
 });
 
-const WeeklyQuiz = mongoose.model('WeeklyQuiz', weeklyQuizSchema);
-
-// === كل الـ API Routes ===
-app.get('/api/admins', async (req, res) => {
-    try {
-        const admins = await Admin.find();
-        res.json(admins);
-    } catch (error) {
-        console.error('خطأ في جلب الأدمنز:', error);
-        res.status(500).json({ error: 'خطأ في جلب الأدمنز' });
-    }
-});
-
-
-app.post('/api/admins', async (req, res) => {
-    try {
-        const { fullName, username, password } = req.body;
-        const existingAdmins = await Admin.find();
-        const existingStudents = await Student.find();
-        if (existingAdmins.some(a => a.username === username) || existingStudents.some(s => s.username === username)) {
-            return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
-        }
-        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-        const newAdmin = new Admin({ fullName, username, password: hashedPassword });
-        await newAdmin.save();
-        res.json({ message: 'تم إضافة الأدمن', admin: newAdmin });
-    } catch (error) {
-        console.error('خطأ في إضافة الأدمن:', error);
-        res.status(500).json({ error: 'خطأ في إضافة الأدمن' });
-    }
-});
-
-app.delete('/api/admins/:username', async (req, res) => {
-    try {
-        const admins = await Admin.find();
-        if (admins.length <= 1) {
-            return res.status(400).json({ error: 'لا يمكن حذف آخر أدمن' });
-        }
-        await Admin.deleteOne({ username: req.params.username });
-        res.json({ message: 'تم حذف الأدمن' });
-    } catch (error) {
-        console.error('خطأ في حذف الأدمن:', error);
-        res.status(500).json({ error: 'خطأ في حذف الأدمن' });
-    }
-});
-
-app.get('/api/students', async (req, res) => {
-    try {
-        const students = await Student.find();
-        res.json(students);
-    } catch (error) {
-        console.error('خطأ في جلب الطلاب:', error);
-        res.status(500).json({ error: 'خطأ في جلب الطلاب' });
-    }
-});
-
-app.post('/api/students', async (req, res) => {
-    try {
-        const { fullName, id, subjects, semester } = req.body;
-        const existingAdmins = await Admin.find();
-        const existingStudents = await Student.find();
-        const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
-        const originalPassword = generatePassword(fullName);
-        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
-        const newStudent = new Student({
-            fullName,
-            id,
-            username,
-            password: hashedPassword,
-            originalPassword,
-            semester: semester || 'first',
-            subjects,
-            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
-        });
-        await newStudent.save();
-        res.json({ message: 'تم إضافة الطالب', student: newStudent });
-    } catch (error) {
-        console.error('خطأ في إضافة الطالب:', error);
-        res.status(500).json({ error: 'خطأ في إضافة الطالب' });
-    }
-});
-
-app.put('/api/students/:id', async (req, res) => {
-    try {
-        const { subjects, semester } = req.body;
-        const updateData = { subjects };
-        if (semester) updateData.semester = semester;
-        await Student.findOneAndUpdate({ id: req.params.id }, updateData, { new: true });
-        res.json({ message: 'تم تحديث الطالب' });
-    } catch (error) {
-        console.error('خطأ في تحديث الطالب:', error);
-        res.status(500).json({ error: 'خطأ في تحديث الطالب' });
-    }
-});
-
-app.delete('/api/students/:id', async (req, res) => {
-    try {
-        await Student.deleteOne({ id: req.params.id });
-        await Violation.deleteMany({ studentId: req.params.id });
-        res.json({ message: 'تم حذف الطالب' });
-    } catch (error) {
-        console.error('خطأ في حذف الطالب:', error);
-        res.status(500).json({ error: 'خطأ في حذف الطالب' });
-    }
-});
-
-app.get('/api/violations', async (req, res) => {
-    try {
-        const violations = await Violation.find();
-        res.json(violations);
-    } catch (error) {
-        console.error('خطأ في جلب المخالفات:', error);
-        res.status(500).json({ error: 'خطأ في جلب المخالفات' });
-    }
-});
-
-app.post('/api/violations', async (req, res) => {
-    try {
-        const newViolation = new Violation(req.body);
-        await newViolation.save();
-        res.json({ message: 'تم إضافة المخالفة', violation: newViolation });
-    } catch (error) {
-        console.error('خطأ في إضافة المخالفة:', error);
-        res.status(500).json({ error: 'خطأ في إضافة المخالفة' });
-    }
-});
-
-app.delete('/api/violations/:id', async (req, res) => {
-    try {
-        await Violation.findByIdAndDelete(req.params.id);
-        res.json({ message: 'تم حذف المخالفة' });
-    } catch (error) {
-        console.error('خطأ في حذف المخالفة:', error);
-        res.status(500).json({ error: 'خطأ في حذف المخالفة' });
-    }
-});
-
-app.get('/api/notifications', async (req, res) => {
-    try {
-        const notifications = await Notification.find();
-        res.json(notifications);
-    } catch (error) {
-        console.error('خطأ في جلب الإشعارات:', error);
-        res.status(500).json({ error: 'خطأ في جلب الإشعارات' });
-    }
-});
-
-app.post('/api/notifications', async (req, res) => {
-    try {
-        const newNotification = new Notification(req.body);
-        await newNotification.save();
-        res.json({ message: 'تم إضافة الإشعار', notification: newNotification });
-    } catch (error) {
-        console.error('خطأ في إضافة الإشعار:', error);
-        res.status(500).json({ error: 'خطأ في إضافة الإشعار' });
-    }
-});
-
-app.delete('/api/notifications/:id', async (req, res) => {
-    try {
-        await Notification.findByIdAndDelete(req.params.id);
-        res.json({ message: 'تم حذف الإشعار' });
-    } catch (error) {
-        console.error('خطأ في حذف الإشعار:', error);
-        res.status(500).json({ error: 'خطأ في حذف الإشعار' });
-    }
-});
-
-app.post('/api/analyze-pdf', async (req, res) => {
-    try {
-        const { pdfData } = req.body;
-
-        if (!pdfData || typeof pdfData !== 'string') {
-            return res.status(400).json({ error: 'بيانات PDF غير صالحة أو مفقودة' });
-        }
-
-        let buffer;
-        try {
-            buffer = Buffer.from(pdfData, 'base64');
-        } catch (error) {
-            return res.status(400).json({ error: 'بيانات Base64 غير صالحة' });
-        }
-
-        const data = await pdfParse(buffer);
-        const text = data.text;
-        const lines = text.split(/\r?\n/).filter(line => line.trim());
-
-        const validSubjects = [
-            'مبادئ وأسس تمريض',
-            'اللغة العربية',
-            'اللغة الإنجليزية',
-            'الفيزياء',
-            'الكيمياء',
-            'التشريح/علم وظائف الأعضاء',
-            'التربية الدينية',
-            'الكمبيوتر',
-            'التاريخ',
-            'الجغرافيا'
-        ];
-
-        const normalizeSubject = (subject) => {
-            let normalized = subject
-                .replace(/اإل/g, 'الإ')
-                .replace(/أ/g, 'ا')
-                .replace(/ی/g, 'ي')
-                .replace(/ة/g, 'ه')
-                .replace(/[\/\\]/g, '/')
-                .replace(/إ/g, 'ا')
-                .replace(/\s+/g, ' ')
-                .trim();
-
-            if (normalized.includes('مبادئ') && normalized.includes('تمريض')) return 'مبادئ وأسس تمريض';
-            if (normalized.includes('عربيه') || normalized.includes('عربية')) return 'اللغة العربية';
-            if (normalized.includes('انجليزيه') || normalized.includes('إنجليزية') || normalized.includes('انجلیزیه')) return 'اللغة الإنجليزية';
-            if (normalized.includes('فيزياء') || normalized.includes('فیزیاء')) return 'الفيزياء';
-            if (normalized.includes('كيمياء') || normalized.includes('كیمیاء')) return 'الكيمياء';
-            if (normalized.includes('تشريح') || normalized.includes('تشریح') || normalized.includes('وظائف')) return 'التشريح/علم وظائف الأعضاء';
-            if (normalized.includes('تربيه') || normalized.includes('دينيه') || normalized.includes('دينية')) return 'التربية الدينية';
-            if (normalized.includes('كمبيوتر') || normalized.includes('كمبیوتر')) return 'الكمبيوتر';
-            if (normalized.includes('تاريخ') || normalized.includes('تاریخ')) return 'التاريخ';
-            if (normalized.includes('جغرافيا') || normalized.includes('جغرافیاء')) return 'الجغرافيا';
-            return normalized;
-        };
-
-        const allResults = [];
-        let currentStudent = null;
-        let grades = [];
-        let semester = 'first';
-        const ignoredLines = [];
-
-        for (const line of lines) {
-            const cleanedLine = line.trim().replace(/\s+/g, ' ');
-
-            const semesterMatch = cleanedLine.match(/(?:الترم|Semester):?\s*(الأول|الثاني|first|second)/i);
-            if (semesterMatch) {
-                semester = semesterMatch[1].includes('الأول') || semesterMatch[1].toLowerCase() === 'first' ? 'first' : 'second';
-                continue;
-            }
-
-            const studentMatch = cleanedLine.match(/(?:طالب|الطالب|Student):?\s*([^-\n]+?)\s*[-–—]?\s*(?:رقم الجلوس|رقم|ID):?\s*(\d+)/i);
-            if (studentMatch) {
-                if (currentStudent && grades.length > 0) {
-                    allResults.push({
-                        name: currentStudent.fullName,
-                        id: currentStudent.id,
-                        semester,
-                        results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
-                    });
-                    const existingAdmins = await Admin.find();
-                    const existingStudents = await Student.find();
-                    let student = await Student.findOne({ id: currentStudent.id });
-                    if (student) {
-                        student.subjects = grades;
-                        student.semester = semester;
-                        await student.save();
-                    } else {
-                        const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
-                        const originalPassword = generatePassword(currentStudent.fullName);
-                        const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
-                        student = new Student({
-                            fullName: currentStudent.fullName,
-                            id: currentStudent.id,
-                            username,
-                            password: hashedPassword,
-                            originalPassword,
-                            semester,
-                            subjects: grades,
-                            profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
-                        });
-                        await student.save();
-                    }
-                }
-                currentStudent = {
-                    fullName: studentMatch[1].trim(),
-                    id: studentMatch[2].trim()
-                };
-                grades = [];
-            } else if (cleanedLine.includes(':')) {
-                const [subject, grade] = cleanedLine.split(':').map(s => s.trim());
-                const normalizedSubject = normalizeSubject(subject);
-                if (validSubjects.includes(normalizedSubject) && !isNaN(parseInt(grade))) {
-                    if ((normalizedSubject === 'التاريخ' && semester === 'first') || 
-                        (normalizedSubject === 'الجغرافيا' && semester === 'second') || 
-                        !['التاريخ', 'الجغرافيا'].includes(normalizedSubject)) {
-                        grades.push({ name: normalizedSubject, grade: parseInt(grade) });
-                    } else {
-                        ignoredLines.push(cleanedLine);
-                    }
-                } else {
-                    ignoredLines.push(cleanedLine);
-                }
-            } else {
-                ignoredLines.push(cleanedLine);
-            }
-        }
-
-        if (currentStudent && grades.length > 0) {
-            allResults.push({
-                name: currentStudent.fullName,
-                id: currentStudent.id,
-                semester,
-                results: Object.fromEntries(grades.map(g => [g.name, g.grade]))
-            });
-            const existingAdmins = await Admin.find();
-            const existingStudents = await Student.find();
-            let student = await Student.findOne({ id: currentStudent.id });
-            if (student) {
-                student.subjects = grades;
-                student.semester = semester;
-                await student.save();
-            } else {
-                const username = generateUniqueUsername(currentStudent.fullName, currentStudent.id, [...existingAdmins, ...existingStudents]);
-                const originalPassword = generatePassword(currentStudent.fullName);
-                const hashedPassword = crypto.createHash('sha256').update(originalPassword).digest('hex');
-                student = new Student({
-                    fullName: currentStudent.fullName,
-                    id: currentStudent.id,
-                    username,
-                    password: hashedPassword,
-                    originalPassword,
-                    semester,
-                    subjects: grades,
-                    profile: { email: '', phone: '', birthdate: '', address: '', bio: '' }
-                });
-                await student.save();
-            }
-        }
-
-        if (allResults.length === 0) {
-            return res.status(400).json({ 
-                error: 'لا توجد بيانات طلاب أو درجات صالحة في الملف',
-                details: { extractedLines: lines, ignoredLines }
-            });
-        }
-
-        res.json({ message: 'تم تحليل PDF بنجاح', results: allResults });
-    } catch (error) {
-        console.error('خطأ في تحليل PDF:', error);
-        res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
-    }
-});
-
-// ====================== التحقق من اسم المستخدم (Whitelist + Database) ======================
-app.post('/api/check-username', async (req, res) => {
-    try {
-        const { username } = req.body;
-
-        if (!username) {
-            return res.status(400).json({ 
-                available: false, 
-                error: 'اسم المستخدم مطلوب' 
-            });
-        }
-
-        const lowerUsername = username.toLowerCase().trim();
-
-        // 1. التحقق من أن اليوزر نيم مسموح به في القائمة
-        if (!isAllowedUsername(username)) {
-            return res.json({ 
-                available: false, 
-                error: 'اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.' 
-            });
-        }
-
-        // 2. التحقق من عدم استخدامه مسبقاً في قاعدة البيانات
-        const [existingAdmin, existingStudent] = await Promise.all([
-            Admin.findOne({ username: lowerUsername }).lean(),
-            Student.findOne({ username: lowerUsername }).lean()
-        ]);
-
-        const isTaken = !!(existingAdmin || existingStudent);
-
-        if (isTaken) {
-            return res.json({ 
-                available: false, 
-                error: 'اسم المستخدم مستخدم من قبل' 
-            });
-        }
-
-        // إذا وصل هنا = اليوزر نيم مسموح وغير مستخدم
-        res.json({ 
-            available: true 
-        });
-
-    } catch (error) {
-        console.error('Error in check-username:', error);
-        res.status(500).json({ 
-            available: false, 
-            error: 'حدث خطأ أثناء التحقق من اسم المستخدم' 
-        });
-    }
-});
-
-// === باقي الـ routes (exams, register-student) ===
 const examSchema = new mongoose.Schema({
     name: { type: String, required: true },
     stage: { type: String, required: true },
@@ -556,7 +88,6 @@ const examSchema = new mongoose.Schema({
         correctAnswers: [String]
     }]
 });
-const Exam = mongoose.model('Exam', examSchema);
 
 const examResultSchema = new mongoose.Schema({
     examCode: { type: String, required: true },
@@ -564,8 +95,404 @@ const examResultSchema = new mongoose.Schema({
     score: { type: Number, required: true },
     completionTime: { type: Date, default: Date.now }
 });
-const ExamResult = mongoose.model('ExamResult', examResultSchema);
 
+// إنشاء النماذج (تجنب إعادة التعريف)
+const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
+const Student = mongoose.models.Student || mongoose.model('Student', studentSchema);
+const Violation = mongoose.models.Violation || mongoose.model('Violation', violationSchema);
+const Notification = mongoose.models.Notification || mongoose.model('Notification', notificationSchema);
+const WeeklyQuiz = mongoose.models.WeeklyQuiz || mongoose.model('WeeklyQuiz', weeklyQuizSchema);
+const Exam = mongoose.models.Exam || mongoose.model('Exam', examSchema);
+const ExamResult = mongoose.models.ExamResult || mongoose.model('ExamResult', examResultSchema);
+
+// ====================== الاتصال بقاعدة البيانات ======================
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+    console.error('❌ MONGODB_URI is not set in environment variables!');
+} else {
+    console.log('📡 Connecting to MongoDB...');
+    mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 8000,
+        socketTimeoutMS: 45000,
+    })
+    .then(() => console.log('✅ MongoDB connected successfully'))
+    .catch(err => console.error('❌ MongoDB connection error:', err.message));
+}
+
+// ====================== دوال مساعدة ======================
+function generateUniqueUsername(fullName, id, existingUsers) {
+    let baseUsername = fullName.toLowerCase().replace(/\s+/g, '').slice(0, 10) + id.slice(-2);
+    let username = baseUsername;
+    let counter = 1;
+    while (existingUsers.some(user => user.username === username)) {
+        username = `${baseUsername}${counter}`;
+        counter++;
+    }
+    return username;
+}
+
+function generatePassword(fullName) {
+    const firstName = fullName.split(' ')[0];
+    return `${firstName.charAt(0).toUpperCase() + firstName.slice(1)}1234@`;
+}
+
+// ====================== API Routes ======================
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+    res.json({
+        status: 'ok',
+        mongodb_state: mongoose.connection.readyState,
+        mongodb_status: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+        message: 'API is working!',
+        timestamp: new Date().toISOString()
+    });
+});
+
+// ====================== الأدمنز ======================
+
+app.get('/api/admins', async (req, res) => {
+    try {
+        const admins = await Admin.find().select('-password');
+        res.json(admins);
+    } catch (error) {
+        console.error('Error fetching admins:', error);
+        res.status(500).json({ error: 'خطأ في جلب الأدمنز' });
+    }
+});
+
+app.get('/api/admins/:username', async (req, res) => {
+    try {
+        const admin = await Admin.findOne({ username: req.params.username }).select('-password');
+        if (!admin) {
+            return res.status(404).json({ error: 'الأدمن غير موجود' });
+        }
+        res.json(admin);
+    } catch (error) {
+        console.error('Error fetching admin:', error);
+        res.status(500).json({ error: 'فشل في جلب البيانات' });
+    }
+});
+
+app.post('/api/admins', async (req, res) => {
+    try {
+        const { fullName, username, password } = req.body;
+
+        const existingAdmin = await Admin.findOne({ username });
+        if (existingAdmin) {
+            return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
+        }
+
+        const hashedPassword = hashPassword(password);
+        const newAdmin = new Admin({ fullName, username, password: hashedPassword });
+        await newAdmin.save();
+
+        res.json({ message: 'تم إضافة الأدمن', admin: { fullName, username } });
+    } catch (error) {
+        console.error('Error adding admin:', error);
+        res.status(500).json({ error: 'خطأ في إضافة الأدمن' });
+    }
+});
+
+app.put('/api/admins/:username', async (req, res) => {
+    try {
+        const { profile } = req.body;
+        const updated = await Admin.findOneAndUpdate(
+            { username: req.params.username },
+            { profile: profile || {} },
+            { new: true }
+        );
+        if (!updated) return res.status(404).json({ error: 'الأدمن غير موجود' });
+        res.json({ message: 'تم تحديث بيانات الأدمن', admin: updated });
+    } catch (error) {
+        res.status(500).json({ error: 'فشل في التحديث' });
+    }
+});
+
+app.delete('/api/admins/:username', async (req, res) => {
+    try {
+        const admins = await Admin.find();
+        if (admins.length <= 1) {
+            return res.status(400).json({ error: 'لا يمكن حذف آخر أدمن' });
+        }
+        await Admin.deleteOne({ username: req.params.username });
+        res.json({ message: 'تم حذف الأدمن' });
+    } catch (error) {
+        console.error('Error deleting admin:', error);
+        res.status(500).json({ error: 'خطأ في حذف الأدمن' });
+    }
+});
+
+// ====================== الطلاب ======================
+
+app.get('/api/students', async (req, res) => {
+    try {
+        const students = await Student.find().select('-password');
+        res.json(students);
+    } catch (error) {
+        console.error('Error fetching students:', error);
+        res.status(500).json({ error: 'خطأ في جلب الطلاب' });
+    }
+});
+
+app.get('/api/students/:username', async (req, res) => {
+    try {
+        const student = await Student.findOne({ username: req.params.username }).select('-password');
+        if (!student) {
+            return res.status(404).json({ error: 'الطالب غير موجود' });
+        }
+        res.json(student);
+    } catch (error) {
+        console.error('Error fetching student:', error);
+        res.status(500).json({ error: 'فشل في جلب البيانات' });
+    }
+});
+
+app.post('/api/students', async (req, res) => {
+    try {
+        const { fullName, id, subjects, semester } = req.body;
+        const existingAdmins = await Admin.find();
+        const existingStudents = await Student.find();
+        const username = generateUniqueUsername(fullName, id, [...existingAdmins, ...existingStudents]);
+        const originalPassword = generatePassword(fullName);
+        const hashedPassword = hashPassword(originalPassword);
+        
+        const newStudent = new Student({
+            fullName,
+            studentCode: id,
+            username,
+            password: hashedPassword,
+            semester: semester || 'first',
+            subjects: subjects || [],
+            profile: { phone: '', parentName: '', parentId: '' }
+        });
+        await newStudent.save();
+        res.json({ message: 'تم إضافة الطالب', student: { fullName, username, studentCode: id, password: originalPassword } });
+    } catch (error) {
+        console.error('Error adding student:', error);
+        res.status(500).json({ error: 'خطأ في إضافة الطالب' });
+    }
+});
+
+app.put('/api/students/:studentCode', async (req, res) => {
+    try {
+        const { fullName, username, studentCode, password, profile, subjects, semester } = req.body;
+        
+        const updateData = {};
+        if (fullName !== undefined) updateData.fullName = fullName;
+        if (username !== undefined) updateData.username = username;
+        if (studentCode !== undefined) updateData.studentCode = studentCode;
+        if (profile !== undefined) updateData.profile = profile;
+        if (subjects !== undefined) updateData.subjects = subjects;
+        if (semester !== undefined) updateData.semester = semester;
+        
+        if (password && password !== '********') {
+            updateData.password = hashPassword(password);
+        }
+        
+        const updated = await Student.findOneAndUpdate(
+            { studentCode: req.params.studentCode },
+            updateData,
+            { new: true, runValidators: true }
+        );
+        
+        if (!updated) {
+            return res.status(404).json({ error: 'الطالب غير موجود' });
+        }
+        
+        const studentWithoutPassword = updated.toObject();
+        delete studentWithoutPassword.password;
+        
+        res.json({ message: 'تم تحديث الطالب', student: studentWithoutPassword });
+    } catch (error) {
+        console.error('Error updating student:', error);
+        res.status(500).json({ error: 'فشل في التحديث: ' + error.message });
+    }
+});
+
+app.delete('/api/students/:studentCode', async (req, res) => {
+    try {
+        const student = await Student.findOneAndDelete({ studentCode: req.params.studentCode });
+        if (!student) {
+            return res.status(404).json({ error: 'الطالب غير موجود' });
+        }
+        await Violation.deleteMany({ studentId: req.params.studentCode });
+        res.json({ message: 'تم حذف الطالب' });
+    } catch (error) {
+        console.error('Error deleting student:', error);
+        res.status(500).json({ error: 'خطأ في حذف الطالب' });
+    }
+});
+
+// ====================== تسجيل الدخول ======================
+app.post('/api/login', async (req, res) => {
+    try {
+        console.log('📥 Login request:', req.body.username);
+        const { username, password } = req.body;
+
+        if (!username || !password) {
+            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+        }
+
+        let user = await Admin.findOne({ username: username.toLowerCase() });
+        let userType = 'admin';
+
+        if (!user) {
+            user = await Student.findOne({ username: username.toLowerCase() });
+            userType = 'student';
+        }
+
+        if (!user) {
+            console.log('❌ User not found:', username);
+            return res.status(401).json({ error: 'بيانات غير صحيحة' });
+        }
+
+        const hashedInputPassword = hashPassword(password);
+        const isMatch = (hashedInputPassword === user.password);
+        
+        if (!isMatch) {
+            console.log('❌ Password incorrect for:', username);
+            return res.status(401).json({ error: 'بيانات غير صحيحة' });
+        }
+
+        console.log('✅ Login successful:', username);
+        
+        res.json({
+            success: true,
+            user: {
+                username: user.username,
+                fullName: user.fullName,
+                type: userType,
+                ...(user.studentCode && { id: user.studentCode })
+            }
+        });
+
+    } catch (error) {
+        console.error('🔥 Login error:', error);
+        res.status(500).json({ error: 'خطأ في السيرفر: ' + error.message });
+    }
+});
+
+// ====================== تسجيل طالب جديد ======================
+app.post('/api/register-student', async (req, res) => {
+    try {
+        const { fullName, username, password, studentCode, phone, parentName, parentId } = req.body;
+
+        if (!fullName || !username || !password || !studentCode) {
+            return res.status(400).json({ error: 'البيانات ناقصة' });
+        }
+
+        const existingUser = await Student.findOne({ $or: [{ username }, { studentCode }] });
+        if (existingUser) {
+            return res.status(400).json({ error: 'المستخدم أو الكود موجود مسبقاً' });
+        }
+
+        const hashedPassword = hashPassword(password);
+        
+        const student = new Student({
+            fullName,
+            username: username.toLowerCase(),
+            studentCode,
+            password: hashedPassword,
+            profile: { phone, parentName, parentId }
+        });
+
+        await student.save();
+        res.json({ success: true, message: 'تم التسجيل بنجاح', username });
+
+    } catch (error) {
+        console.error('Register error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ====================== التحقق من اسم المستخدم ======================
+app.post('/api/check-username', async (req, res) => {
+    try {
+        const { username } = req.body;
+        if (!username) {
+            return res.status(400).json({ error: 'اسم المستخدم مطلوب' });
+        }
+
+        const [existingAdmins, existingStudents] = await Promise.all([
+            Admin.findOne({ username }).lean(),
+            Student.findOne({ username }).lean()
+        ]);
+
+        const isAvailable = !existingAdmins && !existingStudents;
+        res.json({ available: isAvailable });
+    } catch (error) {
+        console.error('Error checking username:', error);
+        res.status(500).json({ error: 'خطأ في التحقق من اسم المستخدم' });
+    }
+});
+
+// ====================== المخالفات ======================
+app.get('/api/violations', async (req, res) => {
+    try {
+        const violations = await Violation.find();
+        res.json(violations);
+    } catch (error) {
+        console.error('Error fetching violations:', error);
+        res.status(500).json({ error: 'خطأ في جلب المخالفات' });
+    }
+});
+
+app.post('/api/violations', async (req, res) => {
+    try {
+        const newViolation = new Violation(req.body);
+        await newViolation.save();
+        res.json({ message: 'تم إضافة المخالفة', violation: newViolation });
+    } catch (error) {
+        console.error('Error adding violation:', error);
+        res.status(500).json({ error: 'خطأ في إضافة المخالفة' });
+    }
+});
+
+app.delete('/api/violations/:id', async (req, res) => {
+    try {
+        await Violation.findByIdAndDelete(req.params.id);
+        res.json({ message: 'تم حذف المخالفة' });
+    } catch (error) {
+        console.error('Error deleting violation:', error);
+        res.status(500).json({ error: 'خطأ في حذف المخالفة' });
+    }
+});
+
+// ====================== الإشعارات ======================
+app.get('/api/notifications', async (req, res) => {
+    try {
+        const notifications = await Notification.find();
+        res.json(notifications);
+    } catch (error) {
+        console.error('Error fetching notifications:', error);
+        res.status(500).json({ error: 'خطأ في جلب الإشعارات' });
+    }
+});
+
+app.post('/api/notifications', async (req, res) => {
+    try {
+        const newNotification = new Notification(req.body);
+        await newNotification.save();
+        res.json({ message: 'تم إضافة الإشعار', notification: newNotification });
+    } catch (error) {
+        console.error('Error adding notification:', error);
+        res.status(500).json({ error: 'خطأ في إضافة الإشعار' });
+    }
+});
+
+app.delete('/api/notifications/:id', async (req, res) => {
+    try {
+        await Notification.findByIdAndDelete(req.params.id);
+        res.json({ message: 'تم حذف الإشعار' });
+    } catch (error) {
+        console.error('Error deleting notification:', error);
+        res.status(500).json({ error: 'خطأ في حذف الإشعار' });
+    }
+});
+
+// ====================== الاختبارات (Exams) ======================
 app.post('/api/exams/check-code', async (req, res) => {
     try {
         const { code } = req.body;
@@ -588,7 +515,7 @@ app.post('/api/exams', async (req, res) => {
         res.json({ message: 'تم حفظ الاختبار', code });
     } catch (error) {
         if (error.code === 11000) {
-            res.status(400).json({ error: 'كود الاختبار مستخدم مسبقًا' });
+            res.status(400).json({ error: 'كود الاختبار مستخدم مسبقاً' });
         } else {
             res.status(500).json({ error: `فشل في حفظ الاختبار: ${error.message}` });
         }
@@ -620,158 +547,46 @@ app.post('/api/exams/submit', async (req, res) => {
 app.get('/api/exams/:code/results', async (req, res) => {
     try {
         const code = decodeURIComponent(req.params.code);
-        const results = await ExamResult.find({ examCode: code }).select('studentId score completionTime');
+        const results = await ExamResult.find({ examCode: code });
         res.json(results);
     } catch (error) {
         res.status(500).json({ error: `فشل في جلب نتائج الاختبار: ${error.message}` });
     }
 });
 
-app.post('/api/register-student', async (req, res) => {
+// ====================== تحليل PDF ======================
+app.post('/api/analyze-pdf', async (req, res) => {
     try {
-        const { fullName, username, parentName, parentId, password } = req.body;
-
-        if (!fullName || !username || !parentName || !parentId || !password) {
-            return res.status(400).json({ error: 'جميع الحقول مطلوبة' });
+        const { pdfData } = req.body;
+        if (!pdfData) {
+            return res.status(400).json({ error: 'بيانات PDF غير صالحة' });
         }
 
-        // التحقق من الـ Whitelist (الأهم)
-        if (!isAllowedUsername(username)) {
-            return res.status(403).json({ 
-                error: 'اسم المستخدم غير مسموح به. تواصل مع الإدارة للحصول على اسم مستخدم صالح.' 
-            });
-        }
-
-        if (!/^\d{14}$/.test(parentId)) {
-            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر يجب أن يكون 14 رقم بالظبط' });
-        }
-
-        if (!/^[a-zA-Z0-9]{3,20}$/.test(username)) {
-            return res.status(400).json({ error: 'اسم المستخدم: 3-20 حرف (أحرف وأرقام فقط)' });
-        }
-
-        const [existingUsernameCheck, existingParentId] = await Promise.all([
-            Promise.all([
-                Admin.findOne({ username }).lean(),
-                Student.findOne({ username }).lean()
-            ]),
-            Student.findOne({ 'profile.parentId': parentId }).lean()
-        ]);
-
-        if (existingUsernameCheck.some(u => u)) {
-            return res.status(400).json({ error: 'اسم المستخدم مستخدم من قبل' });
-        }
-
-        if (existingParentId) {
-            return res.status(400).json({ error: 'رقم بطاقة ولي الأمر مستخدم من قبل' });
-        }
-
-        const hashedPassword = crypto.createHash('sha256').update(password).digest('hex');
-
-        const student = new Student({
-            fullName,
-            username,
-            password: hashedPassword,
-            originalPassword: password,
-            subjects: [],
-            profile: {
-                phone: '',
-                parentName,
-                parentId
-            }
+        const buffer = Buffer.from(pdfData, 'base64');
+        const data = await pdfParse(buffer);
+        
+        res.json({ 
+            message: 'تم تحليل PDF بنجاح', 
+            text: data.text.substring(0, 500),
+            pageCount: data.numpages 
         });
-
-        await student.save();
-
-        console.log(`✅ Student registered: ${username} - ${fullName}`);
-        res.json({ message: 'تم إنشاء الحساب بنجاح', username });
-
     } catch (error) {
-        console.error('Error in register-student:', error);
-        res.status(500).json({ error: 'خطأ في إنشاء الحساب: ' + error.message });
-    }
-});
-// ====================================================
-// الـ Routes اللي ناقصة عشان البروفايل يشتغل 100%
-// ====================================================
-
-// تحديث ملف الطالب الشخصي (الأهم على الإطلاق)
-// ==================== إضافة الـ GET routes المفقودة (الحل النهائي) ====================
-
-// جلب بيانات طالب واحد بالـ username
-app.get('/api/students/:username', async (req, res) => {
-    try {
-        const student = await Student.findOne({ username: req.params.username });
-        if (!student) {
-            return res.status(404).json({ error: 'الطالب غير موجود' });
-        }
-        res.json(student);
-    } catch (error) {
-        console.error('خطأ في جلب بيانات الطالب:', error);
-        res.status(500).json({ error: 'فشل في جلب البيانات' });
+        console.error('PDF analysis error:', error);
+        res.status(500).json({ error: 'خطأ في تحليل الملف: ' + error.message });
     }
 });
 
-// تحديث profile للطالب
-app.put('/api/students/:username', async (req, res) => {
-    try {
-        const { profile } = req.body;
-        const updated = await Student.findOneAndUpdate(
-            { username: req.params.username },
-            { profile },
-            { new: true }
-        );
-        if (!updated) return res.status(404).json({ error: 'الطالب غير موجود' });
-        res.json({ message: 'تم تحديث الملف الشخصي', student: updated });
-    } catch (error) {
-        console.error('خطأ في تحديث profile الطالب:', error);
-        res.status(500).json({ error: 'فشل في التحديث' });
-    }
-});
-
-// تحديث profile للأدمن (اختياري - لو عايز الأدمن يعدل حاجة)
-app.put('/api/admins/:username', async (req, res) => {
-    try {
-        const { profile } = req.body;
-        const updated = await Admin.findOneAndUpdate(
-            { username: req.params.username },
-            { profile: profile || {} },
-            { new: true, upsert: true }
-        );
-        res.json({ message: 'تم تحديث بيانات الأدمن', admin: updated });
-    } catch (error) {
-        res.status(500).json({ error: 'فشل في التحديث' });
-    }
-});
-// جلب بيانات أدمن واحد بالـ username
-app.get('/api/admins/:username', async (req, res) => {
-    try {
-        const admin = await Admin.findOne({ username: req.params.username });
-        if (!admin) {
-            return res.status(404).json({ error: 'الأدمن غير موجود' });
-        }
-        res.json(admin);
-    } catch (error) {
-        console.error('خطأ في جلب بيانات الأدمن:', error);
-        res.status(500).json({ error: 'فشل في جلب البيانات' });
-    }
-});
-
-// ════════════════════════════════════════════════════
-// نور 3.0 – شغالة بـ Gemini 1.5 Flash (مضمونة 100%)
-// ════════════════════════════════════════════════════
+// ====================== نور AI ======================
 app.post('/api/nour', async (req, res) => {
     try {
         const { prompt } = req.body;
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-        if (!prompt || prompt.toString().trim() === '') {
+        if (!prompt || prompt.trim() === '') {
             return res.json({ reply: "اكتب حاجة الأول يا وحش!" });
         }
 
-        const GEMINI_API_KEY = process.env.GEMINI_API_KEY?.trim();
-
         if (!GEMINI_API_KEY) {
-            console.error("GEMINI_API_KEY مش موجود في الـ Environment");
             return res.json({ reply: "نور نايمة دلوقتي يا بطل… كلمني بعد شوية" });
         }
 
@@ -783,50 +598,57 @@ app.post('/api/nour', async (req, res) => {
                 body: JSON.stringify({
                     contents: [{
                         role: "user",
-                        parts: [{ text: `أنت نور، مساعد ذكي مصري خفيف الدم ومرح جدًا وبتحب التمريض أوي.
-بترد دايمًا بالعامية المصرية الحلوة وبتقول يا وحش، يا بطل، يا أسطورة، يا دكتور.
-لو سألوك عن الدرجات قولهم يروحوا قسم "النتايج".
-السؤال: ${prompt}` }]
+                        parts: [{ text: `أنت نور، مساعد ذكي مصري خفيف الدم. السؤال: ${prompt}` }]
                     }],
                     generationConfig: { temperature: 0.9, maxOutputTokens: 1000 }
                 })
             }
         );
 
-        if (!response.ok) {
-            const err = await response.text();
-            console.error("Gemini Error:", err);
-            return res.json({ reply: "ثانية يا بطل… في حاجة حصلت، جرب تاني" });
-        }
+        const result = await response.json();
+        const reply = result.candidates?.[0]?.content?.parts?.[0]?.text || "معلش يا وحش… جرب تاني";
 
-        const data = await response.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() 
-                      || "معلش يا وحش… الكلام اتلخبط، قول تاني";
-
-        res.json({ reply: reply.replace(/^\*\*|\*\*$/g, "").trim() });
-
+        res.json({ reply: reply.trim() });
     } catch (err) {
-        console.error("خطأ في /api/nour:", err.message);
-        res.json({ reply: "النت وقع يا أسطورة… جرب تاني بعد شوية" });
+        console.error("Nour error:", err.message);
+        res.json({ reply: "النت وقع يا أسطورة… جرب تاني" });
     }
 });
 
-// === Vercel Serverless Handler ===
-module.exports.handler = serverless(app);
+// ====================== إنشاء مدير تجريبي ======================
+app.post('/api/create-test-admin', async (req, res) => {
+    try {
+        const hashedPassword = hashPassword('admin123');
+        
+        const existingAdmin = await Admin.findOne({ username: 'admin' });
+        if (existingAdmin) {
+            return res.json({ message: 'المدير موجود مسبقاً', username: 'admin', password: 'admin123' });
+        }
+        
+        const admin = new Admin({
+            fullName: 'مدير النظام',
+            username: 'admin',
+            password: hashedPassword,
+            profile: { phone: '', email: '' }
+        });
+        
+        await admin.save();
+        res.json({ message: 'تم إنشاء المدير بنجاح', username: 'admin', password: 'admin123' });
+    } catch (error) {
+        console.error('Error creating admin:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 
+// ====================== Error Handling ======================
+app.use((err, req, res, next) => {
+    console.error('❌ Unhandled Error:', err);
+    res.status(500).json({
+        error: 'حدث خطأ داخلي في السيرفر',
+        details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+});
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// ====================== التصدير لـ Vercel (مهم جداً) ======================
+// تصدير الـ app مباشرة لـ Vercel بدون server.listen
+module.exports = app;
